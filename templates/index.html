@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Micro SaaS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Dados da Planilha</h1>
+    {% if dados and dados|length > 0 %}
+  <table>
+    <thead>
+      <tr>
+        {% for chave in dados[0].keys() %}
+          <th>{{ chave }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in dados %}
+        <tr>
+          {% for valor in linha.values() %}
+            <td>{{ valor }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Nenhum dado encontrado na planilha.</p>
+{% endif %}
+</body>
+</html>

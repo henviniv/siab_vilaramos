@@ -1,32 +1,46 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Micro SaaS</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>Dados da Planilha</h1>
+  <head>
+    <title>SIAB MICRO 23</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <h1>Gerenciar Pessoas na Planilha</h1>
+
+    <!-- Formulário para adicionar ou editar pessoa -->
+    <form action="{{ url_for('main.manage_person') }}" method="POST">
+      {% for chave in dados[0].keys() %}
+      <label for="{{ chave }}">{{ chave }}:</label>
+      <input type="text" name="{{ chave }}" required />
+      {% endfor %}
+      <button type="submit">Salvar</button>
+    </form>
+
+    <!-- Tabela mostrando os dados da planilha -->
     {% if dados and dados|length > 0 %}
-  <table>
-    <thead>
-      <tr>
-        {% for chave in dados[0].keys() %}
-          <th>{{ chave }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for linha in dados %}
+    <table>
+      <thead>
         <tr>
-          {% for valor in linha.values() %}
-            <td>{{ valor }}</td>
+          {% for chave in dados[0].keys() %}
+          <th>{{ chave }}</th>
           {% endfor %}
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <p>Nenhum dado encontrado na planilha.</p>
-{% endif %}
-</body>
+      </thead>
+      <tbody>
+        {% for linha in dados %}
+        <tr>
+          {% for valor in linha.values() %}
+          <td>{{ valor }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>Nenhum dado encontrado na planilha.</p>
+    {% endif %}
+  </body>
 </html>

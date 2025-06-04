@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "siab-vila-ramos",
+  "private_key_id": "7af1a2c712ad94d907dba9e11731ba6dbb4da21e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCw9zLc2KZ6P5t0\nPppERnf251p4+cHfPnETGP8fGPIxxOwGop12i1Im5LMvK3E6YZ1UyOc8R5Cztsko\n9UNJnClINVcujgme/5I85tstx3TRJu0Blwu/nqqCBeME+KXt9ik2WtOw/iOI8ljW\n2tPGLaatZ78VQTWFfpsOnx+zfCIhGt2w64PTTsEJHhQb2QefuY31IBjN2PFtAZZv\nw0paxqf1B/DwqgBG92QoF4OEHN1zbgoIs+tVYuRB+wVz68WvimSJiU5ZaDlqamgw\nkvlurmS5OenFxvXQzBY/OUxGeV8ffpktaR8NB1YVz/+aHplkG40silLa9EsYhU75\nBSanGfSfAgMBAAECggEAQNhMCHXQxuHw5i8cWyFRSyVqVwL54gJg78UMkwoSkV8d\nt661sV8K2tqZuBKcmm5zdsJpTQLSSLAVVQ9OOTZiQCXfjN0aNGtk3DEhpkw8h3lS\nhm8hLHWI+D0M+2DbeG9nmZW9lVECl2dqW0xzJl7LASaPc8vhv0ltqvVu6dd2MBeq\nLLIBk9BuQYpzNbwvCheOAJwGz+8fznYuwaz5i93dsLgM1VpsAS+/mqoNfR/PvUrL\n5yPy/VGU+RtQLvL8geZQ/fhTkXwKIgz2awoJRoInv+7L1x7dGAh4/5t7J5Uj9QQ6\nu4GxtHUWCqV+paiTOzXc7MBQ3CnXOCMgZLG137EahQKBgQDltNca+i9G9/+hadbq\nSsmvQb3KbdrbF2HBzcoF5Wg1llF06tbk9Pq7priQEUFVt1rca37v4pdALQdgjIoi\nHNa+X8Z1/opQqIVDnoS/473kOtpJER+U0it027WcnldE4Q/xqH6s972tIT0KRU0c\nEqTAO8r9ICxof/fvK2hljHBGYwKBgQDFOODeqrgKNvn+Imvl/dpEFqAE34WAZGOM\nzjziA1JJxQQ2g4b9J+9bQyU+23J4RVoCCoS8PbeqeHuz7pSglYX0hf1wTBMaPGKp\nehTJwlYIUeoiFviN4XBl3HXQfVWnqoUFrw0W0GM5JKKi6lzpFFOgLUoimnevJl9I\nz5wpdUkflQKBgQCWdzPkHvezBCY15G97/0tHesfIftc6ZoGJgrSP0irF11Y6QM5N\nIc/P9bC15iem7zkcY2m91u5+gkBv1P9ywvNDttb4WajeltTca0zHqXWst4RfElFe\nmaEPpg+7rNi7bLWV9WotAQcFDl2+iZCuD+RNa51W26lbNmABEa0Lv8eXwwKBgBIp\nSbPXfrkaFO1NGCiGttm8R6ILP0zycaRevYaGjcZTSS8H759SVR1PUpe2N5VRtZco\nhs6a1FXzYFjSaIddHYfF6u+zYbLxypgWsOFfbvK3MFtRSDQwhVwr8AFx+ThGYJeE\nZi0qpWh2si9Ua5ffElBWu1Pya4EKhI286IF81m39AoGBAKzXI2QraCB4TxzEeUyW\nUZK5byvWTqt/FawywYvAk+r0hQTRrbzQTZh5Z9yptMqsRNBKxwg7iqVQYfyD69Yd\nJPkDScKjBQ0pzERsDT4VD0hEiXM5Kn3y/9lwoxxY2zjiGvUVSl1Nbgu07BESCtr1\nDmZMwEUxiITpQZQtugwr+3V+\n-----END PRIVATE KEY-----\n",
+  "client_email": "siab-api-access@siab-vila-ramos.iam.gserviceaccount.com",
+  "client_id": "100140733464423551717",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/siab-api-access%40siab-vila-ramos.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -18,7 +18,6 @@
     </form>
 
     <!-- Formulário para adicionar ou editar pessoa -->
-    {% if dados and dados[0] %}
     <form action="{{ url_for('main.manage_person') }}" method="POST">
       {% for chave in dados[0].keys() %}
       <label for="{{ chave }}">{{ chave }}:</label>
@@ -26,12 +25,6 @@
       {% endfor %}
       <button type="submit">Salvar</button>
     </form>
-    {% else %}
-    <p>
-      Formulário indisponível: a planilha não tem estrutura válida ou está
-      vazia.
-    </p>
-    {% endif %}
 
     <!-- Exibição da tabela de dados -->
     {% if dados and dados|length > 0 %}

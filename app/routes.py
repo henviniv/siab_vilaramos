@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from app.google_sheets import get_sheet
 
-bp = Blueprint('main', __name__)
+bp = Blueprint('main', __name__, template_folder='templates')
 
 @bp.route('/')
 def index():

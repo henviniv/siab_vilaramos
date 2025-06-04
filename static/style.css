@@ -8,29 +8,28 @@ body {
   padding: 0;
 }
 
-/* Estilização do título */
 h1 {
   color: #007bff;
   font-size: 28px;
   margin-bottom: 20px;
 }
 
-/* Formulário de busca e atualização */
-form {
+/* Formulário de pesquisa */
+form.search-form {
   background: #fff;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   display: inline-block;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-form label {
+form.search-form label {
   font-weight: bold;
   margin-right: 10px;
 }
 
-form input {
+form.search-form input {
   padding: 10px;
   width: 200px;
   margin-right: 10px;
@@ -38,7 +37,7 @@ form input {
   border-radius: 5px;
 }
 
-form button {
+form.search-form button {
   padding: 10px 15px;
   background-color: #007bff;
   color: #fff;
@@ -48,11 +47,86 @@ form button {
   border-radius: 5px;
 }
 
-form button:hover {
+form.search-form button:hover {
   background-color: #0056b3;
 }
 
-/* Estilização da tabela */
+/* Botão para exibir o formulário */
+#mostrarCadastro {
+  margin: 15px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#mostrarCadastro:hover {
+  background-color: #218838;
+}
+
+/* Formulário de cadastro (animado) */
+form.data-form {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+  background: #fff;
+  padding: 0 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Quando visível, aplica rolagem se necessário */
+form.data-form.show {
+  max-height: 500px; /* altura máxima visível */
+  overflow-y: auto;
+  opacity: 1;
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+form.data-form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+form.data-form input[type="text"] {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+form.data-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+form.data-form button:hover {
+  background-color: #0056b3;
+}
+
+/* Tabela de dados */
 table {
   width: 90%;
   margin: 20px auto;
@@ -67,6 +141,7 @@ table th,
 table td {
   padding: 12px;
   border-bottom: 1px solid #ddd;
+  text-align: left;
 }
 
 table th {
@@ -82,4 +157,20 @@ table tr:nth-child(even) {
 table tr:hover {
   background-color: #f1f1f1;
   cursor: pointer;
+}
+
+form.data-form button[type="button"] {
+  width: 100%;
+  padding: 12px;
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+form.data-form button[type="button"]:hover {
+  background-color: #c82333;
 }

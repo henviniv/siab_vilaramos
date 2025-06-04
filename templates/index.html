@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>SIAB MICRO 23</title>
+    <title>Micro SaaS</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -9,6 +9,13 @@
   </head>
   <body>
     <h1>Gerenciar Pessoas na Planilha</h1>
+
+    <!-- Formulário de pesquisa -->
+    <form action="{{ url_for('main.index') }}" method="GET">
+      <label for="query">Buscar por Nome, SUS ou CPF:</label>
+      <input type="text" name="query" />
+      <button type="submit">Pesquisar</button>
+    </form>
 
     <!-- Formulário para adicionar ou editar pessoa -->
     <form action="{{ url_for('main.manage_person') }}" method="POST">
@@ -19,7 +26,7 @@
       <button type="submit">Salvar</button>
     </form>
 
-    <!-- Tabela mostrando os dados da planilha -->
+    <!-- Exibição da tabela de dados -->
     {% if dados and dados|length > 0 %}
     <table>
       <thead>

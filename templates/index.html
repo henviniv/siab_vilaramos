@@ -13,20 +13,19 @@
         padding: 0;
       }
 
-      /* Estilização do título */
       h1 {
         color: #007bff;
         font-size: 28px;
         margin-bottom: 20px;
       }
 
-      /* Formulário de pesquisa (mantido horizontal e compacto) */
+      /* Formulário de pesquisa */
       form.search-form {
         background: #fff;
         padding: 15px;
         border-radius: 8px;
         display: inline-block;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
@@ -57,16 +56,43 @@
         background-color: #0056b3;
       }
 
-      /* Formulário de cadastro/edição (vertical e alinhado) */
+      /* Botão para exibir o formulário */
+      #mostrarCadastro {
+        margin: 15px;
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      #mostrarCadastro:hover {
+        background-color: #218838;
+      }
+
+      /* Formulário de cadastro (animado) */
       form.data-form {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.5s ease, opacity 0.5s ease;
         background: #fff;
-        padding: 20px;
+        padding: 0 20px;
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        display: inline-block;
         text-align: left;
         width: 90%;
         max-width: 600px;
+        margin: 0 auto;
+      }
+
+      form.data-form.show {
+        max-height: 1000px; /* suficiente para o conteúdo */
+        opacity: 1;
+        padding: 20px;
+        margin-top: 20px;
         margin-bottom: 20px;
       }
 
@@ -103,7 +129,7 @@
         background-color: #0056b3;
       }
 
-      /* Estilização da tabela */
+      /* Tabela de dados */
       table {
         width: 90%;
         margin: 20px auto;
@@ -136,6 +162,33 @@
         cursor: pointer;
       }
     </style>
+
+    <script>
+      function mostrarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.classList.add("show");
+        document.getElementById("mostrarCadastro").style.display = "none";
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("formCadastro");
+
+        form.addEventListener("submit", function (e) {
+          // Permitir envio, mas esperar um tempo para ocultar/limpar
+          setTimeout(() => {
+            // Limpar campos
+            form.reset();
+
+            // Esconder o formulário
+            form.classList.remove("show");
+
+            // Mostrar o botão novamente
+            document.getElementById("mostrarCadastro").style.display =
+              "inline-block";
+          }, 500); // espera meio segundo (tempo suficiente para o envio ocorrer)
+        });
+      });
+    </script>
   </head>
   <body>
     <h1>Gerenciar Pessoas na Planilha</h1>
@@ -147,8 +200,14 @@
       <button type="submit">Pesquisar</button>
     </form>
 
-    <!-- Formulário para adicionar ou editar pessoa -->
+    <!-- Botão para exibir formulário -->
+    <button id="mostrarCadastro" onclick="mostrarFormulario()">
+      Cadastrar nova pessoa
+    </button>
+
+    <!-- Formulário de cadastro (inicialmente oculto com animação) -->
     <form
+      id="formCadastro"
       action="{{ url_for('main.manage_person') }}"
       method="POST"
       class="data-form"
@@ -160,7 +219,7 @@
       <button type="submit">Salvar</button>
     </form>
 
-    <!-- Exibição da tabela de dados -->
+    <!-- Tabela de dados -->
     {% if dados and dados|length > 0 %}
     <table>
       <thead>

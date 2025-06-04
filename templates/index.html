@@ -230,6 +230,21 @@
         });
       });
     </script>
+    <script>
+      function editPerson(cpf) {
+        console.log("Editando:", cpf); // Teste no console
+        if (cpf) {
+          window.location.href = `/edit?cpf=${cpf}`;
+        }
+      }
+
+      function deletePerson(cpf) {
+        console.log("Excluindo:", cpf); // Teste no console
+        if (cpf && confirm("Tem certeza que deseja excluir este registro?")) {
+          window.location.href = `/delete?cpf=${cpf}`;
+        }
+      }
+    </script>
   </head>
   <body>
     <h1>Gerenciar Pessoas na Planilha</h1>
@@ -292,9 +307,13 @@
               class="action-buttons"
               style="display: none"
             >
-              <button onclick="editPerson('{{ cpf }}')">✏️ Editar</button>
               <button
-                onclick="deletePerson('{{ cpf }}')"
+                onclick="console.log('Editar:', '{{ cpf }}'); editPerson('{{ cpf }}')"
+              >
+                ✏️ Editar
+              </button>
+              <button
+                onclick="console.log('Excluir:', '{{ cpf }}'); deletePerson('{{ cpf }}')"
                 style="background-color: #dc3545"
               >
                 🗑️ Excluir

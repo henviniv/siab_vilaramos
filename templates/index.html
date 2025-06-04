@@ -20,22 +20,22 @@
         margin-bottom: 20px;
       }
 
-      /* Formulário de busca e atualização */
-      form {
+      /* Formulário de pesquisa (mantido horizontal e compacto) */
+      form.search-form {
         background: #fff;
-        padding: 20px;
+        padding: 15px;
         border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         display: inline-block;
         margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
-      form label {
+      form.search-form label {
         font-weight: bold;
         margin-right: 10px;
       }
 
-      form input {
+      form.search-form input {
         padding: 10px;
         width: 200px;
         margin-right: 10px;
@@ -43,7 +43,7 @@
         border-radius: 5px;
       }
 
-      form button {
+      form.search-form button {
         padding: 10px 15px;
         background-color: #007bff;
         color: #fff;
@@ -53,7 +53,53 @@
         border-radius: 5px;
       }
 
-      form button:hover {
+      form.search-form button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Formulário de cadastro/edição (vertical e alinhado) */
+      form.data-form {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        text-align: left;
+        width: 90%;
+        max-width: 600px;
+        margin-bottom: 20px;
+      }
+
+      form.data-form label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+      }
+
+      form.data-form input[type="text"] {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+
+      form.data-form button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 5px;
+        font-size: 16px;
+        margin-top: 10px;
+      }
+
+      form.data-form button:hover {
         background-color: #0056b3;
       }
 
@@ -72,6 +118,7 @@
       table td {
         padding: 12px;
         border-bottom: 1px solid #ddd;
+        text-align: left;
       }
 
       table th {
@@ -94,14 +141,18 @@
     <h1>Gerenciar Pessoas na Planilha</h1>
 
     <!-- Formulário de pesquisa -->
-    <form action="{{ url_for('main.index') }}" method="GET">
+    <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
       <label for="query">Buscar por Nome, SUS ou CPF:</label>
       <input type="text" name="query" />
       <button type="submit">Pesquisar</button>
     </form>
 
     <!-- Formulário para adicionar ou editar pessoa -->
-    <form action="{{ url_for('main.manage_person') }}" method="POST">
+    <form
+      action="{{ url_for('main.manage_person') }}"
+      method="POST"
+      class="data-form"
+    >
       {% for chave in dados[0].keys() %}
       <label for="{{ chave }}">{{ chave }}:</label>
       <input type="text" name="{{ chave }}" required />

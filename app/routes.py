@@ -3,15 +3,24 @@ from app.google_sheets import get_sheet
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
-@bp.route('/')
+@bp.route('/', methods=['GET', 'POST'])
 def index():
     try:
         sheet = get_sheet()
         dados = sheet.get_all_records()
-        return render_template('index.html', dados=dados)
+        query = request.args.get("query", "").strip().lower()
+        
+        # Filtrar resultados se houver busca
+        if query:
+            dados = [linha for linha in dados if query in str(linha.get("NOME", "")).lower() 
+                      or query in str(linha.get("SUS", "")).lower()
+                      or query in str(linha.get("CPF", ""))]
+
+        return render_template("index.html", dados=dados)
+
     except Exception as e:
         print(f"Erro ao acessar Google Sheets: {e}")
-        return render_template('index.html', dados=[])
+        return render_template("index.html", dados=[])
 
 @bp.route('/manage_person', methods=['POST'])
 def manage_person():

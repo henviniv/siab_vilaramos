@@ -163,6 +163,22 @@
         background-color: #f1f1f1;
         cursor: pointer;
       }
+
+      form.data-form button[type="button"] {
+        width: 100%;
+        padding: 12px;
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      form.data-form button[type="button"]:hover {
+        background-color: #c82333;
+      }
     </style>
 
     <script>
@@ -172,22 +188,24 @@
         document.getElementById("mostrarCadastro").style.display = "none";
       }
 
+      function cancelarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.remove("show");
+        document.getElementById("mostrarCadastro").style.display =
+          "inline-block";
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
 
         form.addEventListener("submit", function (e) {
-          // Permitir envio, mas esperar um tempo para ocultar/limpar
           setTimeout(() => {
-            // Limpar campos
             form.reset();
-
-            // Esconder o formulário
             form.classList.remove("show");
-
-            // Mostrar o botão novamente
             document.getElementById("mostrarCadastro").style.display =
               "inline-block";
-          }, 500); // espera meio segundo (tempo suficiente para o envio ocorrer)
+          }, 500);
         });
       });
     </script>
@@ -219,6 +237,13 @@
       <input type="text" name="{{ chave }}" required />
       {% endfor %}
       <button type="submit">Salvar</button>
+      <button
+        type="button"
+        onclick="cancelarFormulario()"
+        style="background-color: #dc3545; margin-top: 10px"
+      >
+        Cancelar
+      </button>
     </form>
 
     <!-- Tabela de dados -->

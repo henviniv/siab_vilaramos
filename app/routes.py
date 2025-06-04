@@ -30,7 +30,7 @@ def manage_person():
         nova_pessoa = {campo: request.form[campo] for campo in dados[0].keys()}
         
         # Verifica se o CPF já existe na planilha
-        cpfs = {linha["CPF"]: i+2 for i, linha in enumerate(dados) if "CPF" in linha}
+        cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
         if nova_pessoa["CPF"] in cpfs:
             # Atualiza registro existente
             linha_atualizar = cpfs[nova_pessoa["CPF"]]
@@ -54,7 +54,7 @@ def edit_person():
 
         if request.method == 'POST':
             nova_pessoa = {campo: request.form[campo] for campo in dados[0].keys()}
-            cpfs = {linha["CPF"]: i+2 for i, linha in enumerate(dados) if "CPF" in linha]
+            cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
             if cpf in cpfs:
                 linha_atualizar = cpfs[cpf]
@@ -62,7 +62,7 @@ def edit_person():
 
             return redirect(url_for('main.index'))
 
-        pessoa = next((linha for linha in dados if linha["CPF"] == cpf), None)
+        pessoa = next((linha for linha in dados if linha.get("CPF") == cpf), None)
         return render_template("edit.html", pessoa=pessoa)
 
     except Exception as e:
@@ -76,7 +76,7 @@ def delete_person():
         dados = sheet.get_all_records()
         cpf = request.args.get("cpf", "")
 
-        cpfs = {linha["CPF"]: i+2 for i, linha in enumerate(dados) if "CPF" in linha}
+        cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
         if cpf in cpfs:
             sheet.delete_rows(cpfs[cpf])
 

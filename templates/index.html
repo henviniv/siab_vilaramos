@@ -88,8 +88,10 @@
         margin: 0 auto;
       }
 
+      /* Quando visível, aplica rolagem se necessário */
       form.data-form.show {
-        max-height: 1000px; /* suficiente para o conteúdo */
+        max-height: 500px; /* altura máxima visível */
+        overflow-y: auto;
         opacity: 1;
         padding: 20px;
         margin-top: 20px;

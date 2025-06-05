@@ -1,7 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.google_sheets import get_sheet
+import re
 
 bp = Blueprint('main', __name__, template_folder='../templates')
+
+def limpar_cpf(cpf):
+    # Remove tudo que não for número
+    return re.sub(r"\D", "", cpf)
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
@@ -74,11 +79,19 @@ def delete_person():
     try:
         sheet = get_sheet()
         dados = sheet.get_all_records()
-        cpf = request.args.get("cpf", "")
+        cpf_param = request.args.get("cpf", "")
 
-        cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        if cpf in cpfs:
-            sheet.delete_rows(cpfs[cpf])
+        cpf_param = limpar_cpf(cpf_param)
+
+        # Cria dicionário com CPF limpo
+        cpfs = {
+            limpar_cpf(linha.get("CPF", "")): i + 2
+            for i, linha in enumerate(dados)
+            if linha.get("CPF")
+        }
+
+        if cpf_param in cpfs:
+            sheet.delete_rows(cpfs[cpf_param])
 
         return redirect(url_for('main.index'))
 

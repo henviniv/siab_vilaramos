@@ -268,7 +268,7 @@
       method="POST"
       class="data-form"
     >
-      {% for chave in dados[0].keys() %}
+      {% for chave in campos %}
       <label for="{{ chave }}">{{ chave }}:</label>
       <input type="text" name="{{ chave }}" required />
       {% endfor %}
@@ -287,7 +287,7 @@
     <table>
       <thead>
         <tr>
-          {% for chave in dados[0].keys() %}
+          {% for chave in campos %}
           <th>{{ chave }}</th>
           {% endfor %}
           <th>Ações</th>
@@ -298,8 +298,8 @@
         cpf_limpo = cpf|limpar_cpf %}
         <tr {% if cpf and cpf|string|length>
           0 %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}> {% for
-          valor in linha.values() %}
-          <td>{{ valor }}</td>
+          chave in campos %}
+          <td>{{ linha.get(chave, "") }}</td>
           {% endfor %}
           <td>
             {% if cpf and cpf|string|length > 0 %}

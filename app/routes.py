@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.google_sheets import get_sheet
 import re
+import builtins  # Para garantir que str seja corretamente referenciado
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -13,14 +14,14 @@ COLUNAS_FIXAS = [
 ]
 
 def limpar_cpf(cpf):
-    return re.sub(r"\D", "", str(cpf))  # Convertendo para string antes de aplicar regex
+    return re.sub(r"\D", "", builtins.str(cpf))  # Garantindo que a função str do Python seja usada
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
     try:
         sheet = get_sheet()
         dados = [
-            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
             for linha in sheet.get_all_records()
         ]
         query = request.args.get("query", "").strip().lower()
@@ -43,12 +44,12 @@ def manage_person():
     try:
         sheet = get_sheet()
         dados = [
-            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
             for linha in sheet.get_all_records()
         ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
-        nova_pessoa = {campo: str(request.form.get(campo, "")) for campo in campos}
+        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
@@ -70,7 +71,7 @@ def edit_person():
     try:
         sheet = get_sheet()
         dados = [
-            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
             for linha in sheet.get_all_records()
         ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
@@ -78,7 +79,7 @@ def edit_person():
         cpf_limpo = limpar_cpf(cpf)
 
         if request.method == 'POST':
-            nova_pessoa = {campo: str(request.form.get(campo, "")) for campo in campos}
+            nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
             cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
             if cpf_limpo in cpfs:
@@ -99,7 +100,7 @@ def delete_person():
     try:
         sheet = get_sheet()
         dados = [
-            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
             for linha in sheet.get_all_records()
         ]
         cpf_param = request.args.get("cpf", "")

@@ -294,13 +294,14 @@
         </tr>
       </thead>
       <tbody>
-        {% for linha in dados %} {% set cpf = str(linha.get("CPF", "")) %} {%
-        set sus = str(linha.get("SUS", "")) %} {% set cpf_limpo = cpf|limpar_cpf
-        %}
+        {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
+        {% set sus = linha.get("SUS", "") | string %} {% set cpf_limpo =
+        limpar_cpf(cpf) %}
+
         <tr {% if cpf and cpf|string|length>
           0 %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}> {% for
           chave in campos %}
-          <td>{{ str(linha.get(chave, "")) }}</td>
+          <td>{{ linha.get(chave, "") | string }}</td>
           {% endfor %}
           <td>
             {% if cpf and cpf|string|length > 0 %}

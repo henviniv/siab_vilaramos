@@ -36,8 +36,8 @@ def manage_person():
             linha_atualizar = cpfs[nova_pessoa["CPF"]]
             sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa[col] for col in nova_pessoa.keys()]])
         else:
-            # Adiciona novo registro
-            sheet.append_row([nova_pessoa[col] for col in nova_pessoa.keys()])
+            # Insere novo registro na linha 3 (logo após o cabeçalho)
+            sheet.insert_row([nova_pessoa[col] for col in nova_pessoa.keys()], index=3)
 
         return redirect(url_for('main.index'))
 

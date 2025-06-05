@@ -13,19 +13,22 @@ COLUNAS_FIXAS = [
 ]
 
 def limpar_cpf(cpf):
-    return re.sub(r"\D", "", cpf)
+    return re.sub(r"\D", "", str(cpf))  # Convertendo para string antes de aplicar regex
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
     try:
         sheet = get_sheet()
-        dados = sheet.get_all_records()
+        dados = [
+            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            for linha in sheet.get_all_records()
+        ]
         query = request.args.get("query", "").strip().lower()
 
         if query:
-            dados = [linha for linha in dados if query in str(linha.get("NOME", "")).lower()
-                     or query in str(linha.get("SUS", "")).lower()
-                     or query in str(linha.get("CPF", ""))]
+            dados = [linha for linha in dados if query in linha.get("NOME", "").lower()
+                     or query in linha.get("SUS", "").lower()
+                     or query in linha.get("CPF", "")]
 
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
@@ -39,13 +42,16 @@ def index():
 def manage_person():
     try:
         sheet = get_sheet()
-        dados = sheet.get_all_records()
+        dados = [
+            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            for linha in sheet.get_all_records()
+        ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
-        nova_pessoa = {campo: request.form.get(campo, "") for campo in campos}
+        nova_pessoa = {campo: str(request.form.get(campo, "")) for campo in campos}
+        cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
 
         if cpf_limpo in cpfs:
             linha_atualizar = cpfs[cpf_limpo]
@@ -63,13 +69,16 @@ def manage_person():
 def edit_person():
     try:
         sheet = get_sheet()
-        dados = sheet.get_all_records()
+        dados = [
+            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            for linha in sheet.get_all_records()
+        ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
         cpf = request.args.get("cpf", "")
         cpf_limpo = limpar_cpf(cpf)
 
         if request.method == 'POST':
-            nova_pessoa = {campo: request.form.get(campo, "") for campo in campos}
+            nova_pessoa = {campo: str(request.form.get(campo, "")) for campo in campos}
             cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
             if cpf_limpo in cpfs:
@@ -89,7 +98,10 @@ def edit_person():
 def delete_person():
     try:
         sheet = get_sheet()
-        dados = sheet.get_all_records()
+        dados = [
+            {chave: str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            for linha in sheet.get_all_records()
+        ]
         cpf_param = request.args.get("cpf", "")
         cpf_param = limpar_cpf(cpf_param)
 

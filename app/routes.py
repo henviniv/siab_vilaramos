@@ -4,8 +4,15 @@ import re
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
+# Lista fixa de colunas
+COLUNAS_FIXAS = [
+    "COR/ETNIA", "NOME", "SUS", "Família", "Data de Nascimento", "idade", "Gênero", "GESTANTE", "DIA",
+    "HAS", "HIPERDIA", "INSULINO", "SM", "CPF", "TB", "HAN", "OBESIDADE", "TABAGISTA", "USO DE DROGAS",
+    "USO DE ALCOOL", "ACAMADO", "RESTRITO", "ACAMADO/RESTRITO VACINADO", "ASMÁTICO DPOC", "BOLSA FAMÍLIA",
+    "AMPI", "USUÁRIOS DE FRALDAS", "E-SUS", "SIGA", "UNIFICAÇÃO", "SIFILIS", "ENDEREÇO"
+]
+
 def limpar_cpf(cpf):
-    # Remove tudo que não for número
     return re.sub(r"\D", "", cpf)
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -14,35 +21,37 @@ def index():
         sheet = get_sheet()
         dados = sheet.get_all_records()
         query = request.args.get("query", "").strip().lower()
-        
-        # Filtrar resultados se houver busca
+
         if query:
             dados = [linha for linha in dados if query in str(linha.get("NOME", "")).lower()
-                      or query in str(linha.get("SUS", "")).lower()
-                      or query in str(linha.get("CPF", ""))]
+                     or query in str(linha.get("SUS", "")).lower()
+                     or query in str(linha.get("CPF", ""))]
 
-        return render_template("index.html", dados=dados)
+        campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
+
+        return render_template("index.html", dados=dados, campos=campos)
 
     except Exception as e:
         print(f"Erro ao acessar Google Sheets: {e}")
-        return render_template("index.html", dados=[])
+        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS)
 
 @bp.route('/manage_person', methods=['POST'])
 def manage_person():
     try:
         sheet = get_sheet()
         dados = sheet.get_all_records()
-        nova_pessoa = {campo: request.form[campo] for campo in dados[0].keys()}
-        
-        # Verifica se o CPF já existe na planilha
-        cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        if nova_pessoa["CPF"] in cpfs:
-            # Atualiza registro existente
-            linha_atualizar = cpfs[nova_pessoa["CPF"]]
-            sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa[col] for col in nova_pessoa.keys()]])
+        campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
+
+        nova_pessoa = {campo: request.form.get(campo, "") for campo in campos}
+
+        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
+
+        if cpf_limpo in cpfs:
+            linha_atualizar = cpfs[cpf_limpo]
+            sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
         else:
-            # Insere novo registro na linha 3 (logo após o cabeçalho)
-            sheet.insert_row([nova_pessoa[col] for col in nova_pessoa.keys()], index=3)
+            sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=3)
 
         return redirect(url_for('main.index'))
 
@@ -55,20 +64,22 @@ def edit_person():
     try:
         sheet = get_sheet()
         dados = sheet.get_all_records()
+        campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
         cpf = request.args.get("cpf", "")
+        cpf_limpo = limpar_cpf(cpf)
 
         if request.method == 'POST':
-            nova_pessoa = {campo: request.form[campo] for campo in dados[0].keys()}
-            cpfs = {linha.get("CPF"): i+2 for i, linha in enumerate(dados) if linha.get("CPF")}
+            nova_pessoa = {campo: request.form.get(campo, "") for campo in campos}
+            cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
-            if cpf in cpfs:
-                linha_atualizar = cpfs[cpf]
-                sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa[col] for col in nova_pessoa.keys()]])
+            if cpf_limpo in cpfs:
+                linha_atualizar = cpfs[cpf_limpo]
+                sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
 
             return redirect(url_for('main.index'))
 
-        pessoa = next((linha for linha in dados if linha.get("CPF") == cpf), None)
-        return render_template("edit.html", pessoa=pessoa)
+        pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
+        return render_template("edit.html", pessoa=pessoa, campos=campos)
 
     except Exception as e:
         print(f"Erro ao editar pessoa: {e}")
@@ -80,15 +91,9 @@ def delete_person():
         sheet = get_sheet()
         dados = sheet.get_all_records()
         cpf_param = request.args.get("cpf", "")
-
         cpf_param = limpar_cpf(cpf_param)
 
-        # Cria dicionário com CPF limpo
-        cpfs = {
-            limpar_cpf(linha.get("CPF", "")): i + 2
-            for i, linha in enumerate(dados)
-            if linha.get("CPF")
-        }
+        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
         if cpf_param in cpfs:
             sheet.delete_rows(cpfs[cpf_param])

@@ -33,7 +33,7 @@ def index():
 
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
-        return render_template("index.html", dados=dados, campos=campos)
+        return render_template("index.html", dados=dados, campos=campos, limpar_cpf=limpar_cpf)
 
     except Exception as e:
         print(f"Erro ao acessar Google Sheets: {e}")
@@ -89,7 +89,7 @@ def edit_person():
             return redirect(url_for('main.index'))
 
         pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
-        return render_template("edit.html", pessoa=pessoa, campos=campos)
+        return render_template("edit.html", pessoa=pessoa, campos=campos, limpar_cpf=limpar_cpf)
 
     except Exception as e:
         print(f"Erro ao editar pessoa: {e}")

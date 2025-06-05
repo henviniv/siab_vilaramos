@@ -294,26 +294,23 @@
         </tr>
       </thead>
       <tbody>
-        {% for linha in dados %} {% set cpf = linha.get("CPF", "") %}
+        {% for linha in dados %} {% set cpf = linha.get("CPF", "") %} {% set
+        cpf_limpo = cpf|limpar_cpf %}
         <tr {% if cpf and cpf|string|length>
-          0 %} onclick="showActions('{{ cpf }}')" {% endif %}> {% for valor in
-          linha.values() %}
+          0 %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}> {% for
+          valor in linha.values() %}
           <td>{{ valor }}</td>
           {% endfor %}
           <td>
             {% if cpf and cpf|string|length > 0 %}
             <div
-              id="actions-{{ cpf }}"
+              id="actions-{{ cpf_limpo }}"
               class="action-buttons"
               style="display: none"
             >
+              <button onclick="editPerson('{{ cpf_limpo }}')">✏️ Editar</button>
               <button
-                onclick="console.log('Editar:', '{{ cpf }}'); editPerson('{{ cpf }}')"
-              >
-                ✏️ Editar
-              </button>
-              <button
-                onclick="console.log('Excluir:', '{{ cpf }}'); deletePerson('{{ cpf }}')"
+                onclick="deletePerson('{{ cpf_limpo }}')"
                 style="background-color: #dc3545"
               >
                 🗑️ Excluir

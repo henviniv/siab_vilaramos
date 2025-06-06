@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>MiCRO 23</title>
+    <title>MICRO 23</title>
     <style>
       /* Estilos gerais */
       body {
@@ -19,6 +19,7 @@
         margin-bottom: 20px;
       }
 
+      /* Formulário de pesquisa */
       form.search-form {
         background: #fff;
         padding: 15px;
@@ -55,21 +56,28 @@
         background-color: #0056b3;
       }
 
+      /* Botões extras */
+      .text-center button {
+        padding: 8px 12px;
+        margin: 5px;
+        font-weight: bold;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+      }
+
+      /* Botão mostrar formulário */
       #mostrarCadastro {
         margin: 15px;
         background-color: #28a745;
         color: #fff;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
       }
 
       #mostrarCadastro:hover {
         background-color: #218838;
       }
 
+      /* Formulário de cadastro */
       form.data-form {
         overflow: hidden;
         max-height: 0;
@@ -123,10 +131,19 @@
         margin-top: 10px;
       }
 
-      form.data-form button[type="button"] {
+      form.data-form button:hover {
+        background-color: #0056b3;
+      }
+
+      form.data-form .cancel-button {
         background-color: #dc3545;
       }
 
+      form.data-form .cancel-button:hover {
+        background-color: #c82333;
+      }
+
+      /* Tabela */
       table {
         width: 90%;
         margin: 20px auto;
@@ -159,72 +176,133 @@
         cursor: pointer;
       }
 
+      .action-buttons {
+        display: none;
+      }
+
       .col-extra {
-        display: table-cell;
+        display: none;
       }
 
-      .text-center button {
-        margin: 5px;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
-        border: none;
-        cursor: pointer;
+      form.data-form.editando input[type="text"] {
+        background-color: #fff9e6;
       }
 
-      .text-center button:first-child {
-        background-color: #ffc107;
-        color: #000;
-      }
-
-      .text-center button:last-child {
-        background-color: #17a2b8;
-        color: #fff;
+      .hidden {
+        display: none;
       }
     </style>
+
     <script>
-      function ocultarColunas() {
-        document
-          .querySelectorAll(".col-extra")
-          .forEach((el) => (el.style.display = "none"));
+      function showActions(cpf) {
+        document.querySelectorAll(".action-buttons").forEach((el) => {
+          el.style.display = "none";
+        });
+        if (cpf) {
+          const el = document.getElementById(`actions-${cpf}`);
+          if (el) el.style.display = "block";
+        }
       }
-      function mostrarColunas() {
-        document
-          .querySelectorAll(".col-extra")
-          .forEach((el) => (el.style.display = "table-cell"));
+
+      function limparFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.remove("show", "editando");
+        document.getElementById("formCadastro").action =
+          "{{ url_for('main.manage_person') }}";
+        document.getElementById("salvarBtn").classList.remove("hidden");
+        document.getElementById("atualizarBtn").classList.add("hidden");
+        document.getElementById("mostrarCadastro").style.display =
+          "inline-block";
       }
+
       function mostrarFormulario() {
         const form = document.getElementById("formCadastro");
         form.classList.add("show");
         document.getElementById("mostrarCadastro").style.display = "none";
       }
+
       function cancelarFormulario() {
-        const form = document.getElementById("formCadastro");
-        form.reset();
-        form.classList.remove("show");
-        document.getElementById("mostrarCadastro").style.display =
-          "inline-block";
+        limparFormulario();
       }
+
+      function preencherFormulario(pessoa) {
+        const form = document.getElementById("formCadastro");
+        Object.keys(pessoa).forEach((key) => {
+          const input = form.querySelector(`[name="${key}"]`);
+          if (input) input.value = pessoa[key];
+        });
+      }
+
+      function editPerson(cpf) {
+        fetch(`/get_person?cpf=${cpf}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.success) {
+              preencherFormulario(data.pessoa);
+              const form = document.getElementById("formCadastro");
+              form.classList.add("show", "editando");
+              form.action = `/update_person?cpf=${cpf}`;
+              document.getElementById("salvarBtn").classList.add("hidden");
+              document
+                .getElementById("atualizarBtn")
+                .classList.remove("hidden");
+              document.getElementById("mostrarCadastro").style.display = "none";
+              form.scrollIntoView({ behavior: "smooth" });
+            } else {
+              alert("Pessoa não encontrada.");
+            }
+          });
+      }
+
+      function deletePerson(cpf) {
+        if (confirm("Tem certeza que deseja excluir este registro?")) {
+          window.location.href = `/delete?cpf=${cpf}`;
+        }
+      }
+
+      function ocultarColunas() {
+        document.querySelectorAll(".col-extra").forEach((coluna) => {
+          coluna.style.display = "none";
+        });
+      }
+
+      function mostrarColunas() {
+        document.querySelectorAll(".col-extra").forEach((coluna) => {
+          coluna.style.display = "";
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("formCadastro");
+        form.addEventListener("submit", function () {
+          setTimeout(() => limparFormulario(), 500);
+        });
+      });
     </script>
   </head>
   <body>
     <h1>Gerenciar Pessoas na Planilha</h1>
 
+    <!-- Formulário de pesquisa -->
     <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
       <label for="query">Buscar por Nome, SUS ou CPF:</label>
       <input type="text" name="query" />
       <button type="submit">Pesquisar</button>
     </form>
 
+    <!-- Botões de controle -->
     <div class="text-center my-2">
-      <button onclick="ocultarColunas()">Ocultar colunas extras</button>
+      <button onclick="ocultarColunas()">Ocultar colunas</button>
       <button onclick="mostrarColunas()">Mostrar todas as colunas</button>
     </div>
 
+    <!-- Botão para exibir formulário -->
     <button id="mostrarCadastro" onclick="mostrarFormulario()">
       Cadastrar nova pessoa
     </button>
 
+    <!-- Formulário de cadastro e edição -->
     <form
       id="formCadastro"
       action="{{ url_for('main.manage_person') }}"
@@ -235,16 +313,27 @@
       <label for="{{ chave }}">{{ chave }}:</label>
       <input type="text" name="{{ chave }}" required />
       {% endfor %}
-      <button type="submit">Salvar</button>
-      <button type="button" onclick="cancelarFormulario()">Cancelar</button>
+      <button type="submit" id="salvarBtn">Salvar</button>
+      <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
+      <button
+        type="button"
+        onclick="cancelarFormulario()"
+        style="background-color: #dc3545"
+      >
+        Cancelar
+      </button>
     </form>
 
+    <!-- Tabela -->
     {% if dados and dados|length > 0 %}
     <table>
       <thead>
         <tr>
-          {% set mostrar_extra = campos.index('GESTANTE') %} {% for chave in
-          campos %} {% if loop.index0 >= mostrar_extra %}
+          {% for chave in campos %} {% set chave_limpa = chave.lower() %} {% if
+          chave_limpa in ['cpf', 'ações'] %}
+          <th>{{ chave }}</th>
+          {% elif chave_limpa == 'gestante' or loop.index >
+          campos.index('GESTANTE') %}
           <th class="col-extra">{{ chave }}</th>
           {% else %}
           <th>{{ chave }}</th>
@@ -253,25 +342,34 @@
         </tr>
       </thead>
       <tbody>
-        {% for linha in dados %}
-        <tr>
-          {% for chave in campos %} {% if loop.index0 >= mostrar_extra %}
-          <td class="col-extra">{{ linha.get(chave, '') }}</td>
+        {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
+        {% set cpf_limpo = limpar_cpf(cpf) %}
+        <tr {% if cpf %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}>
+          {% for chave in campos %} {% set chave_limpa = chave.lower() %} {% if
+          chave_limpa in ['cpf', 'ações'] %}
+          <td>{{ linha.get(chave, "") }}</td>
+          {% elif chave_limpa == 'gestante' or loop.index >
+          campos.index('GESTANTE') %}
+          <td class="col-extra">{{ linha.get(chave, "") }}</td>
           {% else %}
-          <td>{{ linha.get(chave, '') }}</td>
+          <td>{{ linha.get(chave, "") }}</td>
           {% endif %} {% endfor %}
           <td>
-            {% set cpf = linha.get("CPF", "") | string %} {% set cpf_limpo =
-            limpar_cpf(cpf) %}
-            <button onclick="window.location.href='/edit?cpf={{ cpf_limpo }}'">
-              Editar
-            </button>
-            <button
-              onclick="if(confirm('Deseja excluir?')) window.location.href='/delete?cpf={{ cpf_limpo }}'"
-              style="background-color: #dc3545; color: #fff"
+            {% if cpf %}
+            <div
+              id="actions-{{ cpf_limpo }}"
+              class="action-buttons"
+              style="display: none"
             >
-              Excluir
-            </button>
+              <button onclick="editPerson('{{ cpf_limpo }}')">✏️ Editar</button>
+              <button
+                onclick="deletePerson('{{ cpf_limpo }}')"
+                style="background-color: #dc3545"
+              >
+                🗑️ Excluir
+              </button>
+            </div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

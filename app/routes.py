@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from app.google_sheets import get_sheet
 import re
 import builtins  # Para garantir que str seja corretamente referenciado
@@ -14,9 +14,9 @@ COLUNAS_FIXAS = [
 ]
 
 def limpar_cpf(cpf):
-    return re.sub(r"\D", "", builtins.str(cpf))  # Garantindo que a função str do Python seja usada
+    return re.sub(r"\D", "", builtins.str(cpf))
 
-@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/', methods=['GET'])
 def index():
     try:
         sheet = get_sheet()
@@ -66,8 +66,28 @@ def manage_person():
         print(f"Erro ao adicionar ou editar pessoa: {e}")
         return redirect(url_for('main.index'))
 
-@bp.route('/edit', methods=['GET', 'POST'])
-def edit_person():
+@bp.route('/edit', methods=['GET'])
+def get_person_data():
+    try:
+        sheet = get_sheet()
+        dados = [
+            {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+            for linha in sheet.get_all_records()
+        ]
+        cpf = request.args.get("cpf", "")
+        cpf_limpo = limpar_cpf(cpf)
+
+        pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
+
+        if pessoa:
+            return jsonify(pessoa)
+        return jsonify({"erro": "Pessoa não encontrada"}), 404
+    except Exception as e:
+        print(f"Erro ao buscar pessoa para edição: {e}")
+        return jsonify({"erro": "Erro interno"}), 500
+
+@bp.route('/update_person', methods=['POST'])
+def update_person():
     try:
         sheet = get_sheet()
         dados = [
@@ -75,25 +95,23 @@ def edit_person():
             for linha in sheet.get_all_records()
         ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
-        cpf = request.args.get("cpf", "")
-        cpf_limpo = limpar_cpf(cpf)
+        cpf_param = request.args.get("cpf", "")
+        cpf_limpo = limpar_cpf(cpf_param)
 
-        if request.method == 'POST':
-            nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
-            cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
 
-            if cpf_limpo in cpfs:
-                linha_atualizar = cpfs[cpf_limpo]
-                sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
+        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
-            return redirect(url_for('main.index'))
-
-        pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
-        return render_template("edit.html", pessoa=pessoa, campos=campos, limpar_cpf=limpar_cpf)
+        if cpf_limpo in cpfs:
+            linha_atualizar = cpfs[cpf_limpo]
+            sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
+            return jsonify({"sucesso": True})
+        else:
+            return jsonify({"erro": "Pessoa não encontrada"}), 404
 
     except Exception as e:
-        print(f"Erro ao editar pessoa: {e}")
-        return redirect(url_for('main.index'))
+        print(f"Erro ao atualizar pessoa: {e}")
+        return jsonify({"erro": "Erro interno"}), 500
 
 @bp.route('/delete', methods=['GET'])
 def delete_person():

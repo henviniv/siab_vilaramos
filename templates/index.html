@@ -196,30 +196,6 @@
       .col-extra {
         display: none;
       }
-
-      #mostrar [type="button"] {
-        width: 100%;
-        padding: 12px;
-        background-color: #b1baf0;
-        color: #6f71e9;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-        border-radius: 5px;
-        font-size: 16px;
-      }
-
-      #ocultar [type="button"] {
-        width: 100%;
-        padding: 12px;
-        background-color: #d0ecdd;
-        color: #87e7c2;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-        border-radius: 5px;
-        font-size: 16px;
-      }
     </style>
 
     <script>
@@ -294,12 +270,8 @@
 
     <!-- Botões para alternar colunas -->
     <div class="text-center my-2">
-      <button id="mostrar" onclick="ocultarColunas()">
-        Ocultar colunas extras
-      </button>
-      <button id="ocultar" onclick="mostrarColunas()">
-        Mostrar todas as colunas
-      </button>
+      <button onclick="ocultarColunas()">Ocultar colunas extras</button>
+      <button onclick="mostrarColunas()">Mostrar todas as colunas</button>
     </div>
 
     <!-- Botão para exibir formulário -->

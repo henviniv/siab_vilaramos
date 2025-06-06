@@ -1,11 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from app.google_sheets import get_sheet
 import re
-import builtins
+import builtins  # Para garantir que str seja corretamente referenciado
 from string import ascii_uppercase
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
+# Lista fixa de colunas
 COLUNAS_FIXAS = [
     "COR/ETNIA", "NOME", "SUS", "Família", "Data de Nascimento", "idade", "Gênero", "GESTANTE", "DIA",
     "HAS", "HIPERDIA", "INSULINO", "SM", "CPF", "TB", "HAN", "OBESIDADE", "TABAGISTA", "USO DE DROGAS",
@@ -46,8 +47,8 @@ def index():
         return render_template("index.html", dados=dados, campos=campos, limpar_cpf=limpar_cpf)
 
     except Exception as e:
-        flash(f"Erro ao acessar Google Sheets: {e}")
-        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS, limpar_cpf=limpar_cpf)
+        print(f"Erro ao acessar Google Sheets: {e}")
+        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS, mensagem_erro=str(e))
 
 @bp.route('/manage_person', methods=['POST'])
 def manage_person():
@@ -67,15 +68,13 @@ def manage_person():
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
-            flash("Registro atualizado com sucesso!")
         else:
             sheet.append_row([nova_pessoa.get(col, "") for col in campos])
-            flash("Novo registro adicionado com sucesso!")
 
         return redirect(url_for('main.index'))
 
     except Exception as e:
-        flash(f"Erro ao adicionar ou editar pessoa: {e}")
+        print(f"Erro ao adicionar ou editar pessoa: {e}")
         return redirect(url_for('main.index'))
 
 @bp.route('/edit', methods=['GET'])
@@ -115,7 +114,6 @@ def update_person():
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
-            flash("Pessoa atualizada com sucesso!")
             return jsonify({"sucesso": True})
         else:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
@@ -136,10 +134,9 @@ def delete_person():
 
         if cpf_param in cpfs:
             sheet.delete_rows(cpfs[cpf_param])
-            flash("Pessoa excluída com sucesso!")
 
         return redirect(url_for('main.index'))
 
     except Exception as e:
-        flash(f"Erro ao excluir pessoa: {e}")
+        print(f"Erro ao excluir pessoa: {e}")
         return redirect(url_for('main.index'))

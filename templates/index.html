@@ -304,80 +304,6 @@
         display: none !important;
       }
     </style>
-  </head>
-  <body>
-    <h1>Cadastro de Pessoas</h1>
-
-    <button id="mostrarCadastro" onclick="mostrarFormulario()">
-      Novo Cadastro
-    </button>
-
-    <div class="form-container">
-      <form
-        id="formCadastro"
-        method="POST"
-        action="{{ url_for('main.manage_person') }}"
-      >
-        {% for campo in campos %}
-        <label for="{{ campo }}">{{ campo }}</label>
-        <input type="text" name="{{ campo }}" id="{{ campo }}" />
-        {% endfor %}
-        <button id="salvarBtn" type="submit">Salvar</button>
-        <button id="atualizarBtn" class="hidden" type="submit">
-          Atualizar
-        </button>
-        <button type="button" onclick="cancelarFormulario()">Cancelar</button>
-      </form>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          {% for campo in campos %}
-          <th class="{{ 'col-extra' if loop.index > 8 else '' }}">
-            {{ campo }}
-          </th>
-          {% endfor %}
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for pessoa in dados %}
-        <tr>
-          {% for campo in campos %}
-          <td class="{{ 'col-extra' if loop.index > 8 else '' }}">
-            {{ pessoa[campo] }}
-          </td>
-          {% endfor %}
-          <td>
-            <form
-              action="{{ url_for('main.delete_person') }}"
-              method="post"
-              style="display: inline"
-            >
-              <input
-                type="hidden"
-                name="cpf"
-                value="{{ limpar_cpf(pessoa['CPF']) }}"
-              />
-              <button type="submit" class="delete-button">Excluir</button>
-            </form>
-            <button
-              type="button"
-              data-cpf="{{ limpar_cpf(pessoa['CPF']) }}"
-              onclick="mostrarFormularioEdicao(this.getAttribute('data-cpf'))"
-            >
-              Editar
-            </button>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <button onclick="ocultarColunas()">Ocultar Colunas Extras</button>
-    <button onclick="mostrarColunas()">Mostrar Colunas Extras</button>
-
     <script>
       // Função para preencher o formulário com dados da pessoa para edição
       function preencherFormulario(pessoa) {
@@ -466,5 +392,76 @@
         }
       }
     </script>
+  </head>
+  <body>
+    <h1>Cadastro de Pessoas</h1>
+
+    <button id="mostrarCadastro" onclick="mostrarFormulario()">
+      Novo Cadastro
+    </button>
+    <button onclick="ocultarColunas()">Ocultar Colunas Extras</button>
+    <button onclick="mostrarColunas()">Mostrar Colunas Extras</button>
+    <div class="form-container">
+      <form
+        id="formCadastro"
+        method="POST"
+        action="{{ url_for('main.manage_person') }}"
+      >
+        {% for campo in campos %}
+        <label for="{{ campo }}">{{ campo }}</label>
+        <input type="text" name="{{ campo }}" id="{{ campo }}" />
+        {% endfor %}
+        <button id="salvarBtn" type="submit">Salvar</button>
+        <button id="atualizarBtn" class="hidden" type="submit">
+          Atualizar
+        </button>
+        <button type="button" onclick="cancelarFormulario()">Cancelar</button>
+      </form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          {% for campo in campos %}
+          <th class="{{ 'col-extra' if loop.index > 8 else '' }}">
+            {{ campo }}
+          </th>
+          {% endfor %}
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pessoa in dados %}
+        <tr>
+          {% for campo in campos %}
+          <td class="{{ 'col-extra' if loop.index > 8 else '' }}">
+            {{ pessoa[campo] }}
+          </td>
+          {% endfor %}
+          <td>
+            <form
+              action="{{ url_for('main.delete_person') }}"
+              method="post"
+              style="display: inline"
+            >
+              <input
+                type="hidden"
+                name="cpf"
+                value="{{ limpar_cpf(pessoa['CPF']) }}"
+              />
+              <button type="submit" class="delete-button">Excluir</button>
+            </form>
+            <button
+              type="button"
+              data-cpf="{{ limpar_cpf(pessoa['CPF']) }}"
+              onclick="mostrarFormularioEdicao(this.getAttribute('data-cpf'))"
+            >
+              Editar
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </body>
 </html>

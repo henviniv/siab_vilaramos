@@ -5,6 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MICRO 23</title>
     <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .col-extra {
+        background-color: #f1f1f1;
+      }
+
+      .form-container {
+        margin-bottom: 20px;
+      }
+
+      #formCadastro {
+        display: none;
+        background: #ffffff;
+        padding: 20px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+      }
+
+      #formCadastro.show {
+        display: block;
+      }
+
+      input[type="text"],
+      input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        padding: 8px 16px;
+        margin-right: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button.delete-button {
+        background-color: #dc3545;
+      }
+
+      button.hidden {
+        display: none;
+      }
+      /* Estilos gerais */
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
@@ -21,7 +86,7 @@
       }
 
       /* Formulário de pesquisa */
-      .search-form {
+      form.search-form {
         background: #fff;
         padding: 15px;
         border-radius: 8px;
@@ -30,19 +95,21 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
-      .search-form label {
+      form.search-form label {
         font-weight: bold;
+        margin-right: 10px;
       }
 
-      .search-form input {
+      form.search-form input {
         padding: 10px;
         width: 200px;
+        margin-right: 10px;
         border: 1px solid #ccc;
         border-radius: 5px;
         font-size: 14px;
       }
 
-      .search-form button {
+      form.search-form button {
         padding: 10px 15px;
         background-color: #007bff;
         color: #fff;
@@ -53,8 +120,24 @@
         transition: background-color 0.3s ease;
       }
 
-      .search-form button:hover {
+      form.search-form button:hover {
         background-color: #0056b3;
+      }
+
+      /* Botões extras */
+      .text-center button {
+        padding: 8px 12px;
+        margin: 5px;
+        font-weight: bold;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .text-center button:hover {
+        background-color: #0056b3;
+        color: white;
       }
 
       /* Botão mostrar formulário */
@@ -68,6 +151,8 @@
         cursor: pointer;
         font-weight: bold;
         transition: background-color 0.3s ease;
+        display: block;
+        max-width: 200px;
       }
 
       #mostrarCadastro:hover {
@@ -75,7 +160,7 @@
       }
 
       /* Formulário de cadastro */
-      .data-form {
+      form.data-form {
         overflow: hidden;
         max-height: 0;
         opacity: 0;
@@ -90,32 +175,38 @@
         margin: 0 auto;
       }
 
-      .data-form.show {
-        max-height: 700px;
+      form.data-form.show {
+        max-height: 700px; /* um pouco maior para rolagem confortável */
         overflow-y: auto;
         opacity: 1;
         padding: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
       }
 
-      .data-form label {
+      form.data-form label {
         font-weight: bold;
         display: block;
+        margin-bottom: 5px;
         color: #333;
       }
 
-      .data-form input[type="text"] {
+      form.data-form input[type="text"] {
         width: 100%;
+        margin-bottom: 15px;
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        box-sizing: border-box;
         font-size: 14px;
+        transition: background-color 0.3s ease;
       }
 
-      .data-form.editando input[type="text"] {
+      form.data-form.editando input[type="text"] {
         background-color: #fff9e6;
       }
 
-      .data-form button {
+      form.data-form button {
         width: 100%;
         padding: 12px;
         background-color: #007bff;
@@ -125,18 +216,20 @@
         font-weight: bold;
         border-radius: 5px;
         font-size: 16px;
+        margin-top: 10px;
         transition: background-color 0.3s ease;
       }
 
-      .data-form button:hover {
+      form.data-form button:hover {
         background-color: #0056b3;
       }
 
-      .cancel-button {
+      form.data-form .cancel-button {
         background-color: #dc3545;
+        margin-top: 10px;
       }
 
-      .cancel-button:hover {
+      form.data-form .cancel-button:hover {
         background-color: #c82333;
       }
 
@@ -149,6 +242,7 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
       }
 
       table th,
@@ -156,11 +250,13 @@
         padding: 12px;
         border-bottom: 1px solid #ddd;
         text-align: left;
+        vertical-align: middle;
       }
 
       table th {
         background-color: #007bff;
         color: white;
+        font-weight: bold;
       }
 
       table tr:nth-child(even) {
@@ -169,11 +265,13 @@
 
       table tr:hover {
         background-color: #f1f1f1;
+        cursor: default;
       }
 
-      /* Botões de ação */
+      /* Botões de ação na tabela */
       table button {
         padding: 6px 10px;
+        margin-right: 5px;
         border-radius: 5px;
         border: none;
         cursor: pointer;
@@ -187,12 +285,12 @@
       }
 
       table button:first-child {
-        background-color: #ffc107;
+        background-color: #ffc107; /* amarelo para editar */
         color: #212529;
       }
 
       table button:last-child {
-        background-color: #dc3545;
+        background-color: #dc3545; /* vermelho para excluir */
         color: white;
       }
 

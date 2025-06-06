@@ -179,6 +179,23 @@
       form.data-form button[type="button"]:hover {
         background-color: #c82333;
       }
+
+      .action-buttons {
+        display: none;
+      }
+
+      #formCadastro {
+        display: none;
+        margin-top: 10px;
+      }
+
+      #formCadastro.show {
+        display: block;
+      }
+
+      .col-extra {
+        display: none;
+      }
     </style>
 
     <script>
@@ -187,7 +204,8 @@
           .querySelectorAll(".action-buttons")
           .forEach((el) => (el.style.display = "none"));
         if (cpf) {
-          document.getElementById(`actions-${cpf}`).style.display = "block";
+          const el = document.getElementById(`actions-${cpf}`);
+          if (el) el.style.display = "block";
         }
       }
 
@@ -217,9 +235,18 @@
           "inline-block";
       }
 
+      function ocultarColunas() {
+        const colunas = document.querySelectorAll(".col-extra");
+        colunas.forEach((coluna) => (coluna.style.display = "none"));
+      }
+
+      function mostrarColunas() {
+        const colunas = document.querySelectorAll(".col-extra");
+        colunas.forEach((coluna) => (coluna.style.display = ""));
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
-
         form.addEventListener("submit", function () {
           setTimeout(() => {
             form.reset();
@@ -229,21 +256,6 @@
           }, 500);
         });
       });
-    </script>
-    <script>
-      function editPerson(cpf) {
-        console.log("Editando:", cpf); // Teste no console
-        if (cpf) {
-          window.location.href = `/edit?cpf=${cpf}`;
-        }
-      }
-
-      function deletePerson(cpf) {
-        console.log("Excluindo:", cpf); // Teste no console
-        if (cpf && confirm("Tem certeza que deseja excluir este registro?")) {
-          window.location.href = `/delete?cpf=${cpf}`;
-        }
-      }
     </script>
   </head>
   <body>
@@ -255,6 +267,12 @@
       <input type="text" name="query" />
       <button type="submit">Pesquisar</button>
     </form>
+
+    <!-- Botões para alternar colunas -->
+    <div class="text-center my-2">
+      <button onclick="ocultarColunas()">Ocultar colunas extras</button>
+      <button onclick="mostrarColunas()">Mostrar todas as colunas</button>
+    </div>
 
     <!-- Botão para exibir formulário -->
     <button id="mostrarCadastro" onclick="mostrarFormulario()">
@@ -287,24 +305,33 @@
     <table>
       <thead>
         <tr>
-          {% for chave in campos %}
+          {% for chave in campos %} {% set chave_limpa = chave.lower() %} {% if
+          chave_limpa in ['cpf', 'ações'] %}
           <th>{{ chave }}</th>
-          {% endfor %}
-          <th>Ações</th>
+          {% elif chave_limpa == 'gestante' or loop.index >
+          campos.index('GESTANTE') %}
+          <th class="col-extra">{{ chave }}</th>
+          {% else %}
+          <th>{{ chave }}</th>
+          {% endif %} {% endfor %}
+          <th>AÇÕES</th>
         </tr>
       </thead>
       <tbody>
         {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
-        {% set sus = linha.get("SUS", "") | string %} {% set cpf_limpo =
-        limpar_cpf(cpf) %}
-
-        <tr {% if cpf and cpf|string|length>
-          0 %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}> {% for
-          chave in campos %}
-          <td>{{ linha.get(chave, "") | string }}</td>
-          {% endfor %}
+        {% set cpf_limpo = limpar_cpf(cpf) %}
+        <tr {% if cpf %} onclick="showActions('{{ cpf_limpo }}')" {% endif %}>
+          {% for chave in campos %} {% set chave_limpa = chave.lower() %} {% if
+          chave_limpa in ['cpf', 'ações'] %}
+          <td>{{ linha.get(chave, "") }}</td>
+          {% elif chave_limpa == 'gestante' or loop.index >
+          campos.index('GESTANTE') %}
+          <td class="col-extra">{{ linha.get(chave, "") }}</td>
+          {% else %}
+          <td>{{ linha.get(chave, "") }}</td>
+          {% endif %} {% endfor %}
           <td>
-            {% if cpf and cpf|string|length > 0 %}
+            {% if cpf %}
             <div
               id="actions-{{ cpf_limpo }}"
               class="action-buttons"

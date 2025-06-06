@@ -116,3 +116,13 @@ def delete_person():
     except Exception as e:
         print(f"Erro ao excluir pessoa: {e}")
         return redirect(url_for('main.index'))
+
+@bp.route('/')
+def index():
+    sheet = get_sheet()
+    dados = [
+        {chave: builtins.str(linha.get(chave, "")) for chave in COLUNAS_FIXAS}
+        for linha in sheet.get_all_records()
+    ]
+    campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
+    return render_template('index.html', pessoas=dados, campos=campos, limpar_cpf=limpar_cpf)

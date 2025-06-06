@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, jsonif
 from app.google_sheets import get_sheet
 import re
 import builtins  # Para garantir que str seja corretamente referenciado
+from string import ascii_uppercase
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -15,6 +16,14 @@ COLUNAS_FIXAS = [
 
 def limpar_cpf(cpf):
     return re.sub(r"\D", "", builtins.str(cpf))
+
+def num_to_col(n):
+    """Converte número para letra de coluna do Excel (1->A, 27->AA)"""
+    result = ""
+    while n > 0:
+        n, r = divmod(n-1, 26)
+        result = ascii_uppercase[r] + result
+    return result
 
 @bp.route('/', methods=['GET'])
 def index():
@@ -54,9 +63,12 @@ def manage_person():
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
+        ultima_col = num_to_col(len(campos))
+
         if cpf_limpo in cpfs:
             linha_atualizar = cpfs[cpf_limpo]
-            sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
+            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                         [[nova_pessoa.get(col, "") for col in campos]])
         else:
             sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=3)
 
@@ -95,16 +107,20 @@ def update_person():
             for linha in sheet.get_all_records()
         ]
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
-        cpf_param = request.args.get("cpf", "")
+
+        cpf_param = request.args.get("cpf", "") or request.form.get("CPF", "")
         cpf_limpo = limpar_cpf(cpf_param)
 
         nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
+        ultima_col = num_to_col(len(campos))
+
         if cpf_limpo in cpfs:
             linha_atualizar = cpfs[cpf_limpo]
-            sheet.update(f"A{linha_atualizar}:Z{linha_atualizar}", [[nova_pessoa.get(col, "") for col in campos]])
+            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                         [[nova_pessoa.get(col, "") for col in campos]])
             return jsonify({"sucesso": True})
         else:
             return jsonify({"erro": "Pessoa não encontrada"}), 404

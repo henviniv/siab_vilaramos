@@ -244,7 +244,7 @@
       function preencherFormulario(pessoa) {
         const form = document.getElementById("formCadastro");
         for (const key in pessoa) {
-          const input = form.querySelector([(name = "${key}")]);
+          const input = form.querySelector(`[name="${key}"]`);
           if (input) input.value = pessoa[key];
         }
       }
@@ -266,9 +266,7 @@
 
       // Mostrar formulário no modo edição preenchido com os dados da pessoa selecionada
       function mostrarFormularioEdicao(cpf) {
-        // Procurar a linha da tabela com o CPF
         const row = [...document.querySelectorAll("tbody tr")].find((tr) => {
-          // Assumindo que CPF está em alguma coluna (ajuste conforme necessário)
           return (
             tr.querySelector("td") &&
             tr.querySelector("td").textContent.includes(cpf)
@@ -279,19 +277,16 @@
           return;
         }
 
-        // Construir objeto pessoa com dados das células da linha
         const pessoa = {};
         const inputs = [...document.querySelectorAll("#formCadastro input")];
         const tds = row.querySelectorAll("td");
 
-        // Mapear campos pelo índice da coluna (mesma ordem do formulário)
         inputs.forEach((input, idx) => {
           pessoa[input.name] = tds[idx] ? tds[idx].textContent.trim() : "";
         });
 
         preencherFormulario(pessoa);
 
-        // Ajustar formulário para edição
         const form = document.getElementById("formCadastro");
         form.classList.add("show", "editando");
         form.action = `/update_person?cpf=${cpf}`;
@@ -333,10 +328,21 @@
           });
       }
 
-      // Excluir pessoa com confirmação
+      // Excluir pessoa com confirmação via POST
       function deletePerson(cpf) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
-          window.location.href = `/delete?cpf=${cpf}`;
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "/delete";
+
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "cpf";
+          input.value = cpf;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
         }
       }
     </script>

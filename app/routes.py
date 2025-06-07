@@ -33,7 +33,20 @@ def obter_dados_sheet(sheet):
 def index():
     try:
         sheet = get_sheet()
-        dados = obter_dados_sheet(sheet)
+        dados_crus = sheet.get_all_records()
+        dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+
+        mostrar_todas = request.args.get("todas") == "1"
+
+        # Detecta todas as colunas reais no sheet
+        todas_colunas = []
+        for linha in dados:
+            for col in linha:
+                if col not in todas_colunas:
+                    todas_colunas.append(col)
+
+        campos = todas_colunas if mostrar_todas else COLUNAS_FIXAS
+
         query = request.args.get("query", "").strip().lower()
 
         if query:
@@ -41,12 +54,13 @@ def index():
                      or query in linha.get("SUS", "").lower()
                      or query in linha.get("CPF", "")]
 
-        campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
-        return render_template("index.html", dados=dados, campos=campos, limpar_cpf=limpar_cpf)
+        return render_template("index.html", dados=dados, campos=campos,
+                               limpar_cpf=limpar_cpf, mostrar_todas=mostrar_todas)
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
-        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS, mensagem_erro=str(e))
+        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS,
+                               mensagem_erro=str(e), mostrar_todas=False)
 
 @bp.route('/create_or_update_person', methods=['POST'])
 def create_or_update_person():

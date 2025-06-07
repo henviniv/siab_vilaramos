@@ -3,7 +3,6 @@
   <head>
     <title>MICRO 23</title>
     <style>
-      /* Estilos gerais */
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
@@ -200,14 +199,16 @@
         display: none !important;
       }
     </style>
+
     <script>
       function preencherFormulario(pessoa) {
         const form = document.getElementById("formCadastro");
         for (const key in pessoa) {
-          const input = form.querySelector(`[name="\${key}"]`);
+          const input = form.querySelector(`[name="${key}"]`);
           if (input) input.value = pessoa[key];
         }
       }
+
       function mostrarFormulario() {
         const form = document.getElementById("formCadastro");
         form.reset();
@@ -219,32 +220,33 @@
         document.getElementById("mostrarCadastro").style.display = "none";
         form.scrollIntoView({ behavior: "smooth" });
       }
+
       function mostrarFormularioEdicao(cpf) {
-        const row = [...document.querySelectorAll("tbody tr")].find((tr) => {
-          return (
-            tr.querySelector("td") &&
-            tr.querySelector("td").textContent.includes(cpf)
-          );
-        });
+        const row = [...document.querySelectorAll("tbody tr")].find((tr) =>
+          tr.querySelector("td")?.textContent.includes(cpf)
+        );
         if (!row) {
           alert("Pessoa não encontrada na tabela.");
           return;
         }
+
         const pessoa = {};
         const inputs = [...document.querySelectorAll("#formCadastro input")];
         const tds = row.querySelectorAll("td");
         inputs.forEach((input, idx) => {
-          pessoa[input.name] = tds[idx] ? tds[idx].textContent.trim() : "";
+          pessoa[input.name] = tds[idx]?.textContent.trim() || "";
         });
+
         preencherFormulario(pessoa);
         const form = document.getElementById("formCadastro");
         form.classList.add("show", "editando");
-        form.action = `/update_person?cpf=\${cpf}`;
+        form.action = `/update_person?cpf=${cpf}`;
         document.getElementById("salvarBtn").classList.add("hidden");
         document.getElementById("atualizarBtn").classList.remove("hidden");
         document.getElementById("mostrarCadastro").style.display = "none";
         form.scrollIntoView({ behavior: "smooth" });
       }
+
       function cancelarFormulario() {
         const form = document.getElementById("formCadastro");
         form.reset();
@@ -255,21 +257,19 @@
         document.getElementById("mostrarCadastro").style.display =
           "inline-block";
       }
+
       function ocultarColunas() {
         document
           .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => {
-            el.classList.add("hidden");
-          });
+          .forEach((el) => el.classList.add("hidden"));
       }
 
       function mostrarColunas() {
         document
           .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => {
-            el.classList.remove("hidden");
-          });
+          .forEach((el) => el.classList.remove("hidden"));
       }
+
       function deletePerson(cpf) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
           const form = document.createElement("form");
@@ -284,6 +284,7 @@
           form.submit();
         }
       }
+
       document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".text-center button").forEach((btn) => {
           btn.addEventListener("click", (e) => e.preventDefault());
@@ -291,10 +292,11 @@
       });
     </script>
   </head>
+
   <body>
     <h1>Gerenciar Pessoas na Planilha</h1>
 
-    <!-- Formulário de pesquisa -->
+    <!-- Pesquisa -->
     <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
       <label for="query">Buscar por Nome, SUS ou CPF:</label>
       <input
@@ -305,7 +307,7 @@
       <button type="submit">Pesquisar</button>
     </form>
 
-    <!-- Botões de controle -->
+    <!-- Botões -->
     <div class="text-center my-2">
       <button type="button" onclick="ocultarColunas()">
         Ocultar colunas extras
@@ -315,12 +317,11 @@
       </button>
     </div>
 
-    <!-- Botão para exibir formulário -->
     <button id="mostrarCadastro" type="button" onclick="mostrarFormulario()">
       Cadastrar nova pessoa
     </button>
 
-    <!-- Formulário de cadastro e edição -->
+    <!-- Formulário -->
     <form
       id="formCadastro"
       action="{{ url_for('main.create_or_update_person') }}"
@@ -347,9 +348,7 @@
     <table>
       <thead>
         <tr>
-          {% set idx_gestante = campos.index('GESTANTE') if 'GESTANTE' in campos
-          else -1 %} {% for chave in campos %} {% if loop.index0 >= idx_gestante
-          and idx_gestante != -1 %}
+          {% for chave in campos %} {% if chave in colunas_extras %}
           <th class="col-extra">{{ chave }}</th>
           {% else %}
           <th>{{ chave }}</th>
@@ -361,8 +360,7 @@
         {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
         {% set cpf_limpo = limpar_cpf(cpf) %}
         <tr>
-          {% for chave in campos %} {% if loop.index0 >= idx_gestante and
-          idx_gestante != -1 %}
+          {% for chave in campos %} {% if chave in colunas_extras %}
           <td class="col-extra">{{ linha.get(chave, "") }}</td>
           {% else %}
           <td>{{ linha.get(chave, "") }}</td>
@@ -376,11 +374,7 @@
               >
                 ✏️ Editar
               </button>
-              <button
-                type="button"
-                onclick="deletePerson('{{ cpf_limpo }}')"
-                style="background-color: #dc3545; color: white"
-              >
+              <button type="button" onclick="deletePerson('{{ cpf_limpo }}')">
                 🗑️ Excluir
               </button>
             </div>

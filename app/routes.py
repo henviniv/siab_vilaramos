@@ -12,6 +12,9 @@ COLUNAS_FIXAS = [
     "USO DE ALCOOL", "ACAMADO", "RESTRITO", "ACAMADO/RESTRITO VACINADO", "ASMÁTICO DPOC", "BOLSA FAMÍLIA",
     "AMPI", "USUÁRIOS DE FRALDAS", "E-SUS", "SIGA", "UNIFICAÇÃO", "SIFILIS", "ENDEREÇO"
 ]
+colunas_extras = ['GESTANTE']  # Pode adicionar mais: ['GESTANTE', 'CAMPO_X', 'CAMPO_Y']
+return render_template('index.html', campos=campos, dados=dados, colunas_extras=colunas_extras)
+
 
 def limpar_cpf(cpf):
     return re.sub(r"\D", "", builtins.str(cpf))

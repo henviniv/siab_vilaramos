@@ -153,7 +153,8 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         font-size: 14px;
       }
-      table th, table td {
+      table th,
+      table td {
         padding: 12px;
         border-bottom: 1px solid #ddd;
         text-align: left;
@@ -220,7 +221,10 @@
       }
       function mostrarFormularioEdicao(cpf) {
         const row = [...document.querySelectorAll("tbody tr")].find((tr) => {
-          return tr.querySelector("td") && tr.querySelector("td").textContent.includes(cpf);
+          return (
+            tr.querySelector("td") &&
+            tr.querySelector("td").textContent.includes(cpf)
+          );
         });
         if (!row) {
           alert("Pessoa não encontrada na tabela.");
@@ -248,23 +252,24 @@
         form.action = "{{ url_for('main.create_or_update_person') }}";
         document.getElementById("salvarBtn").classList.remove("hidden");
         document.getElementById("atualizarBtn").classList.add("hidden");
-        document.getElementById("mostrarCadastro").style.display = "inline-block";
+        document.getElementById("mostrarCadastro").style.display =
+          "inline-block";
       }
       function ocultarColunas() {
-  document
-    .querySelectorAll("th.col-extra, td.col-extra")
-    .forEach((el) => {
-      el.classList.add("hidden");
-    });
-}
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => {
+            el.classList.add("hidden");
+          });
+      }
 
-function mostrarColunas() {
-  document
-    .querySelectorAll("th.col-extra, td.col-extra")
-    .forEach((el) => {
-      el.classList.remove("hidden");
-    });
-}
+      function mostrarColunas() {
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => {
+            el.classList.remove("hidden");
+          });
+      }
       function deletePerson(cpf) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
           const form = document.createElement("form");
@@ -302,16 +307,12 @@ function mostrarColunas() {
 
     <!-- Botões de controle -->
     <div class="text-center my-2">
-      <a href="/">
       <button type="button" onclick="ocultarColunas()">
         Ocultar colunas extras
       </button>
-      </a>
-      <a href="/?todas=1"></a>
       <button type="button" onclick="mostrarColunas()">
         Mostrar todas as colunas
       </button>
-    </a>
     </div>
 
     <!-- Botão para exibir formulário -->

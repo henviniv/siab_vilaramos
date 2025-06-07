@@ -255,7 +255,7 @@
         form.reset();
         form.classList.add("show");
         form.classList.remove("editando");
-        form.action = "{{ url_for('main.manage_person') }}";
+        form.action = "{{ url_for('main.create_or_update_person') }}";
 
         document.getElementById("salvarBtn").classList.remove("hidden");
         document.getElementById("atualizarBtn").classList.add("hidden");
@@ -308,7 +308,7 @@
         const form = document.getElementById("formCadastro");
         form.reset();
         form.classList.remove("show", "editando");
-        form.action = "{{ url_for('main.manage_person') }}";
+        form.action = "{{ url_for('main.create_or_update_person') }}";
         document.getElementById("salvarBtn").classList.remove("hidden");
         document.getElementById("atualizarBtn").classList.add("hidden");
         document.getElementById("mostrarCadastro").style.display =
@@ -329,7 +329,7 @@
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => {
-            el.style.display = "";
+            el.style.removeProperty("display");
           });
       }
 
@@ -373,7 +373,7 @@
     <!-- Formulário de cadastro e edição -->
     <form
       id="formCadastro"
-      action="{{ url_for('main.manage_person') }}"
+      action="{{ url_for('main.create_or_update_person') }}"
       method="POST"
       class="data-form"
     >

@@ -1,12 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from app.google_sheets import get_sheet
 import re
-import builtins  # Para garantir que str seja corretamente referenciado
+import builtins
 from string import ascii_uppercase
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
-# Lista fixa de colunas
 COLUNAS_FIXAS = [
     "COR/ETNIA", "NOME", "SUS", "Família", "Data de Nascimento", "idade", "Gênero", "GESTANTE", "DIA",
     "HAS", "HIPERDIA", "INSULINO", "SM", "CPF", "TB", "HAN", "OBESIDADE", "TABAGISTA", "USO DE DROGAS",
@@ -20,7 +19,7 @@ def limpar_cpf(cpf):
 def num_to_col(n):
     result = ""
     while n > 0:
-        n, r = divmod(n-1, 26)
+        n, r = divmod(n - 1, 26)
         result = ascii_uppercase[r] + result
     return result
 
@@ -43,22 +42,26 @@ def index():
                      or query in linha.get("CPF", "")]
 
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
-
         return render_template("index.html", dados=dados, campos=campos, limpar_cpf=limpar_cpf)
 
     except Exception as e:
-        print(f"Erro ao acessar Google Sheets: {e}")
+        print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
         return render_template("index.html", dados=[], campos=COLUNAS_FIXAS, mensagem_erro=str(e))
 
-@bp.route('/manage_person', methods=['POST'])
-def manage_person():
+@bp.route('/create_or_update_person', methods=['POST'])
+def create_or_update_person():
     try:
         sheet = get_sheet()
         dados = obter_dados_sheet(sheet)
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
         nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
-        cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
+        cpf_bruto = nova_pessoa.get("CPF", "")
+        cpf_limpo = limpar_cpf(cpf_bruto)
+
+        if not cpf_limpo:
+            print("[AVISO] CPF não informado.")
+            return redirect(url_for('main.index'))
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
@@ -68,13 +71,15 @@ def manage_person():
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
         else:
             sheet.append_row([nova_pessoa.get(col, "") for col in campos])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} adicionada.")
 
         return redirect(url_for('main.index'))
 
     except Exception as e:
-        print(f"Erro ao adicionar ou editar pessoa: {e}")
+        print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
         return redirect(url_for('main.index'))
 
 @bp.route('/edit', methods=['GET'])
@@ -85,13 +90,18 @@ def get_person_data():
         cpf = request.args.get("cpf", "")
         cpf_limpo = limpar_cpf(cpf)
 
+        if not cpf_limpo:
+            return jsonify({"erro": "CPF inválido"}), 400
+
         pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
 
         if pessoa:
             return jsonify(pessoa)
+        print(f"[AVISO] CPF não encontrado para edição: {cpf}")
         return jsonify({"erro": "Pessoa não encontrada"}), 404
+
     except Exception as e:
-        print(f"Erro ao buscar pessoa para edição: {e}")
+        print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
 @bp.route('/update_person', methods=['POST'])
@@ -104,8 +114,10 @@ def update_person():
         cpf_param = request.form.get("CPF", "")
         cpf_limpo = limpar_cpf(cpf_param)
 
-        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
+        if not cpf_limpo:
+            return jsonify({"erro": "CPF inválido"}), 400
 
+        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
         ultima_col = num_to_col(len(campos))
@@ -114,12 +126,14 @@ def update_person():
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
             return jsonify({"sucesso": True})
         else:
+            print(f"[AVISO] Pessoa com CPF {cpf_limpo} não encontrada para atualização.")
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
     except Exception as e:
-        print(f"Erro ao atualizar pessoa: {e}")
+        print(f"[ERRO] Falha ao atualizar pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
 @bp.route('/delete', methods=['POST'])
@@ -128,15 +142,22 @@ def delete_person():
         sheet = get_sheet()
         dados = obter_dados_sheet(sheet)
         cpf_param = request.form.get("cpf", "")
-        cpf_param = limpar_cpf(cpf_param)
+        cpf_limpo = limpar_cpf(cpf_param)
+
+        if not cpf_limpo:
+            print("[AVISO] Nenhum CPF informado para exclusão.")
+            return redirect(url_for('main.index'))
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
-        if cpf_param in cpfs:
-            sheet.delete_rows(cpfs[cpf_param])
+        if cpf_limpo in cpfs:
+            sheet.delete_rows(cpfs[cpf_limpo])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} excluída.")
+        else:
+            print(f"[AVISO] CPF {cpf_limpo} não encontrado para exclusão.")
 
         return redirect(url_for('main.index'))
 
     except Exception as e:
-        print(f"Erro ao excluir pessoa: {e}")
+        print(f"[ERRO] Falha ao excluir pessoa: {e}")
         return redirect(url_for('main.index'))

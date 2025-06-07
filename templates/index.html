@@ -251,15 +251,20 @@
         document.getElementById("mostrarCadastro").style.display = "inline-block";
       }
       function ocultarColunas() {
-        document.querySelectorAll("th.col-extra, td.col-extra").forEach((el) => {
-          el.style.display = "none";
-        });
-      }
-      function mostrarColunas() {
-        document.querySelectorAll("th.col-extra, td.col-extra").forEach((el) => {
-          el.style.display = "";
-        });
-      }
+  document
+    .querySelectorAll("th.col-extra, td.col-extra")
+    .forEach((el) => {
+      el.classList.add("hidden");
+    });
+}
+
+function mostrarColunas() {
+  document
+    .querySelectorAll("th.col-extra, td.col-extra")
+    .forEach((el) => {
+      el.classList.remove("hidden");
+    });
+}
       function deletePerson(cpf) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
           const form = document.createElement("form");

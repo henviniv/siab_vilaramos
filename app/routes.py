@@ -12,8 +12,6 @@ COLUNAS_FIXAS = [
     "USO DE ALCOOL", "ACAMADO", "RESTRITO", "ACAMADO/RESTRITO VACINADO", "ASMÁTICO DPOC", "BOLSA FAMÍLIA",
     "AMPI", "USUÁRIOS DE FRALDAS", "E-SUS", "SIGA", "UNIFICAÇÃO", "SIFILIS", "ENDEREÇO"
 ]
-colunas_extras = ['GESTANTE']  # Pode adicionar mais: ['GESTANTE', 'CAMPO_X', 'CAMPO_Y']
-return render_template('index.html', campos=campos, dados=dados, colunas_extras=colunas_extras)
 
 
 def limpar_cpf(cpf):
@@ -50,6 +48,8 @@ def index():
 
         campos = todas_colunas if mostrar_todas else COLUNAS_FIXAS
 
+        colunas_extras = ['GESTANTE']  # Pode adicionar mais: ['GESTANTE', 'CAMPO_X', 'CAMPO_Y']
+
         query = request.args.get("query", "").strip().lower()
 
         if query:
@@ -57,12 +57,12 @@ def index():
                      or query in linha.get("SUS", "").lower()
                      or query in linha.get("CPF", "")]
 
-        return render_template("index.html", dados=dados, campos=campos,
+        return render_template("index.html", dados=dados, campos=campos, colunas_extras=colunas_extras,
                                limpar_cpf=limpar_cpf, mostrar_todas=mostrar_todas)
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
-        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS,
+        return render_template("index.html", dados=[], campos=COLUNAS_FIXAS, colunas_extras=[],
                                mensagem_erro=str(e), mostrar_todas=False)
 
 @bp.route('/create_or_update_person', methods=['POST'])

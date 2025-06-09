@@ -156,3 +156,31 @@ def delete_person():
     except Exception as e:
         print(f"[ERRO] Falha ao excluir pessoa: {e}")
         return redirect(url_for('main.index'))
+        
+ @bp.route('/edit', methods=['GET'])
+def get_person_data():
+    try:
+        sheet = get_sheet()
+        dados = obter_dados_sheet(sheet)
+        cpf = request.args.get("cpf", "")
+        cpf_limpo = limpar_cpf(cpf)
+
+        print(f"[DEBUG] CPF recebido: {cpf}")
+        print(f"[DEBUG] CPF limpo: {cpf_limpo}")
+        print(f"[DEBUG] Total de registros: {len(dados)}")
+
+        if not cpf_limpo:
+            return jsonify({"erro": "CPF inválido"}), 400
+
+        for linha in dados:
+            print(f"[DEBUG] Verificando linha: {linha.get('CPF', '')}")
+            if limpar_cpf(linha.get("CPF", "")) == cpf_limpo:
+                print(f"[DEBUG] Pessoa encontrada: {linha}")
+                return jsonify(linha)
+
+        print(f"[AVISO] CPF não encontrado para edição: {cpf}")
+        return jsonify({"erro": "Pessoa não encontrada"}), 404
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
+        return jsonify({"erro": "Erro interno"}), 500

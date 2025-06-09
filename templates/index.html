@@ -222,29 +222,25 @@
       }
 
       function mostrarFormularioEdicao(cpf) {
-        const row = [...document.querySelectorAll("tbody tr")].find((tr) =>
-          tr.querySelector("td")?.textContent.includes(cpf)
-        );
-        if (!row) {
-          alert("Pessoa não encontrada na tabela.");
-          return;
-        }
+        fetch(`/edit?cpf=${cpf}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Pessoa não encontrada");
+            return res.json();
+          })
+          .then((pessoa) => {
+            preencherFormulario(pessoa);
 
-        const pessoa = {};
-        const inputs = [...document.querySelectorAll("#formCadastro input")];
-        const tds = row.querySelectorAll("td");
-        inputs.forEach((input, idx) => {
-          pessoa[input.name] = tds[idx]?.textContent.trim() || "";
-        });
-
-        preencherFormulario(pessoa);
-        const form = document.getElementById("formCadastro");
-        form.classList.add("show", "editando");
-        form.action = `/update_person?cpf=${cpf}`;
-        document.getElementById("salvarBtn").classList.add("hidden");
-        document.getElementById("atualizarBtn").classList.remove("hidden");
-        document.getElementById("mostrarCadastro").style.display = "none";
-        form.scrollIntoView({ behavior: "smooth" });
+            const form = document.getElementById("formCadastro");
+            form.classList.add("show", "editando");
+            form.action = `/update_person?cpf=${cpf}`;
+            document.getElementById("salvarBtn").classList.add("hidden");
+            document.getElementById("atualizarBtn").classList.remove("hidden");
+            document.getElementById("mostrarCadastro").style.display = "none";
+            form.scrollIntoView({ behavior: "smooth" });
+          })
+          .catch((err) => {
+            alert(err.message || "Erro ao buscar dados");
+          });
       }
 
       function cancelarFormulario() {

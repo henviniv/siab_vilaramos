@@ -144,7 +144,7 @@ def update_person():
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-            return jsonify({"sucesso": True})
+            return redirect(url_for('main.index'))  # ✅ redirecionar para a tela principal
         else:
             print(f"[AVISO] Pessoa com CPF {cpf_limpo} não encontrada para atualização.")
             return jsonify({"erro": "Pessoa não encontrada"}), 404

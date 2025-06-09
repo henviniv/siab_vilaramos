@@ -344,7 +344,8 @@
     <table>
       <thead>
         <tr>
-          {% for chave in campos %} {% if chave in colunas_extras %}
+          {% for chave in campos %} {% if campos.index(chave) >=
+          campos.index('GESTANTE') %}
           <th class="col-extra">{{ chave }}</th>
           {% else %}
           <th>{{ chave }}</th>
@@ -356,7 +357,8 @@
         {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
         {% set cpf_limpo = limpar_cpf(cpf) %}
         <tr>
-          {% for chave in campos %} {% if chave in colunas_extras %}
+          {% for chave in campos %} {% if campos.index(chave) >=
+          campos.index('GESTANTE') %}
           <td class="col-extra">{{ linha.get(chave, "") }}</td>
           {% else %}
           <td>{{ linha.get(chave, "") }}</td>

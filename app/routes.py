@@ -99,26 +99,36 @@ def create_or_update_person():
         print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
         return redirect(url_for('main.index'))
 
-@bp.route('/edit', methods=['GET'])
-def get_person_data():
+@bp.route('/update_person', methods=['POST'])
+def update_person():
     try:
         sheet = get_sheet()
         dados = obter_dados_sheet(sheet)
-        cpf = request.args.get("cpf", "")
-        cpf_limpo = limpar_cpf(cpf)
+        campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
+
+        cpf_param = request.form.get("CPF", "")
+        cpf_limpo = limpar_cpf(cpf_param)
 
         if not cpf_limpo:
             return jsonify({"erro": "CPF inválido"}), 400
 
-        pessoa = next((linha for linha in dados if limpar_cpf(linha.get("CPF", "")) == cpf_limpo), None)
+        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
+        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
 
-        if pessoa:
-            return jsonify(pessoa)
-        print(f"[AVISO] CPF não encontrado para edição: {cpf}")
-        return jsonify({"erro": "Pessoa não encontrada"}), 404
+        ultima_col = num_to_col(len(campos))
+
+        if cpf_limpo in cpfs:
+            linha_atualizar = cpfs[cpf_limpo]
+            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                         [[nova_pessoa.get(col, "") for col in campos]])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
+            return redirect(url_for('main.index'))  # ✅ redirecionar para a tela principal
+        else:
+            print(f"[AVISO] Pessoa com CPF {cpf_limpo} não encontrada para atualização.")
+            return jsonify({"erro": "Pessoa não encontrada"}), 404
 
     except Exception as e:
-        print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
+        print(f"[ERRO] Falha ao atualizar pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
 @bp.route('/update_person', methods=['POST'])

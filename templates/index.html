@@ -265,6 +265,10 @@
           .forEach((el) => el.classList.remove("hidden"));
       }
 
+      window.addEventListener("DOMContentLoaded", () => {
+        ocultarColunas();
+      });
+
       function deletePerson(cpf) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
           const form = document.createElement("form");

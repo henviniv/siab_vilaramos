@@ -156,8 +156,8 @@ def delete_person():
     except Exception as e:
         print(f"[ERRO] Falha ao excluir pessoa: {e}")
         return redirect(url_for('main.index'))
-        
- @bp.route('/edit', methods=['GET'])
+
+@bp.route('/edit', methods=['GET'])
 def get_person_data():
     try:
         sheet = get_sheet()

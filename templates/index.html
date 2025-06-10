@@ -198,6 +198,49 @@
         display: none !important;
       }
     </style>
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"
+    />
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        var table = $("#tabelaPessoas").DataTable({
+          initComplete: function () {
+            this.api()
+              .columns()
+              .every(function () {
+                var column = this;
+                var select = $(
+                  '<select><option value="">Filtrar</option></select>'
+                )
+                  .appendTo($(column.header()))
+                  .on("change", function () {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column
+                      .search(val ? "^" + val + "$" : "", true, false)
+                      .draw();
+                  });
+
+                column
+                  .data()
+                  .unique()
+                  .sort()
+                  .each(function (d) {
+                    if (d) {
+                      select.append(
+                        '<option value="' + d + '">' + d + "</option>"
+                      );
+                    }
+                  });
+              });
+          },
+        });
+      });
+    </script>
 
     <script>
       function preencherFormulario(pessoa) {
@@ -344,7 +387,7 @@
 
     <!-- Tabela -->
     {% if dados and dados|length > 0 %}
-    <table>
+    <table id="tabelaPessoas" class="display">
       <thead>
         <tr>
           {% for chave in campos %} {% if campos.index(chave) >=

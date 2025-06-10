@@ -85,13 +85,13 @@ def create_or_update_person():
         ultima_col = num_to_col(len(campos))
 
         if cpf_limpo in cpfs:
-            linha_atualizar = cpfs[cpf_limpo]
-            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
-                         [[nova_pessoa.get(col, "") for col in campos]])
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-        else:
-            sheet.append_row([nova_pessoa.get(col, "") for col in campos])
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} adicionada.")
+    linha_atualizar = cpfs[cpf_limpo]
+    sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                 [[nova_pessoa.get(col, "") for col in campos]])
+    print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
+else:
+    sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=3)
+    print(f"[INFO] Pessoa com CPF {cpf_limpo} inserida na linha 3.")
 
         return redirect(url_for('main.index'))
 

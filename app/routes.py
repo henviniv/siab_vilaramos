@@ -81,23 +81,23 @@ def create_or_update_person():
             return redirect(url_for('main.index'))
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-
         ultima_col = num_to_col(len(campos))
 
         if cpf_limpo in cpfs:
-    linha_atualizar = cpfs[cpf_limpo]
-    sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
-                 [[nova_pessoa.get(col, "") for col in campos]])
-    print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-else:
-    sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=3)
-    print(f"[INFO] Pessoa com CPF {cpf_limpo} inserida na linha 3.")
+            linha_atualizar = cpfs[cpf_limpo]
+            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                         [[nova_pessoa.get(col, "") for col in campos]])
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
+        else:
+            sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=3)
+            print(f"[INFO] Pessoa com CPF {cpf_limpo} inserida na linha 3.")
 
         return redirect(url_for('main.index'))
 
     except Exception as e:
         print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
         return redirect(url_for('main.index'))
+
 
 @bp.route('/update_person', methods=['POST'])
 def update_person():

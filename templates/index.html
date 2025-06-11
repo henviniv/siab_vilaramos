@@ -222,7 +222,10 @@
         text-decoration: underline;
       }
     </style>
-
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
     <script>
       function preencherFormulario(pessoa) {
         const form = document.getElementById("formCadastro");
@@ -419,5 +422,25 @@
     {% else %}
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#tabelaPessoas").DataTable({
+          order: [], // sem ordenação inicial
+          language: {
+            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
+          },
+          // (Opcional) Garante que colunas numéricas (como idade) sejam tratadas corretamente
+          columnDefs: [
+            {
+              targets: "_all", // Aplica a todos inicialmente
+              type: "natural",
+            },
+          ],
+        });
+      });
+    </script>
   </body>
 </html>

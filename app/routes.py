@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash
+from flask_login import login_user, logout_user, login_required, current_user
+from app.auth import User, USERS
 from app.google_sheets import get_sheet
 import re
 import builtins
@@ -184,3 +186,29 @@ def get_person_data():
     except Exception as e:
         print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
+
+        @bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        user_data = USERS.get(username)
+
+        if user_data and user_data['password'] == password:
+            user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'])
+            login_user(user)
+            flash("Login realizado com sucesso", "success")
+            return redirect(url_for('main.index'))
+
+        flash("Usuário ou senha inválidos", "danger")
+        return redirect(url_for('main.login'))
+
+    return render_template('login.html')
+
+@bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Você saiu com sucesso", "info")
+    return redirect(url_for('main.login'))

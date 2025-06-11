@@ -5,7 +5,7 @@ from app.auth import User, USERS  # importa a classe e os usuários
 
 # Criando a aplicação Flask com caminhos explícitos
 app = Flask(__name__, template_folder='templates', static_folder='static')
-app.secret_key = 'Hidek_22'  # 🔐 Adicione sua chave aqui
+app.secret_key = '77f6345fdced536f3f36e2638e14fedf'  # 🔐 Adicione sua chave aqui
 app.register_blueprint(bp) # Se tiver Blueprints:
 
 if __name__ == '__main__':

@@ -33,6 +33,7 @@ def obter_dados_sheet(sheet):
     ]
 
 @bp.route('/', methods=['GET'])
+@login_required
 def index():
     try:
         sheet = get_sheet()
@@ -187,24 +188,21 @@ def get_person_data():
         print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
-        @bp.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
         user_data = USERS.get(username)
-
         if user_data and user_data['password'] == password:
             user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'])
             login_user(user)
-            flash("Login realizado com sucesso", "success")
             return redirect(url_for('main.index'))
-
-        flash("Usuário ou senha inválidos", "danger")
-        return redirect(url_for('main.login'))
-
-    return render_template('login.html')
+        else:
+            flash("Usuário ou senha incorretos", "danger")
+            return redirect(url_for('main.login'))
+    return render_template("login.html")
 
 @bp.route('/logout')
 @login_required

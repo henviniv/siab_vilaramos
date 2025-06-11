@@ -75,7 +75,15 @@ def create_or_update_person():
         dados = obter_dados_sheet(sheet)
         campos = list(dados[0].keys()) if dados else COLUNAS_FIXAS
 
-        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
+        # Converte todos os valores em caixa alta, exceto o CPF
+        nova_pessoa = {}
+        for campo in campos:
+            valor = builtins.str(request.form.get(campo, ""))
+            if campo.upper() == "CPF":
+                nova_pessoa[campo] = valor  # Mantém o CPF como está
+            else:
+                nova_pessoa[campo] = valor.upper()
+
         cpf_bruto = nova_pessoa.get("CPF", "")
         cpf_limpo = limpar_cpf(cpf_bruto)
 

@@ -192,3 +192,27 @@ table button:last-child {
 .hidden {
   display: none !important;
 }
+
+.logout-container {
+  position: absolute;
+  top: 15px;
+  left: 20px; /* ← trocado de right para left */
+  background-color: #f9f9f9;
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: sans-serif;
+}
+
+.logout-link {
+  color: #e74c3c;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logout-link:hover {
+  text-decoration: underline;
+}

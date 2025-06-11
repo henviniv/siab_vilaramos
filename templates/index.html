@@ -363,8 +363,15 @@
     >
       {% for chave in campos %}
       <label for="{{ chave }}">{{ chave }}:</label>
+
+      {% if chave.upper() == "Data de Nascimento" %}
+      <input type="date" name="{{ chave }}" required />
+      {% elif chave.upper() == "idade" %}
       <input type="text" name="{{ chave }}" required />
-      {% endfor %}
+      {% else %}
+      <input type="text" name="{{ chave }}" required />
+      {% endif %} {% endfor %}
+
       <button type="submit" id="salvarBtn">Salvar</button>
       <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
       <button
@@ -440,6 +447,42 @@
             },
           ],
         });
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("formCadastro");
+        const campoNascimento = form.querySelector(
+          'input[name="Data de Nascimento"]'
+        );
+        const campoIdade = form.querySelector('input[name="idade"]');
+
+        function calcularIdade(dataNascimento) {
+          const hoje = new Date();
+          const partes = dataNascimento.split("-");
+          if (partes.length !== 3) return "";
+
+          const ano = parseInt(partes[0]);
+          const mes = parseInt(partes[1]) - 1;
+          const dia = parseInt(partes[2]);
+          const nascimento = new Date(ano, mes, dia);
+
+          let idade = hoje.getFullYear() - nascimento.getFullYear();
+          const m = hoje.getMonth() - nascimento.getMonth();
+          if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+            idade--;
+          }
+          return idade;
+        }
+
+        if (campoNascimento && campoIdade) {
+          campoNascimento.addEventListener("change", function () {
+            const idade = calcularIdade(this.value);
+            if (!isNaN(idade)) {
+              campoIdade.value = idade;
+            }
+          });
+        }
       });
     </script>
   </body>

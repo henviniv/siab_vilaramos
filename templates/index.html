@@ -337,7 +337,6 @@
     {% if current_user.is_authenticated %}
     <div class="logout-container">
       <span>Olá, {{ current_user.username }}!</span>
-      <p>Micro atual: {{ session.get("micro") }}</p>
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
 

@@ -1,3 +1,8 @@
+import json
+import os
+from google.oauth2.service_account import Credentials
+import gspread
+
 def get_sheet(planilha="EQUIPE 4", aba="MICRO 23"):
     scope = [
         'https://www.googleapis.com/auth/spreadsheets',

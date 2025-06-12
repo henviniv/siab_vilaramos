@@ -206,10 +206,15 @@ def login():
         if user_data and user_data['password'] == password:
             user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'])
             login_user(user)
+
+            # ✅ Define a aba/micro atual na sessão
+            session["micro"] = user_data["aba"]
+
             return redirect(url_for('main.index'))
         else:
             flash("Usuário ou senha incorretos", "danger")
             return redirect(url_for('main.login'))
+    
     return render_template("login.html")
 
 @bp.route('/logout')

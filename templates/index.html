@@ -339,7 +339,6 @@
       <span>Olá, {{ current_user.username }}!</span>
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
-
     {% endif %} {% if session.get("micro") in ["MICRO 23", "admin"] %}
     <a href="{{ url_for('main.fechamento') }}">Fechamento MICRO 23</a>
     {% endif %}

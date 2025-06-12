@@ -225,15 +225,18 @@ def logout():
     return redirect(url_for('main.login'))
 
 @bp.route('/fechamento')
+@login_required
 def fechamento():
-    micro = session.get("micro", "")
-    if micro != "MICRO 23" and micro != "admin":
+    # Só permite se for admin ou MICRO 23
+    if current_user.role != "admin" and current_user.aba != "MICRO 23":
+        flash("Acesso não autorizado", "danger")
         return redirect(url_for("main.index"))
 
     try:
-        sheet = get_sheet("FECHAMENTO MICRO 23")  # Nome exato da aba
+        sheet = get_sheet("FECHAMENTO MICRO 23")  # Nome da aba no Google Sheets
         dados = sheet.get_all_values()
         return render_template("fechamento.html", dados=dados)
     except Exception as e:
         print(f"[ERRO] Falha ao carregar aba de fechamento: {e}")
+        flash("Erro ao carregar dados da planilha.", "danger")
         return redirect(url_for("main.index"))

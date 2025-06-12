@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fechamento MICRO 23</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        padding: 20px;
+      }
+      h1 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+      .tabela-scroll {
+        overflow-x: auto;
+        background-color: #fff;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      td,
+      th {
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: center;
+        min-width: 50px;
+      }
+      tr:nth-child(even) {
+        background-color: #f1f1f1;
+      }
+      .back-button {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="{{ url_for('main.index') }}" class="back-button"
+      >← Voltar para o início</a
+    >
+
+    <h1>📊 Fechamento MICRO 23</h1>
+
+    {% if dados %}
+    <div class="tabela-scroll">
+      <table>
+        <tbody>
+          {% for linha in dados %}
+          <tr>
+            {% for celula in linha %}
+            <td>{{ celula }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>Nenhum dado encontrado na aba "FECHAMENTO MICRO 23".</p>
+    {% endif %}
+  </body>
+</html>

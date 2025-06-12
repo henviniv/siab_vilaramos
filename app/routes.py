@@ -233,7 +233,7 @@ def fechamento():
         return redirect(url_for("main.index"))
 
     try:
-        sheet = get_sheet("FECHAMENTO MICRO 23")  # Nome da aba no Google Sheets
+        sheet = get_sheet("EQUIPE 4","FECHAMENTO MICRO 23")  # Nome da aba no Google Sheets
         dados = sheet.get_all_values()
         return render_template("fechamento.html", dados=dados)
     except Exception as e:

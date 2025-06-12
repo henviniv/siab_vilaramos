@@ -218,3 +218,17 @@ def logout():
     logout_user()
     flash("Você saiu com sucesso", "info")
     return redirect(url_for('main.login'))
+
+@bp.route('/fechamento')
+def fechamento():
+    micro = session.get("micro", "")
+    if micro != "MICRO 23" and micro != "admin":
+        return redirect(url_for("main.index"))
+
+    try:
+        sheet = get_sheet("FECHAMENTO MICRO 23")  # Nome exato da aba
+        dados = sheet.get_all_values()
+        return render_template("fechamento.html", dados=dados)
+    except Exception as e:
+        print(f"[ERRO] Falha ao carregar aba de fechamento: {e}")
+        return redirect(url_for("main.index"))

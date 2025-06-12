@@ -227,13 +227,12 @@ def logout():
 @bp.route('/fechamento')
 @login_required
 def fechamento():
-    # Só permite se for admin ou MICRO 23
     if current_user.role != "admin" and current_user.aba != "MICRO 23":
         flash("Acesso não autorizado", "danger")
         return redirect(url_for("main.index"))
 
     try:
-        sheet = get_sheet("EQUIPE 4","FECHAMENTO MICRO 23")  # Nome da aba no Google Sheets
+        sheet = get_sheet("EQUIPE 4", "FECHAMENTO MICRO 23")
         dados = sheet.get_all_values()
         return render_template("fechamento.html", dados=dados)
     except Exception as e:

@@ -3,7 +3,7 @@ import os
 from google.oauth2.service_account import Credentials
 import gspread
 
-def get_sheet():
+def get_sheet(nome_planilha, nome_aba):
     scope = [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive'
@@ -18,6 +18,6 @@ def get_sheet():
     creds = Credentials.from_service_account_info(creds_info, scopes=scope)
 
     client = gspread.authorize(creds)
-    sheet = client.open("EQUIPE 4").worksheet("MICRO 23")
+    sheet = client.open(nome_planilha).worksheet(nome_aba)
 
     return sheet

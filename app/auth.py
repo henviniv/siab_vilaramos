@@ -16,8 +16,35 @@ USERS = {
         "aba": None  # admin pode escolher qualquer aba
     },
     "micro23": {
-        "password": "micro123",
+        "password": "senha23",
         "role": "micro",
         "aba": "MICRO 23"
+    },
+    ,
+    "micro19": {
+        "password": "senha19",
+        "role": "micro",
+        "aba": "MICRO 19"
+    },
+    "micro20": {
+        "password": "senha20",
+        "role": "micro",
+        "aba": "MICRO 20"
+    },
+    ,
+    "micro21": {
+        "password": "senha21",
+        "role": "micro",
+        "aba": "MICRO 21"
+    },
+    "micro22": {
+        "password": "senha22",
+        "role": "micro",
+        "aba": "MICRO 22"
+    },
+    "micro24": {
+        "password": "senha24",
+        "role": "micro",
+        "aba": "MICRO 24"
     }
 }

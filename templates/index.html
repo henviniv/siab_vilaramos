@@ -2,6 +2,11 @@
 <html>
   <head>
     <title>MICRO 23</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -106,7 +111,8 @@
         margin-bottom: 5px;
         color: #333;
       }
-      form.data-form input[type="text"] {
+      form.data-form input[type="text"],
+      form.data-form input[type="date"] {
         width: 100%;
         margin-bottom: 15px;
         padding: 10px;
@@ -192,16 +198,13 @@
         background-color: #dc3545;
         color: white;
       }
-      .col-extra {
-      }
       .hidden {
         display: none !important;
       }
-
       .logout-container {
         position: absolute;
         top: 15px;
-        left: 20px; /* ← trocado de right para left */
+        left: 20px;
         background-color: #f9f9f9;
         padding: 8px 14px;
         border-radius: 8px;
@@ -211,17 +214,14 @@
         gap: 10px;
         font-family: sans-serif;
       }
-
       .logout-link {
         color: #e74c3c;
         text-decoration: none;
         font-weight: bold;
       }
-
       .logout-link:hover {
         text-decoration: underline;
       }
-
       a[href*="fechamento"] {
         display: inline-block;
         margin: 10px 0;
@@ -231,108 +231,11 @@
         text-decoration: none;
         border-radius: 4px;
       }
-
       a[href*="fechamento"]:hover {
         background-color: #0056b3;
       }
     </style>
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
-    />
-    <script>
-      function preencherFormulario(pessoa) {
-        const form = document.getElementById("formCadastro");
-        for (const key in pessoa) {
-          const input = form.querySelector(`[name="${key}"]`);
-          if (input) input.value = pessoa[key];
-        }
-      }
-
-      function mostrarFormulario() {
-        const form = document.getElementById("formCadastro");
-        form.reset();
-        form.classList.add("show");
-        form.classList.remove("editando");
-        form.action = "{{ url_for('main.create_or_update_person') }}";
-        document.getElementById("salvarBtn").classList.remove("hidden");
-        document.getElementById("atualizarBtn").classList.add("hidden");
-        document.getElementById("mostrarCadastro").style.display = "none";
-        form.scrollIntoView({ behavior: "smooth" });
-      }
-
-      function mostrarFormularioEdicao(cpf) {
-        fetch(`/edit?cpf=${cpf}`)
-          .then((res) => {
-            if (!res.ok) throw new Error("Pessoa não encontrada");
-            return res.json();
-          })
-          .then((pessoa) => {
-            preencherFormulario(pessoa);
-
-            const form = document.getElementById("formCadastro");
-            form.classList.add("show", "editando");
-            form.action = `/update_person?cpf=${cpf}`;
-            document.getElementById("salvarBtn").classList.add("hidden");
-            document.getElementById("atualizarBtn").classList.remove("hidden");
-            document.getElementById("mostrarCadastro").style.display = "none";
-            form.scrollIntoView({ behavior: "smooth" });
-          })
-          .catch((err) => {
-            alert(err.message || "Erro ao buscar dados");
-          });
-      }
-
-      function cancelarFormulario() {
-        const form = document.getElementById("formCadastro");
-        form.reset();
-        form.classList.remove("show", "editando");
-        form.action = "{{ url_for('main.create_or_update_person') }}";
-        document.getElementById("salvarBtn").classList.remove("hidden");
-        document.getElementById("atualizarBtn").classList.add("hidden");
-        document.getElementById("mostrarCadastro").style.display =
-          "inline-block";
-      }
-
-      function ocultarColunas() {
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.add("hidden"));
-      }
-
-      function mostrarColunas() {
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.remove("hidden"));
-      }
-
-      window.addEventListener("DOMContentLoaded", () => {
-        ocultarColunas();
-      });
-
-      function deletePerson(cpf) {
-        if (confirm("Tem certeza que deseja excluir este registro?")) {
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "/delete";
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = "cpf";
-          input.value = cpf;
-          form.appendChild(input);
-          document.body.appendChild(form);
-          form.submit();
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".text-center button").forEach((btn) => {
-          btn.addEventListener("click", (e) => e.preventDefault());
-        });
-      });
-    </script>
   </head>
-
   <body>
     {% if current_user.is_authenticated %}
     <div class="logout-container">
@@ -379,15 +282,14 @@
     >
       {% for chave in campos %}
       <label for="{{ chave }}">{{ chave }}:</label>
-
-      {% if chave.upper() == "Data de Nascimento" %}
+      {% set chave_lower = chave.lower() %} {% if 'data' in chave_lower and
+      'nascimento' in chave_lower %}
       <input type="date" name="{{ chave }}" required />
-      {% elif chave.upper() == "idade" %}
+      {% elif 'idade' in chave_lower %}
       <input type="text" name="{{ chave }}" required />
       {% else %}
       <input type="text" name="{{ chave }}" required />
       {% endif %} {% endfor %}
-
       <button type="submit" id="salvarBtn">Salvar</button>
       <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
       <button
@@ -414,25 +316,27 @@
         </tr>
       </thead>
       <tbody>
-        {% for linha in dados %} {% set cpf = linha.get("CPF", "") | string %}
-        {% set cpf_limpo = limpar_cpf(cpf) %}
+        {% for linha in dados %}
         <tr>
           {% for chave in campos %} {% if campos.index(chave) >=
           campos.index('GESTANTE') %}
-          <td class="col-extra">{{ linha.get(chave, "") }}</td>
+          <td class="col-extra">{{ linha.get(chave, '') }}</td>
           {% else %}
-          <td>{{ linha.get(chave, "") }}</td>
+          <td>{{ linha.get(chave, '') }}</td>
           {% endif %} {% endfor %}
           <td>
-            {% if cpf %}
+            {% set cpf = linha.get("CPF", "") %} {% if cpf %}
             <div>
               <button
                 type="button"
-                onclick="mostrarFormularioEdicao('{{ cpf_limpo }}')"
+                onclick="mostrarFormularioEdicao('{{ limpar_cpf(cpf) }}')"
               >
                 ✏️ Editar
               </button>
-              <button type="button" onclick="deletePerson('{{ cpf_limpo }}')">
+              <button
+                type="button"
+                onclick="deletePerson('{{ limpar_cpf(cpf) }}')"
+              >
                 🗑️ Excluir
               </button>
             </div>
@@ -451,50 +355,108 @@
     <script>
       $(document).ready(function () {
         $("#tabelaPessoas").DataTable({
-          order: [], // sem ordenação inicial
+          order: [],
           language: {
             url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
           },
-          // (Opcional) Garante que colunas numéricas (como idade) sejam tratadas corretamente
-          columnDefs: [
-            {
-              targets: "_all", // Aplica a todos inicialmente
-              type: "natural",
-            },
-          ],
         });
       });
-    </script>
-    <script>
+
+      function preencherFormulario(pessoa) {
+        const form = document.getElementById("formCadastro");
+        for (const key in pessoa) {
+          const input = form.querySelector(`[name="${key}"]`);
+          if (input) input.value = pessoa[key];
+        }
+      }
+
+      function mostrarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.add("show");
+        form.classList.remove("editando");
+        form.action = "{{ url_for('main.create_or_update_person') }}";
+        document.getElementById("salvarBtn").classList.remove("hidden");
+        document.getElementById("atualizarBtn").classList.add("hidden");
+        document.getElementById("mostrarCadastro").style.display = "none";
+        form.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function mostrarFormularioEdicao(cpf) {
+        fetch(`/edit?cpf=${cpf}`)
+          .then((res) => res.json())
+          .then((pessoa) => {
+            preencherFormulario(pessoa);
+            const form = document.getElementById("formCadastro");
+            form.classList.add("show", "editando");
+            form.action = `/update_person?cpf=${cpf}`;
+            document.getElementById("salvarBtn").classList.add("hidden");
+            document.getElementById("atualizarBtn").classList.remove("hidden");
+            document.getElementById("mostrarCadastro").style.display = "none";
+            form.scrollIntoView({ behavior: "smooth" });
+          })
+          .catch(() => alert("Erro ao buscar dados"));
+      }
+
+      function cancelarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.remove("show", "editando");
+        form.action = "{{ url_for('main.create_or_update_person') }}";
+        document.getElementById("salvarBtn").classList.remove("hidden");
+        document.getElementById("atualizarBtn").classList.add("hidden");
+        document.getElementById("mostrarCadastro").style.display =
+          "inline-block";
+      }
+
+      function ocultarColunas() {
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.add("hidden"));
+      }
+
+      function mostrarColunas() {
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.remove("hidden"));
+      }
+
+      window.addEventListener("DOMContentLoaded", () => ocultarColunas());
+
+      function deletePerson(cpf) {
+        if (confirm("Tem certeza que deseja excluir este registro?")) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "/delete";
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "cpf";
+          input.value = cpf;
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
-        const campoNascimento = form.querySelector(
-          'input[name="Data de Nascimento"]'
-        );
-        const campoIdade = form.querySelector('input[name="idade"]');
-
-        function calcularIdade(dataNascimento) {
-          const hoje = new Date();
-          const partes = dataNascimento.split("-");
-          if (partes.length !== 3) return "";
-
-          const ano = parseInt(partes[0]);
-          const mes = parseInt(partes[1]) - 1;
-          const dia = parseInt(partes[2]);
-          const nascimento = new Date(ano, mes, dia);
-
-          let idade = hoje.getFullYear() - nascimento.getFullYear();
-          const m = hoje.getMonth() - nascimento.getMonth();
-          if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
-            idade--;
-          }
-          return idade;
-        }
-
+        const campoNascimento = form.querySelector('input[name*="Data"]');
+        const campoIdade = form.querySelector('input[name*="idade"]');
         if (campoNascimento && campoIdade) {
           campoNascimento.addEventListener("change", function () {
-            const idade = calcularIdade(this.value);
-            if (!isNaN(idade)) {
+            const partes = this.value.split("-");
+            if (partes.length === 3) {
+              const hoje = new Date();
+              const nascimento = new Date(
+                +partes[0],
+                +partes[1] - 1,
+                +partes[2]
+              );
+              let idade = hoje.getFullYear() - nascimento.getFullYear();
+              const m = hoje.getMonth() - nascimento.getMonth();
+              if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+              }
               campoIdade.value = idade;
             }
           });

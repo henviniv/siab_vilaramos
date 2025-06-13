@@ -20,7 +20,6 @@ USERS = {
         "role": "micro",
         "aba": "MICRO 23"
     },
-    ,
     "micro19": {
         "password": "senha19",
         "role": "micro",
@@ -31,7 +30,6 @@ USERS = {
         "role": "micro",
         "aba": "MICRO 20"
     },
-    ,
     "micro21": {
         "password": "senha21",
         "role": "micro",

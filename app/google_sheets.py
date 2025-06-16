@@ -3,7 +3,9 @@ import os
 from google.oauth2.service_account import Credentials
 import gspread
 
-def get_sheet(planilha="EQUIPE 4", aba="MICRO 23"):
+def get_sheet(planilha="EQUIPE 4", aba=None):
+    if not aba:
+        raise ValueError("Você deve fornecer o nome da aba!")
     scope = [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive'

@@ -26,6 +26,9 @@ def num_to_col(n):
 def index():
     try:
         aba = current_user.aba
+        
+        print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
+
         if not aba:
             flash("Nenhuma aba associada ao usuário.", "danger")
             return redirect(url_for("main.logout"))

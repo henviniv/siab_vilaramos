@@ -25,6 +25,7 @@ def num_to_col(n):
 @login_required
 def index():
     try:
+        planilha = current_user.planilha
         aba = current_user.aba
         
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
@@ -67,6 +68,7 @@ def index():
 @login_required
 def create_or_update_person():
     try:
+        planilha = current_user.planilha
         aba = current_user.aba
         sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
@@ -116,6 +118,7 @@ def create_or_update_person():
 @login_required
 def update_person():
     try:
+        planilha = current_user.planilha
         aba = current_user.aba
         sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
@@ -154,6 +157,7 @@ def update_person():
 @login_required
 def delete_person():
     try:
+        planilha = current_user.planilha
         aba = current_user.aba
         sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
@@ -183,6 +187,7 @@ def delete_person():
 @login_required
 def get_person_data():
     try:
+        planilha = current_user.planilha
         aba = current_user.aba
         sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()

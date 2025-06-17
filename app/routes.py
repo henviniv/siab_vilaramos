@@ -33,7 +33,7 @@ def index():
             flash("Nenhuma aba associada ao usuário.", "danger")
             return redirect(url_for("main.logout"))
 
-        sheet = get_sheet("EQUIPE 4", aba)
+        sheet = get_sheet(planilha, aba)
         dados_crus = sheet.get_all_records()
         dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
@@ -68,7 +68,7 @@ def index():
 def create_or_update_person():
     try:
         aba = current_user.aba
-        sheet = get_sheet("EQUIPE 4", aba)
+        sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
 
         # Detecta colunas reais
@@ -117,7 +117,7 @@ def create_or_update_person():
 def update_person():
     try:
         aba = current_user.aba
-        sheet = get_sheet("EQUIPE 4", aba)
+        sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
 
         campos = []
@@ -155,7 +155,7 @@ def update_person():
 def delete_person():
     try:
         aba = current_user.aba
-        sheet = get_sheet("EQUIPE 4", aba)
+        sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
 
         cpf_limpo = limpar_cpf(request.form.get("cpf", ""))
@@ -184,7 +184,7 @@ def delete_person():
 def get_person_data():
     try:
         aba = current_user.aba
-        sheet = get_sheet("EQUIPE 4", aba)
+        sheet = get_sheet(planilha, aba)
         dados = sheet.get_all_records()
 
         cpf_limpo = limpar_cpf(request.args.get("cpf", ""))

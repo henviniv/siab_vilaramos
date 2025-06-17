@@ -3,7 +3,7 @@ import os
 from google.oauth2.service_account import Credentials
 import gspread
 
-def get_sheet(planilha="EQUIPE 4", aba=None):
+def get_sheet(planilha=None, aba=None):
     if not aba:
         raise ValueError("Você deve fornecer o nome da aba!")
     scope = [

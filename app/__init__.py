@@ -13,7 +13,7 @@ def create_app():
         template_folder='templates'
     )
 
-    app.secret_key = '77f6345fdced536f3f36e2638e14fedf'  # Troque por uma chave segura
+    app.secret_key = '77f6345fdced536f3f36e2638e14fedf'  
 
     # Filtro Jinja para limpar CPF
     @app.template_filter('limpar_cpf')
@@ -30,7 +30,7 @@ def create_app():
     def load_user(user_id):
         if user_id in USERS:
             info = USERS[user_id]
-            return User(id=user_id, username=user_id, role=info["role"], aba=info["aba"])
+            return User(id=user_id, username=user_id, role=info["role"], aba=info["aba"], planilha=info["planilha"])
         return None
 
     return app

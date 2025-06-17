@@ -27,17 +27,17 @@ def index():
     try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-    if not current_user.aba:
-    flash("Nenhuma aba associada ao usuário.", "danger")
-    return redirect(url_for("main.logout"))
+        if not current_user.aba:
+            flash("Nenhuma aba associada ao usuário.", "danger")
+            return redirect(url_for("main.logout"))
 
-         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-         dados_crus = sheet.get_all_records()
-         dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
+        dados_crus = sheet.get_all_records()
+        dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
-        mostrar_todas = True  # Como as colunas variam, sempre mostra todas
-
+        mostrar_todas = True
         todas_colunas = []
+
         for linha in dados:
             for col in linha:
                 if col not in todas_colunas:
@@ -48,9 +48,11 @@ def index():
 
         query = request.args.get("query", "").strip().lower()
         if query:
-            dados = [linha for linha in dados if query in linha.get("NOME", "").lower()
-                     or query in linha.get("SUS", "").lower()
-                     or query in linha.get("CPF", "")]
+            dados = [
+                linha for linha in dados if query in linha.get("NOME", "").lower()
+                or query in linha.get("SUS", "").lower()
+                or query in linha.get("CPF", "")
+            ]
 
         return render_template("index.html", dados=dados, campos=campos, colunas_extras=colunas_extras,
                                limpar_cpf=limpar_cpf, mostrar_todas=mostrar_todas)
@@ -60,7 +62,7 @@ def index():
         return render_template("index.html", dados=[], campos=[], colunas_extras=[],
                                mensagem_erro=str(e), mostrar_todas=True)
 
-
+# Criação ou atualização de pessoa
 @bp.route('/create_or_update_person', methods=['POST'])
 @login_required
 def create_or_update_person():
@@ -68,7 +70,6 @@ def create_or_update_person():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        # Detecta colunas reais
         campos = []
         for linha in dados:
             for col in linha:
@@ -78,13 +79,9 @@ def create_or_update_person():
         nova_pessoa = {}
         for campo in campos:
             valor = builtins.str(request.form.get(campo, ""))
-            if campo.upper() == "CPF":
-                nova_pessoa[campo] = valor
-            else:
-                nova_pessoa[campo] = valor.upper()
+            nova_pessoa[campo] = valor.upper() if campo.upper() != "CPF" else valor
 
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
-
         if not cpf_limpo:
             flash("CPF não informado ou inválido", "warning")
             return redirect(url_for('main.index'))
@@ -108,7 +105,7 @@ def create_or_update_person():
         flash("Erro ao salvar os dados.", "danger")
         return redirect(url_for('main.index'))
 
-
+# Atualizar pessoa
 @bp.route('/update_person', methods=['POST'])
 @login_required
 def update_person():
@@ -128,7 +125,6 @@ def update_person():
 
         nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-
         ultima_col = num_to_col(len(campos))
 
         if cpf_limpo in cpfs:
@@ -145,7 +141,7 @@ def update_person():
         print(f"[ERRO] Falha ao atualizar pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
-
+# Excluir pessoa
 @bp.route('/delete', methods=['POST'])
 @login_required
 def delete_person():
@@ -173,7 +169,7 @@ def delete_person():
         flash("Erro ao excluir pessoa.", "danger")
         return redirect(url_for('main.index'))
 
-
+# Obter dados da pessoa para edição
 @bp.route('/edit', methods=['GET'])
 @login_required
 def get_person_data():
@@ -195,7 +191,7 @@ def get_person_data():
         print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
-
+# Login
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -204,7 +200,13 @@ def login():
 
         user_data = USERS.get(username)
         if user_data and user_data['password'] == password:
-            user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'], planilha=user_data['planilha'])
+            user = User(
+                id=username,
+                username=username,
+                role=user_data['role'],
+                aba=user_data['aba'],
+                planilha=user_data['planilha']
+            )
             login_user(user)
             session["micro"] = user_data["aba"]
             return redirect(url_for('main.index'))

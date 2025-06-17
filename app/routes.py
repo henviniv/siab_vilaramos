@@ -25,18 +25,15 @@ def num_to_col(n):
 @login_required
 def index():
     try:
-        planilha = current_user.planilha
-        aba = current_user.aba
-        
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-        if not aba:
-            flash("Nenhuma aba associada ao usuário.", "danger")
-            return redirect(url_for("main.logout"))
+    if not current_user.aba:
+    flash("Nenhuma aba associada ao usuário.", "danger")
+    return redirect(url_for("main.logout"))
 
-        sheet = get_sheet(planilha, aba)
-        dados_crus = sheet.get_all_records()
-        dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
+         dados_crus = sheet.get_all_records()
+         dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
         mostrar_todas = True  # Como as colunas variam, sempre mostra todas
 
@@ -68,9 +65,7 @@ def index():
 @login_required
 def create_or_update_person():
     try:
-        planilha = current_user.planilha
-        aba = current_user.aba
-        sheet = get_sheet(planilha, aba)
+        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
         # Detecta colunas reais
@@ -118,9 +113,7 @@ def create_or_update_person():
 @login_required
 def update_person():
     try:
-        planilha = current_user.planilha
-        aba = current_user.aba
-        sheet = get_sheet(planilha, aba)
+        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
         campos = []
@@ -157,9 +150,7 @@ def update_person():
 @login_required
 def delete_person():
     try:
-        planilha = current_user.planilha
-        aba = current_user.aba
-        sheet = get_sheet(planilha, aba)
+        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
         cpf_limpo = limpar_cpf(request.form.get("cpf", ""))
@@ -187,9 +178,7 @@ def delete_person():
 @login_required
 def get_person_data():
     try:
-        planilha = current_user.planilha
-        aba = current_user.aba
-        sheet = get_sheet(planilha, aba)
+        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
         cpf_limpo = limpar_cpf(request.args.get("cpf", ""))
@@ -215,7 +204,7 @@ def login():
 
         user_data = USERS.get(username)
         if user_data and user_data['password'] == password:
-            user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'])
+            user = User(id=username, username=username, role=user_data['role'], aba=user_data['aba'], planilha=user_data['planilha'])
             login_user(user)
             session["micro"] = user_data["aba"]
             return redirect(url_for('main.index'))

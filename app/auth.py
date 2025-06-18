@@ -128,7 +128,7 @@ USERS = {
         "role": "micro",
         "aba": "MICRO 24",
         "planilha": "EQUIPE 4"
-    }
+    },
     "micro25": {
         "password": "senha25",
         "role": "micro",

@@ -33,6 +33,30 @@ USERS = {
         "aba": "MI 02",
         "planilha": "EQUIPE 1"
     },
+    "micro03": {
+        "password": "senha03",
+        "role": "micro",
+        "aba": "MI 03",
+        "planilha": "EQUIPE 1"
+    },
+    "micro04": {
+        "password": "senha04",
+        "role": "micro",
+        "aba": "MI 04",
+        "planilha": "EQUIPE 1"
+    },
+    "micro05": {
+        "password": "senha05",
+        "role": "micro",
+        "aba": "MI 05",
+        "planilha": "EQUIPE 1"
+    },
+    "micro06": {
+        "password": "senha06",
+        "role": "micro",
+        "aba": "MI 06",
+        "planilha": "EQUIPE 1"
+    },
     "micro19": {
         "password": "senha19",
         "role": "micro",

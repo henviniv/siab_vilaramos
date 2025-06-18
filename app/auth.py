@@ -21,6 +21,12 @@ USERS = {
         "aba": None,
         "planilha": None
     },
+    "micro01": {
+        "password": "senha01",
+        "role": "micro",
+        "aba": "MI 01",
+        "planilha": "EQUIPE 1"
+    },
     "micro02": {
         "password": "senha02",
         "role": "micro",

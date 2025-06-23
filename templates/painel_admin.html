@@ -13,6 +13,7 @@
       body {
         font-family: Arial, sans-serif;
         margin: 2rem;
+        background-color: #f8f9fa;
       }
 
       h1 {
@@ -43,10 +44,19 @@
         border-collapse: collapse;
         width: 100%;
       }
+
+      .logout {
+        text-align: right;
+        margin-bottom: 1rem;
+      }
     </style>
   </head>
   <body>
     <h1>Painel do Administrador</h1>
+
+    <div class="logout">
+      <a href="{{ url_for('main.logout') }}">Sair</a>
+    </div>
 
     <table class="display micro-table">
       <thead>
@@ -64,7 +74,10 @@
           <td>{{ info.aba }}</td>
           <td>{{ info.planilha }}</td>
           <td>
-            <a href="{{ url_for('main.visualizar_micro', micro_id=username) }}">
+            <a
+              href="{{ url_for('main.visualizar_micro', micro_id=username) }}"
+              aria-label="Ver dados de {{ username }}"
+            >
               Ver Dados
             </a>
           </td>

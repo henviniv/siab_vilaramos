@@ -9,39 +9,73 @@
     />
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+      }
+
+      h1 {
+        margin-bottom: 1rem;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 1rem;
+      }
+
+      a {
+        text-decoration: none;
+        color: #007bff;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .micro-table th,
+      .micro-table td {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+      }
+
+      .micro-table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <h1>Painel do Administrador</h1>
 
-    <table id="tabelaMicros" class="display">
+    <table class="display micro-table">
       <thead>
         <tr>
           <th>Usuário</th>
-          <th>Planilha (Equipe)</th>
-          <th>Aba (Micro)</th>
-          <th>Ações</th>
+          <th>Micro (Aba)</th>
+          <th>Planilha</th>
+          <th>Ação</th>
         </tr>
       </thead>
       <tbody>
-        {% for usuario, info in lista_usuarios.items() %} {% if info.role ==
-        "micro" %}
+        {% for username, info in lista_usuarios.items() %}
         <tr>
-          <td>{{ usuario }}</td>
-          <td>{{ info.planilha }}</td>
+          <td>{{ username }}</td>
           <td>{{ info.aba }}</td>
+          <td>{{ info.planilha }}</td>
           <td>
-            <a href="{{ url_for('main.visualizar_micro', micro_id=usuario) }}">
-              🔍 Ver dados
+            <a href="{{ url_for('main.visualizar_micro', micro_id=username) }}">
+              Ver Dados
             </a>
           </td>
         </tr>
-        {% endif %} {% endfor %}
+        {% endfor %}
       </tbody>
     </table>
 
     <script>
       $(document).ready(function () {
-        $("#tabelaMicros").DataTable({
+        $("table.display").DataTable({
           order: [],
           pageLength: 10,
           language: {

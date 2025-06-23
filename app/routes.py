@@ -24,11 +24,11 @@ def num_to_col(n):
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
-    try:
-        # Redireciona admin para o painel de admin
-        if current_user.role == "admin":
-            return redirect(url_for("main.painel_admin"))
+    # Redireciona admin para o painel de admin ANTES de entrar no try
+    if current_user.role == "admin":
+        return redirect(url_for("main.painel_admin"))
 
+    try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
         if not current_user.aba or not current_user.planilha:
@@ -37,6 +37,7 @@ def index():
 
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados_crus = sheet.get_all_records()
+
         dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
         mostrar_todas = True
@@ -58,8 +59,14 @@ def index():
                 or query in linha.get("CPF", "")
             ]
 
-        return render_template("index.html", dados=dados, campos=campos, colunas_extras=colunas_extras,
-                               limpar_cpf=limpar_cpf, mostrar_todas=mostrar_todas)
+        return render_template(
+            "index.html",
+            dados=dados,
+            campos=campos,
+            colunas_extras=colunas_extras,
+            limpar_cpf=limpar_cpf,
+            mostrar_todas=mostrar_todas
+        )
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar Google Sheets: {e}")

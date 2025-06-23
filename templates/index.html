@@ -222,6 +222,27 @@
       .logout-link:hover {
         text-decoration: underline;
       }
+      .back-container {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: #f9f9f9;
+        padding: 8px 14px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: sans-serif;
+      }
+      .back-link {
+        color: #e74c3c;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .back-link:hover {
+        text-decoration: underline;
+      }
       a[href*="fechamento"] {
         display: inline-block;
         margin: 10px 0;
@@ -243,10 +264,8 @@
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
     {% endif %} {% if current_user.is_authenticated %}
-    <div class="logout-container">
-      <a href="{{ url_for('main.painel_admin') }}" class="logout-link"
-        >Voltar</a
-      >
+    <div class="back-container">
+      <a href="{{ url_for('main.painel_admin') }}" class="back-link">Voltar</a>
     </div>
     {% endif %} {% if session.get("micro") in ["MICRO 23", "admin"] %}
     <a href="{{ url_for('main.fechamento') }}">Fechamento MICRO 23</a>

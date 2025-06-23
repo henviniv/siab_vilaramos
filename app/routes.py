@@ -281,4 +281,5 @@ def painel_admin():
 
     except Exception as e:
         print(f"[ERRO] Falha ao carregar painel admin: {e}")
-        
+        flash("Erro ao carregar painel do administrador.", "danger")
+    return redirect(url_for("main.index"))

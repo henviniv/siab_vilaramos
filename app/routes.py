@@ -261,6 +261,7 @@ def painel_admin():
         return redirect(url_for("main.index"))
 
     from app.auth import USERS  # importa USERS diretamente
+    lista_usuarios = {k: v for k, v in USERS.items() if v["role"] == "micro"}
     dados_por_micro = []
 
     for username, info in USERS.items():
@@ -289,7 +290,7 @@ def painel_admin():
                 "erro": str(e)
             })
 
-    return render_template("painel_admin.html", lista_usuarios=USERS)
+    return render_template("painel_admin.html", lista_usuarios=lista_usuarios)
 
 @bp.route('/admin/micro/<micro_id>')
 @login_required

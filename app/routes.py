@@ -27,7 +27,7 @@ def index():
     try:
         # Redireciona admin para o painel de admin
         if current_user.role == "admin":
-            return redirect(url_for("main.admin"))
+            return redirect(url_for("main.painel_admin"))
 
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
@@ -248,7 +248,7 @@ def fechamento():
 
 @bp.route('/admin')
 @login_required
-def admin():
+def painel_admin():
     if current_user.role != "admin":
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))

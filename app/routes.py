@@ -260,33 +260,33 @@ def painel_admin():
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
-    try:
-        # Acessa a aba "Info" da planilha "Init API" que contém os metadados
-        sheet_info = get_sheet("Init API", "Info")
-        linhas = sheet_info.get_all_records()
+    from app.auth import USERS  # importa USERS diretamente
+    dados_por_micro = []
 
-        dados_por_micro = []
+    for username, info in USERS.items():
+        if info["role"] != "micro":
+            continue
 
-        for linha in linhas:
-            nome_micro = linha.get("aba")
-            nome_planilha = linha.get("planilha")
-            if not nome_micro or not nome_planilha:
-                continue
+        nome_planilha = info["planilha"]
+        nome_aba = info["aba"]
 
-            try:
-                sheet = get_sheet(nome_planilha, nome_micro)
-                dados = sheet.get_all_records()
-                dados_por_micro.append({
-                    "micro": nome_micro,
-                    "planilha": nome_planilha,
-                    "dados": dados
-                })
-            except Exception as e:
-                print(f"[AVISO] Falha ao acessar {nome_planilha}/{nome_micro}: {e}")
+        try:
+            sheet = get_sheet(nome_planilha, nome_aba)
+            dados = sheet.get_all_records()
+            dados_por_micro.append({
+                "usuario": username,
+                "micro": nome_aba,
+                "planilha": nome_planilha,
+                "dados": dados
+            })
+        except Exception as e:
+            print(f"[AVISO] Erro ao acessar {nome_planilha}/{nome_aba}: {e}")
+            dados_por_micro.append({
+                "usuario": username,
+                "micro": nome_aba,
+                "planilha": nome_planilha,
+                "dados": [],
+                "erro": str(e)
+            })
 
-        return render_template("painel_admin.html", dados_por_micro=dados_por_micro)
-
-    except Exception as e:
-        print(f"[ERRO] Falha ao carregar painel admin: {e}")
-        flash("Erro ao carregar painel do administrador.", "danger")
-    return redirect(url_for("main.index"))
+    return render_template("painel_admin.html", dados_por_micro=dados_por_micro)

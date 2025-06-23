@@ -248,7 +248,7 @@ def fechamento():
 
 @bp.route('/admin')
 @login_required
-def painel_admin():
+def admin():
     if current_user.role != "admin":
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))

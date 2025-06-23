@@ -261,34 +261,13 @@ def painel_admin():
         return redirect(url_for("main.index"))
 
     from app.auth import USERS  # importa USERS diretamente
-    lista_usuarios = {k: v for k, v in USERS.items() if v["role"] == "micro"}
-    dados_por_micro = []
 
-    for username, info in USERS.items():
-        if info["role"] != "micro":
-            continue
-
-        nome_planilha = info["planilha"]
-        nome_aba = info["aba"]
-
-        try:
-            sheet = get_sheet(nome_planilha, nome_aba)
-            dados = sheet.get_all_records()
-            dados_por_micro.append({
-                "usuario": username,
-                "micro": nome_aba,
-                "planilha": nome_planilha,
-                "dados": dados
-            })
-        except Exception as e:
-            print(f"[AVISO] Erro ao acessar {nome_planilha}/{nome_aba}: {e}")
-            dados_por_micro.append({
-                "usuario": username,
-                "micro": nome_aba,
-                "planilha": nome_planilha,
-                "dados": [],
-                "erro": str(e)
-            })
+    # Filtra apenas usuários com role = "micro"
+    lista_usuarios = {
+        username: info
+        for username, info in USERS.items()
+        if info["role"] == "micro"
+    }
 
     return render_template("painel_admin.html", lista_usuarios=lista_usuarios)
 

@@ -289,4 +289,32 @@ def painel_admin():
                 "erro": str(e)
             })
 
-    return render_template("painel_admin.html", dados_por_micro=dados_por_micro)
+    return render_template("painel_admin.html", lista_usuarios=USERS)
+
+@bp.route('/admin/micro/<micro_id>')
+@login_required
+def visualizar_micro(micro_id):
+    if current_user.role != "admin":
+        flash("Acesso restrito ao administrador.", "danger")
+        return redirect(url_for("main.index"))
+
+    from app.auth import USERS  # Importa o dicionário com os usuários
+
+    user_info = USERS.get(micro_id)
+    if not user_info:
+        flash("Micro não encontrado.", "warning")
+        return redirect(url_for("main.painel_admin"))
+
+    try:
+        sheet = get_sheet(user_info["planilha"], user_info["aba"])
+        dados_crus = sheet.get_all_records()
+        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+
+        campos = list(dados[0].keys()) if dados else []
+        return render_template("index.html", dados=dados, campos=campos,
+                               colunas_extras=[], limpar_cpf=limpar_cpf, mostrar_todas=True)
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao acessar dados da micro {micro_id}: {e}")
+        flash(f"Erro ao carregar dados da micro {micro_id}.", "danger")
+        return redirect(url_for("main.painel_admin"))

@@ -277,7 +277,7 @@ def painel_admin():
             except Exception as e:
                 print(f"[AVISO] Falha ao acessar {nome_planilha}/{nome_micro}: {e}")
 
-        return render_template("admin.html", dados_por_micro=dados_por_micro)
+        return render_template("painel_admin.html", dados_por_micro=dados_por_micro)
 
     except Exception as e:
         print(f"[ERRO] Falha ao carregar painel admin: {e}")

@@ -25,15 +25,19 @@ def num_to_col(n):
 @login_required
 def index():
     try:
+        # Redireciona admin para o painel de admin
+        if current_user.role == "admin":
+            return redirect(url_for("main.admin"))
+
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-        if not current_user.aba:
-            flash("Nenhuma aba associada ao usuário.", "danger")
+        if not current_user.aba or not current_user.planilha:
+            flash("Nenhuma aba ou planilha associada ao usuário.", "danger")
             return redirect(url_for("main.logout"))
 
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados_crus = sheet.get_all_records()
-        dados = [{chave: builtins.str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
         mostrar_todas = True
         todas_colunas = []
@@ -61,6 +65,7 @@ def index():
         print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
         return render_template("index.html", dados=[], campos=[], colunas_extras=[],
                                mensagem_erro=str(e), mostrar_todas=True)
+
 
 # Criação ou atualização de pessoa
 @bp.route('/create_or_update_person', methods=['POST'])

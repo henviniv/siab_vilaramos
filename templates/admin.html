@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel Admin - Todas as Micros</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
+        color: #333;
+      }
+      h1 {
+        color: #007bff;
+        text-align: center;
+      }
+      h2 {
+        color: #333;
+        margin-top: 40px;
+        border-bottom: 2px solid #ccc;
+        padding-bottom: 5px;
+      }
+      table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
+      }
+      table th,
+      table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      table th {
+        background-color: #007bff;
+        color: #fff;
+      }
+      table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      .erro {
+        color: red;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Painel do Administrador</h1>
+
+    {% for item in dados_por_micro %}
+    <h2>{{ item.planilha }} - {{ item.aba }}</h2>
+
+    {% if item.erro %}
+    <p class="erro">Erro ao carregar dados: {{ item.erro }}</p>
+    {% elif item.dados and item.dados|length > 0 %}
+    <table class="display" id="tabela_{{ loop.index }}">
+      <thead>
+        <tr>
+          {% for col in item.campos %}
+          <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in item.dados %}
+        <tr>
+          {% for col in item.campos %}
+          <td>{{ linha.get(col, '') }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>Nenhum dado encontrado.</p>
+    {% endif %} {% endfor %}
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("table.display").forEach((table) => {
+          $(table).DataTable({
+            order: [],
+            pageLength: 5,
+            language: {
+              url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -12,40 +12,38 @@
   </head>
   <body>
     <h1>Painel do Administrador</h1>
-    {% for micro in dados_por_micro %}
-    <h2>{{ micro.micro }} - {{ micro.planilha }} ({{ micro.usuario }})</h2>
 
-    {% if micro.erro %}
-    <p style="color: red">Erro ao carregar: {{ micro.erro }}</p>
-    {% elif micro.dados %}
-    <table class="display">
+    <table id="tabelaMicros" class="display">
       <thead>
         <tr>
-          {% for col in micro.dados[0].keys() %}
-          <th>{{ col }}</th>
-          {% endfor %}
+          <th>Usuário</th>
+          <th>Planilha (Equipe)</th>
+          <th>Aba (Micro)</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        {% for linha in micro.dados %}
+        {% for usuario, info in lista_usuarios.items() %} {% if info.role ==
+        "micro" %}
         <tr>
-          {% for valor in linha.values() %}
-          <td>{{ valor }}</td>
-          {% endfor %}
+          <td>{{ usuario }}</td>
+          <td>{{ info.planilha }}</td>
+          <td>{{ info.aba }}</td>
+          <td>
+            <a href="{{ url_for('main.visualizar_micro', micro_id=usuario) }}">
+              🔍 Ver dados
+            </a>
+          </td>
         </tr>
-        {% endfor %}
+        {% endif %} {% endfor %}
       </tbody>
     </table>
-    <hr />
-    {% else %}
-    <p>Nenhum dado encontrado.</p>
-    {% endif %} {% endfor %}
 
     <script>
       $(document).ready(function () {
-        $("table.display").DataTable({
+        $("#tabelaMicros").DataTable({
           order: [],
-          pageLength: 5,
+          pageLength: 10,
           language: {
             url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
           },

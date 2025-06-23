@@ -242,10 +242,14 @@
       <span>Olá, {{ current_user.username }}!</span>
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
+    {% endif %} {% if current_user.is_authenticated %}
+    <div class="logout-container">
+      <a href="{{ url_for('main.painel_admin') }}" class="logout-link"
+        >Voltar</a
+      >
+    </div>
     {% endif %} {% if session.get("micro") in ["MICRO 23", "admin"] %}
     <a href="{{ url_for('main.fechamento') }}">Fechamento MICRO 23</a>
-    {% endif %} {% if session.get("micro") in ["admin"] %}
-    <a href="{{ url_for('main.painel_admin') }}">Voltar para o Painel</a>
     {% endif %}
 
     <h1>Gerenciar Pessoas na Planilha</h1>

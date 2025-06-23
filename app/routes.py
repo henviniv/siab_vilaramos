@@ -24,8 +24,8 @@ def num_to_col(n):
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
-    # Redireciona admin para o painel de admin ANTES de entrar no try
-    if current_user.role == "admin":
+    # Só verifica o papel se o usuário estiver autenticado (garantido por @login_required)
+    if current_user.is_authenticated and current_user.role == "admin":
         return redirect(url_for("main.painel_admin"))
 
     try:
@@ -37,7 +37,6 @@ def index():
 
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados_crus = sheet.get_all_records()
-
         dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
         mostrar_todas = True

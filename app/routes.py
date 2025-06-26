@@ -280,7 +280,7 @@ def fechamento():
 
 @bp.route('/admin/fechamento/<micro_id>')
 @login_required
-def fechamento(micro_id):
+def fechamento_admin(micro_id):
     if current_user.role != "admin":
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))

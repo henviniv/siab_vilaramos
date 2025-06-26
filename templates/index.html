@@ -263,7 +263,7 @@
       <span>Olá, {{ current_user.username }}!</span>
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
-    {% endif %} {% if current_user.is_authenticated %}
+    {% endif %} {% if session.get("admin") %}
     <div class="back-container">
       <a href="{{ url_for('main.painel_admin') }}" class="back-link">Voltar</a>
     </div>

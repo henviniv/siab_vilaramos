@@ -48,18 +48,19 @@
     </style>
   </head>
   <body>
-    <a href="{{ url_for('main.index') }}" class="back-button">← Voltar para o início</a>
+  <a href="{{ url_for('main.index') }}" class="back-button">← Voltar para o início</a>
 
-    <h1>
-      📊 Fechamento
-      {% if current_user.role != 'admin' %}
-        - {{ current_user.aba }}
-      {% else %}
-        de todas as Micros
-      {% endif %}
-    </h1>
+  <h1>
+    📊 Fechamento
+    {% if current_user.role != 'admin' %}
+      - {{ current_user.aba }}
+    {% else %}
+      de todas as Micros
+    {% endif %}
+  </h1>
 
-    {% if dados %}
+  {% if dados %}
+    {% if current_user.role == 'admin' %}
       {% for tabela in dados %}
         <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
         <div class="tabela-scroll">
@@ -77,7 +78,29 @@
         </div>
       {% endfor %}
     {% else %}
-      <p>Nenhum dado de fechamento encontrado.</p>
+      <div class="tabela-scroll">
+        <table>
+          <thead>
+            <tr>
+              {% for campo in campos %}
+              <th>{{ campo }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in dados %}
+            <tr>
+              {% for campo in campos %}
+              <td>{{ linha[campo] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% endif %}
-  </body>
+  {% else %}
+    <p>Nenhum dado de fechamento encontrado.</p>
+  {% endif %}
+</body>
 </html>

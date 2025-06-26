@@ -267,8 +267,8 @@
     <div class="back-container">
       <a href="{{ url_for('main.painel_admin') }}" class="back-link">Voltar</a>
     </div>
-    {% endif %} {% if session.get("micro") in ["MICRO 23", "admin"] %}
-    <a href="{{ url_for('main.fechamento') }}">Fechamento MICRO 23</a>
+    {% endif %} {% if session.get("micro") %}
+      <a href="{{ url_for('main.fechamento') }}">Fechamento {{ session.get("micro") }}</a>
     {% endif %}
 
     <h1>Gerenciar Pessoas na Planilha</h1>

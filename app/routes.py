@@ -278,6 +278,42 @@ def fechamento():
         flash("Erro ao carregar dados da planilha.", "danger")
         return redirect(url_for("main.index"))
 
+@bp.route('/admin/fechamento/<micro_id>')
+@login_required
+def fechamento(micro_id):
+    if current_user.role != "admin":
+        flash("Acesso restrito ao administrador.", "danger")
+        return redirect(url_for("main.index"))
+
+    from app.auth import USERS
+
+    user_info = USERS.get(micro_id)
+    if not user_info:
+        flash("Micro não encontrada.", "warning")
+        return redirect(url_for("main.painel_admin"))
+
+    nome_aba = user_info["aba"]
+
+    # Determina o nome da aba de fechamento com base no nome da aba da micro
+    if nome_aba.startswith("MI"):
+        aba_fechamento = f"FECHAMENTO {nome_aba}"
+    else:
+        aba_fechamento = f"FECHAMENTO {nome_aba.upper()}"
+
+    try:
+        sheet = get_sheet(user_info["planilha"], aba_fechamento)
+        dados_crus = sheet.get_all_records()
+        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+
+        campos = list(dados[0].keys()) if dados else []
+
+        return render_template("fechamento.html", dados=dados, campos=campos, titulo=aba_fechamento)
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao acessar aba de fechamento: {e}")
+        flash("Erro ao acessar os dados de fechamento.", "danger")
+        return redirect(url_for("main.visualizar_micro", micro_id=micro_id))
+
 @bp.route('/admin')
 @login_required
 def painel_admin():
@@ -303,12 +339,14 @@ def visualizar_micro(micro_id):
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
-    from app.auth import USERS  # Importa o dicionário com os usuários
+    from app.auth import USERS
 
     user_info = USERS.get(micro_id)
     if not user_info:
-        flash("Micro não encontrado.", "warning")
+        flash("Micro não encontrada.", "warning")
         return redirect(url_for("main.painel_admin"))
+
+    session["micro"] = micro_id  # Salva na sessão
 
     try:
         sheet = get_sheet(user_info["planilha"], user_info["aba"])
@@ -321,5 +359,5 @@ def visualizar_micro(micro_id):
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar dados da micro {micro_id}: {e}")
-        flash(f"Erro ao carregar dados da micro {micro_id}.", "danger")
+        flash("Erro ao carregar dados da micro.", "danger")
         return redirect(url_for("main.painel_admin"))

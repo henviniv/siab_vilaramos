@@ -52,7 +52,9 @@
 
   <h1>
     📊 Fechamento
-    {% if current_user.role != 'admin' %}
+    {% if dados|length == 1 %}
+      - {{ dados[0].aba }}
+    {% elif current_user.role != 'admin' %}
       - {{ current_user.aba }}
     {% else %}
       de todas as Micros
@@ -60,7 +62,8 @@
   </h1>
 
   {% if dados %}
-    {% if current_user.role == 'admin' %}
+    {% if current_user.role == 'admin' and dados|length > 1 %}
+      {# Admin visualizando todos os fechamentos #}
       {% for tabela in dados %}
         <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
         <div class="tabela-scroll">
@@ -78,20 +81,14 @@
         </div>
       {% endfor %}
     {% else %}
+      {# Micro OU admin visualizando uma micro específica #}
       <div class="tabela-scroll">
         <table>
-          <thead>
-            <tr>
-              {% for campo in campos %}
-              <th>{{ campo }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
           <tbody>
-            {% for linha in dados %}
+            {% for linha in dados[0].valores %}
             <tr>
-              {% for campo in campos %}
-              <td>{{ linha[campo] }}</td>
+              {% for celula in linha %}
+              <td>{{ celula }}</td>
               {% endfor %}
             </tr>
             {% endfor %}

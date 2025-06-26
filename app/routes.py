@@ -263,10 +263,11 @@ def fechamento():
                         print(f"[ERRO] {aba} ({equipe}): {e}")
                         continue
         else:
-            sheet = get_sheet(current_user.planilha, current_user.fechamento)
+            aba_fechamento = current_user.fechamento
+            sheet = get_sheet(current_user.planilha, aba_fechamento)
             valores = sheet.get_all_values()
             dados.append({
-                "aba": current_user.fechamento,
+                "aba": aba_fechamento,
                 "equipe": current_user.planilha,
                 "valores": valores
             })
@@ -302,12 +303,15 @@ def fechamento_admin(micro_id):
 
     try:
         sheet = get_sheet(user_info["planilha"], aba_fechamento)
-        dados_crus = sheet.get_all_records()
-        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+        valores = sheet.get_all_values()
 
-        campos = list(dados[0].keys()) if dados else []
+        dados = [{
+            "aba": aba_fechamento,
+            "equipe": user_info["planilha"],
+            "valores": valores
+        }]
 
-        return render_template("fechamento.html", dados=dados, campos=campos, titulo=aba_fechamento)
+        return render_template("fechamento.html", dados=dados)
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar aba de fechamento: {e}")

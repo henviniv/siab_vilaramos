@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fechamento MICRO 23</title>
+    <title>Fechamento</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -14,9 +14,9 @@
         background-color: #f8f9fa;
         padding: 20px;
       }
-      h1 {
-        margin-bottom: 20px;
+      h1, h2 {
         color: #333;
+        margin-bottom: 15px;
       }
       .tabela-scroll {
         overflow-x: auto;
@@ -24,6 +24,7 @@
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 8px;
+        margin-bottom: 30px;
       }
       table {
         width: 100%;
@@ -31,8 +32,7 @@
         font-size: 14px;
         margin-top: 10px;
       }
-      td,
-      th {
+      td, th {
         border: 1px solid #ccc;
         padding: 6px;
         text-align: center;
@@ -42,33 +42,42 @@
         background-color: #f1f1f1;
       }
       .back-button {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        display: inline-block;
       }
     </style>
   </head>
   <body>
-    <a href="{{ url_for('main.index') }}" class="back-button"
-      >← Voltar para o início</a
-    >
+    <a href="{{ url_for('main.index') }}" class="back-button">← Voltar para o início</a>
 
-    <h1>📊 Fechamento MICRO 23</h1>
+    <h1>
+      📊 Fechamento
+      {% if current_user.role != 'admin' %}
+        - {{ current_user.aba }}
+      {% else %}
+        de todas as Micros
+      {% endif %}
+    </h1>
 
     {% if dados %}
-    <div class="tabela-scroll">
-      <table>
-        <tbody>
-          {% for linha in dados %}
-          <tr>
-            {% for celula in linha %}
-            <td>{{ celula }}</td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+      {% for tabela in dados %}
+        <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
+        <div class="tabela-scroll">
+          <table>
+            <tbody>
+              {% for linha in tabela.valores %}
+              <tr>
+                {% for celula in linha %}
+                <td>{{ celula }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
     {% else %}
-    <p>Nenhum dado encontrado na aba "FECHAMENTO MICRO 23".</p>
+      <p>Nenhum dado de fechamento encontrado.</p>
     {% endif %}
   </body>
 </html>

@@ -239,16 +239,42 @@ def logout():
 @bp.route('/fechamento')
 @login_required
 def fechamento():
-    if current_user.role != "admin" and current_user.aba != "MICRO 23":
+    if current_user.role != "admin" and not current_user.fechamento:
         flash("Acesso não autorizado", "danger")
         return redirect(url_for("main.index"))
 
     try:
-        sheet = get_sheet("EQUIPE 4", "FECHAMENTO MICRO 23")
-        dados = sheet.get_all_values()
+        dados = []
+
+        if current_user.role == "admin":
+            for equipe in ["EQUIPE 1", "EQUIPE 2", "EQUIPE 3", "EQUIPE 4", "EQUIPE 5"]:
+                for i in range(1, 31):
+                    aba = f"FECHAMENTO MICRO {i}"
+                    try:
+                        sheet = get_sheet(equipe, aba)
+                        valores = sheet.get_all_values()
+                        if valores:
+                            dados.append({
+                                "aba": aba,
+                                "equipe": equipe,
+                                "valores": valores
+                            })
+                    except Exception as e:
+                        print(f"[ERRO] {aba} ({equipe}): {e}")
+                        continue
+        else:
+            sheet = get_sheet(current_user.planilha, current_user.fechamento)
+            valores = sheet.get_all_values()
+            dados.append({
+                "aba": current_user.fechamento,
+                "equipe": current_user.planilha,
+                "valores": valores
+            })
+
         return render_template("fechamento.html", dados=dados)
+
     except Exception as e:
-        print(f"[ERRO] Falha ao carregar aba de fechamento: {e}")
+        print(f"[ERRO] Falha ao carregar dados: {e}")
         flash("Erro ao carregar dados da planilha.", "danger")
         return redirect(url_for("main.index"))
 

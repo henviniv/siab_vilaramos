@@ -267,8 +267,7 @@
     <div class="back-container">
       <a href="{{ url_for('main.painel_admin') }}" class="back-link">Voltar</a>
     </div>
-    {% endif %} {% if current_user.is_authenticated %}
-      <a href="{{ url_for('main.fechamento') }}">Fechamento {{ session.get("micro") }}</a>
+    {% endif %} {% if current_user.is_authenticated and current_user.role == 'admin' and session.get('micro') %}<a href="{{ url_for('main.fechamento', micro_id=session.get('micro')) }}">Fechamento {{ session.get('micro') }}</a>
     {% endif %}
 
     <h1>Gerenciar Pessoas na Planilha</h1>

@@ -306,24 +306,16 @@
       method="POST"
       class="data-form"
     >
-    {% set palavras_sim_nao = ['gestante', 'acamado', 'restrito', 'has', 'hiperdia', 'insulino', 'sm', 'tb', 'han', 'obesidade', 'diabetes', 'diabético'] %}
-    {% for chave in campos %}
-    <label for="{{ chave }}">{{ chave }}:</label>
-    {% set chave_lower = chave|lower %}
-    {% if 'data' in chave_lower and 'nascimento' in chave_lower %}
-    <input type="date" name="{{ chave }}" required />
-    {% elif 'idade' in chave_lower %}
-    <input type="text" name="{{ chave }}" required />
-    {% elif palavras_sim_nao | select('in', chave_lower) | list %}
-    <select name="{{ chave }}" required>
-      <option value="" disabled selected>Selecione uma opção</option>
-      <option value="S">Sim</option>
-      <option value="N">Não</option>
-    </select>
-    {% else %}
-    <input type="text" name="{{ chave }}" required />
-    {% endif %}
-    {% endfor %}
+      {% for chave in campos %}
+      <label for="{{ chave }}">{{ chave }}:</label>
+      {% set chave_lower = chave.lower() %} {% if 'data' in chave_lower and
+      'nascimento' in chave_lower %}
+      <input type="date" name="{{ chave }}" required />
+      {% elif 'idade' in chave_lower %}
+      <input type="text" name="{{ chave }}" required />
+      {% else %}
+      <input type="text" name="{{ chave }}" required />
+      {% endif %} {% endfor %}
       <button type="submit" id="salvarBtn">Salvar</button>
       <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
       <button

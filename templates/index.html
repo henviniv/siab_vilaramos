@@ -262,6 +262,35 @@
       a[href*="fechamento"]:hover {
         background-color: #0056b3;
       }
+      /* Impede que os itens selecionados façam a caixa aumentar */
+      .select2-selection__rendered {
+        max-height: 38px;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+      }
+
+      /* Remove o “X nome” de cada item selecionado */
+      .select2-selection__choice {
+        display: none !important;
+      }
+
+      /* Opcional: mostra contador de selecionados no lugar */
+      .select2-selection__rendered::after {
+        content: attr(title);
+        font-size: 0.9em;
+        color: #555;
+        padding-left: 6px;
+      }
+
+      /* Garante que o campo continue com aparência padrão */
+      .select2-container .select2-selection--multiple {
+        min-height: 38px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 4px 6px;
+      }
     </style>
   </head>
   <body>
@@ -440,12 +469,24 @@
                       }
                     });
 
-                  // Aplica Select2 no select
-                  select.select2({
-                    placeholder: "Filtrar " + title,
-                    closeOnSelect: false,
-                    width: "resolve",
-                  });
+                  // Aplica Select2 no select com contador de opções
+                  select
+                    .select2({
+                      placeholder: "Filtrar " + title,
+                      closeOnSelect: false,
+                      width: "resolve",
+                    })
+                    .on("change", function () {
+                      const selected = $(this).val();
+                      const label =
+                        selected?.length > 0
+                          ? `${selected.length} selecionado(s)`
+                          : "";
+                      $(this)
+                        .next(".select2-container")
+                        .find(".select2-selection__rendered")
+                        .attr("title", label);
+                    });
 
                   // Evento de filtro múltiplo
                   select.on("change", function () {

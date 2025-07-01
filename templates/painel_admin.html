@@ -45,17 +45,34 @@
         width: 100%;
       }
 
-      .logout {
-        text-align: right;
-        margin-bottom: 1rem;
+      .logout-container {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        background-color: #f9f9f9;
+        padding: 8px 14px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: sans-serif;
+      }
+      .logout-link {
+        color: #e74c3c;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .logout-link:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
     <h1>Painel do Administrador</h1>
 
-    <div class="logout">
-      <a href="{{ url_for('main.logout') }}">Sair</a>
+    <div class="logout-container">
+      <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
 
     <table class="display micro-table">

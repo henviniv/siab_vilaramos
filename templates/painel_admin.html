@@ -66,43 +66,47 @@
       .logout-link:hover {
         text-decoration: underline;
       }
+      all-area {
+        position: absolute;
+        top: 50px;
+      }
     </style>
   </head>
   <body>
     <div class="logout-container">
       <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
     </div>
+    <div class="all-area">
+      <h1>Painel do Administrador</h1>
 
-    <h1>Painel do Administrador</h1>
-
-    <table class="display micro-table">
-      <thead>
-        <tr>
-          <th>Usuário</th>
-          <th>Micro (Aba)</th>
-          <th>Planilha</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for username, info in lista_usuarios.items() %}
-        <tr>
-          <td>{{ username }}</td>
-          <td>{{ info.aba }}</td>
-          <td>{{ info.planilha }}</td>
-          <td>
-            <a
-              href="{{ url_for('main.visualizar_micro', micro_id=username) }}"
-              aria-label="Ver dados de {{ username }}"
-            >
-              Ver Dados
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
+      <table class="display micro-table">
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Micro (Aba)</th>
+            <th>Planilha</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for username, info in lista_usuarios.items() %}
+          <tr>
+            <td>{{ username }}</td>
+            <td>{{ info.aba }}</td>
+            <td>{{ info.planilha }}</td>
+            <td>
+              <a
+                href="{{ url_for('main.visualizar_micro', micro_id=username) }}"
+                aria-label="Ver dados de {{ username }}"
+              >
+                Ver Dados
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     <script>
       $(document).ready(function () {
         $("table.display").DataTable({

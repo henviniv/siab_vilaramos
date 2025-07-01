@@ -31,9 +31,9 @@ def index():
     try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-        if not current_user.aba or not current_user.planilha:
-            flash("Nenhuma aba ou planilha associada ao usuário.", "danger")
-            return redirect(url_for("main.logout"))
+       # if not current_user.aba or not current_user.planilha:
+           # flash("Nenhuma aba ou planilha associada ao usuário.", "danger")
+           # return redirect(url_for("main.logout"))
 
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados_crus = sheet.get_all_records()

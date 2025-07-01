@@ -25,6 +25,8 @@ def num_to_col(n):
 @login_required
 def index():
     # Só verifica o papel se o usuário estiver autenticado (garantido por @login_required)
+    if current_user.is_authenticated and current_user.role == "admin" and not request.args.get("query"):
+        return redirect(url_for("main.painel_admin"))
 
     try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")

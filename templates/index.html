@@ -264,9 +264,9 @@
       }
       /* Impede que os itens selecionados façam a caixa aumentar */
       .select2-selection__rendered {
-        max-height: 1.8em;
-        overflow: hidden;
-        white-space: nowrap;
+        padding: 0;
+        margin: 0;
+        line-height: 1.5;
       }
 
       /* Remove o “X nome” de cada item selecionado */
@@ -284,9 +284,12 @@
 
       /* Garante que o campo continue com aparência padrão */
       .select2-container--default .select2-selection--multiple {
-        width: auto !important;
-        min-width: auto !important;
-        display: inline-block;
+        min-height: 30px; /* altura desejada */
+        height: 30px !important;
+        padding: 2px 5px;
+        overflow-y: hidden;
+        display: flex;
+        align-items: center;
       }
     </style>
   </head>

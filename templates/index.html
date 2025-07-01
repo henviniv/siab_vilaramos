@@ -389,12 +389,12 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script>
       $(document).ready(function () {
-        // Adiciona select em cada th (menos o de AÇÕES)
-        $("#tabelaPessoas thead th").each(function (index) {
+        // Adiciona select múltiplo em cada th (exceto "AÇÕES")
+        $("#tabelaPessoas thead th").each(function () {
           var title = $(this).text();
           if (title !== "AÇÕES") {
             $(this).append(
-              '<br><select><option value="">Todos</option></select>'
+              '<br><select multiple size="3" style="width:100%; font-size: 0.8em;"><option value="">Todos</option></select>'
             );
           }
         });
@@ -413,11 +413,13 @@
                 var title = $(column.header()).text();
                 if (title !== "AÇÕES") {
                   var select = $(column.header()).find("select");
+
+                  // Preenche opções únicas
                   column
                     .data()
                     .unique()
                     .sort()
-                    .each(function (d, j) {
+                    .each(function (d) {
                       if (d) {
                         select.append(
                           '<option value="' + d + '">' + d + "</option>"
@@ -425,12 +427,20 @@
                       }
                     });
 
-                  // Evento de filtro
+                  // Aplica o filtro quando selecionar opções
                   select.on("change", function () {
-                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                    column
-                      .search(val ? "^" + val + "$" : "", true, false)
-                      .draw();
+                    var selected = $(this).val(); // array de valores selecionados
+                    if (selected && selected.length > 0) {
+                      var regex = selected
+                        .map(
+                          (val) =>
+                            "^" + $.fn.dataTable.util.escapeRegex(val) + "$"
+                        )
+                        .join("|");
+                      column.search(regex, true, false).draw();
+                    } else {
+                      column.search("", true, false).draw(); // limpa o filtro
+                    }
                   });
                 }
               });

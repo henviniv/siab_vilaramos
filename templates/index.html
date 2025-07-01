@@ -256,6 +256,17 @@
         background-color: #0056b3;
       }
     </style>
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+
+    <!-- Select2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     {% if current_user.is_authenticated %}
@@ -385,16 +396,14 @@
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
 
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script>
       $(document).ready(function () {
-        // Adiciona select múltiplo em cada th (exceto "AÇÕES")
+        // Cria os cabeçalhos com selects múltiplos
         $("#tabelaPessoas thead th").each(function () {
           var title = $(this).text();
           if (title !== "AÇÕES") {
             $(this).append(
-              '<br><select multiple size="3" style="width:100%; font-size: 0.8em;"><option value="">Todos</option></select>'
+              '<br><select class="filtro-multiplo" multiple="multiple" style="width: 100%"></select>'
             );
           }
         });
@@ -414,7 +423,7 @@
                 if (title !== "AÇÕES") {
                   var select = $(column.header()).find("select");
 
-                  // Preenche opções únicas
+                  // Preenche as opções únicas
                   column
                     .data()
                     .unique()
@@ -427,9 +436,16 @@
                       }
                     });
 
-                  // Aplica o filtro quando selecionar opções
+                  // Aplica Select2 no select
+                  select.select2({
+                    placeholder: "Filtrar " + title,
+                    closeOnSelect: false,
+                    width: "resolve",
+                  });
+
+                  // Evento de filtro múltiplo
                   select.on("change", function () {
-                    var selected = $(this).val(); // array de valores selecionados
+                    var selected = $(this).val(); // array de valores
                     if (selected && selected.length > 0) {
                       var regex = selected
                         .map(
@@ -439,7 +455,7 @@
                         .join("|");
                       column.search(regex, true, false).draw();
                     } else {
-                      column.search("", true, false).draw(); // limpa o filtro
+                      column.search("", true, false).draw();
                     }
                   });
                 }
@@ -549,5 +565,14 @@
         }
       });
     </script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <!-- Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   </body>
 </html>

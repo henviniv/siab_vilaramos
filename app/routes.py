@@ -6,6 +6,7 @@ import re
 import builtins
 from string import ascii_uppercase
 from fpdf import FPDF
+from datetime import datetime
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -373,7 +374,8 @@ def gerar_filipetas():
 
     nomes = request.json.get("nomes", [])
     grupo = request.json.get("grupo")
-    data = request.json.get("data")
+    data_iso = request.json.get("data")
+    data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d-%m-%Y")
     local = request.json.get("local")
     hora = request.json.get("hora")
 
@@ -404,7 +406,7 @@ def gerar_filipetas():
         pdf.multi_cell(w=largura_filipeta, h=7,
             txt=(
                 f"GRUPO DE: {grupo}\n"
-                f"DIA: {data}  ÀS {hora}\n\n"
+                f"DIA: {data_formatada}  ÀS {hora}\n\n"
                 f"LOCAL: {local}\n"
                 f"CONVOCAÇÃO PARA\n\n"
                 f"{nome.upper()}\n\n"

@@ -365,3 +365,35 @@ def visualizar_micro(micro_id):
         print(f"[ERRO] Falha ao acessar dados da micro {micro_id}: {e}")
         flash("Erro ao carregar dados da micro.", "danger")
         return redirect(url_for("main.painel_admin"))
+    
+from flask import request, send_file
+from fpdf import FPDF
+
+@bp.route("/gerar_filipetas", methods=["POST"])
+def gerar_filipetas():
+    nomes = request.json.get("nomes", [])
+    grupo = request.json.get("grupo")
+    data = request.json.get("data")
+    hora = request.json.get("hora")
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=10)
+
+    for i, nome in enumerate(nomes):
+        if i % 2 == 0:
+            pdf.add_page()
+
+        x = 10 if i % 2 == 0 else 110
+        y = 10 + (int(i / 2) % 4) * 60
+
+        pdf.set_xy(x, y)
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(90, 8,
+            f"GRUPO DE: {grupo}\nDIA: {data}  ÀS {hora}\n\nLOCAL: UBS VILA RAMOS\nCONVOCAÇÃO PARA\n\n{nome}\n\nTRAZER CARTÃO DO SUS",
+            border=1
+        )
+
+    file_path = "/tmp/filipetas.pdf"
+    pdf.output(file_path)
+    return send_file(file_path, as_attachment=False)
+

@@ -299,6 +299,42 @@
       .select2-dropdown {
         min-width: 200px !important;
       }
+      .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border: 2px solid #007bff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        display: none;
+      }
+
+      .modal.show {
+        display: block;
+      }
+
+      .modal.hidden {
+        display: none;
+      }
+
+      .modal label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .modal input {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
       @media (max-width: 768px) {
         body {
           margin: 10px;
@@ -467,6 +503,11 @@
         {% endfor %}
       </tbody>
     </table>
+    <div class="text-center" style="margin-top: 20px">
+      <button id="gerarFilipetas" class="btn btn-primary">
+        Gerar Filipetas
+      </button>
+    </div>
     {% else %}
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
@@ -660,6 +701,59 @@
           });
         }
       });
+      function coletarNomesFiltrados() {
+        const nomes = [];
+        const tabela = $("#tabelaPessoas").DataTable();
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          nomes.push(linha[0]); // Supondo que a coluna NOME seja a primeira
+        });
+        return nomes;
+      }
+      document
+        .getElementById("gerarFilipetas")
+        .addEventListener("click", function () {
+          document.getElementById("modalFilipeta").classList.remove("hidden");
+          document.getElementById("modalFilipeta").classList.add("show");
+        });
+
+      // Função para gerar o PDF
+      function gerarPdfFilipetas() {
+        const nomes = coletarNomesFiltrados(); // Você já deve ter essa função definida
+        const grupo = document.getElementById("grupo").value;
+        const data = document.getElementById("dataGrupo").value;
+        const hora = document.getElementById("horaGrupo").value;
+
+        fetch("/gerar_filipetas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nomes, grupo, data, hora }),
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const win = window.open(url);
+            win.focus();
+
+            // Fecha o modal depois de gerar o PDF
+            document.getElementById("modalFilipeta").classList.add("hidden");
+            document.getElementById("modalFilipeta").classList.remove("show");
+
+            // Limpa os campos
+            document.getElementById("grupo").value = "";
+            document.getElementById("dataGrupo").value = "";
+            document.getElementById("horaGrupo").value = "";
+          });
+      }
     </script>
+    <div id="modalFilipeta" class="modal hidden">
+      <label>Grupo:</label>
+      <input type="text" id="grupo" placeholder="Ex: Hipertensos" />
+      <label>Data:</label>
+      <input type="date" id="dataGrupo" />
+      <label>Hora:</label>
+      <input type="time" id="horaGrupo" />
+      <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
+    </div>
   </body>
 </html>

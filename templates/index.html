@@ -706,7 +706,7 @@
         const tabela = $("#tabelaPessoas").DataTable();
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
-          nomes.push(linha[0]); // Supondo que a coluna NOME seja a primeira
+          nomes.push(linha[1]); // Supondo que a coluna NOME seja a primeira
         });
         return nomes;
       }

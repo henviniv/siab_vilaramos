@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, login_required, current_user, request, send_file
 from app.auth import User, USERS
 from app.google_sheets import get_sheet
 import re
@@ -370,12 +370,11 @@ def visualizar_micro(micro_id):
 
 @bp.route("/gerar_filipetas", methods=["POST"])
 def gerar_filipetas():
-    from flask import request, send_file
-    from fpdf import FPDF
 
     nomes = request.json.get("nomes", [])
     grupo = request.json.get("grupo")
     data = request.json.get("data")
+    local = request.json.get("local")
     hora = request.json.get("hora")
 
     pdf = FPDF()
@@ -406,7 +405,7 @@ def gerar_filipetas():
             txt=(
                 f"GRUPO DE: {grupo}\n"
                 f"DIA: {data}  ÀS {hora}\n\n"
-                f"LOCAL: UBS VILA RAMOS\n"
+                f"LOCAL: {local}\n"
                 f"CONVOCAÇÃO PARA\n\n"
                 f"{nome.upper()}\n\n"
                 f"TRAZER CARTÃO DO SUS"

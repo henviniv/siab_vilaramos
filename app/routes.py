@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from app.auth import User, USERS
 from app.google_sheets import get_sheet
 import re
 import builtins
 from string import ascii_uppercase
+from fpdf import FPDF
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -366,8 +367,6 @@ def visualizar_micro(micro_id):
         flash("Erro ao carregar dados da micro.", "danger")
         return redirect(url_for("main.painel_admin"))
     
-from flask import request, send_file
-from fpdf import FPDF
 
 @bp.route("/gerar_filipetas", methods=["POST"])
 def gerar_filipetas():

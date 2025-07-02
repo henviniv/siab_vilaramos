@@ -370,29 +370,52 @@ def visualizar_micro(micro_id):
 
 @bp.route("/gerar_filipetas", methods=["POST"])
 def gerar_filipetas():
+    from flask import request, send_file
+    from fpdf import FPDF
+
     nomes = request.json.get("nomes", [])
     grupo = request.json.get("grupo")
     data = request.json.get("data")
     hora = request.json.get("hora")
 
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.set_auto_page_break(auto=False)
+    pdf.add_page()
+
+    largura_filipeta = 90
+    altura_filipeta = 60
+    margem_esquerda = 10
+    margem_topo = 10
+    espacamento_horizontal = 10
+    espacamento_vertical = 10
 
     for i, nome in enumerate(nomes):
-        if i % 2 == 0:
-            pdf.add_page()
+        idx_na_pagina = i % 6  # de 0 a 5
+        linha = idx_na_pagina // 2  # 0, 1, 2
+        coluna = idx_na_pagina % 2  # 0 ou 1
 
-        x = 10 if i % 2 == 0 else 110
-        y = 10 + (int(i / 2) % 4) * 60
+        x = margem_esquerda + coluna * (largura_filipeta + espacamento_horizontal)
+        y = margem_topo + linha * (altura_filipeta + espacamento_vertical)
+
+        if idx_na_pagina == 0 and i != 0:
+            pdf.add_page()
 
         pdf.set_xy(x, y)
         pdf.set_font("Arial", size=12)
-        pdf.multi_cell(90, 8,
-            f"GRUPO DE: {grupo}\nDIA: {data}  ÀS {hora}\n\nLOCAL: UBS VILA RAMOS\nCONVOCAÇÃO PARA\n\n{nome}\n\nTRAZER CARTÃO DO SUS",
+        pdf.multi_cell(w=largura_filipeta, h=7,
+            txt=(
+                f"GRUPO DE: {grupo}\n"
+                f"DIA: {data}  ÀS {hora}\n\n"
+                f"LOCAL: UBS VILA RAMOS\n"
+                f"CONVOCAÇÃO PARA\n\n"
+                f"{nome.upper()}\n\n"
+                f"TRAZER CARTÃO DO SUS"
+            ),
             border=1
         )
 
     file_path = "/tmp/filipetas.pdf"
     pdf.output(file_path)
-    return send_file(file_path, as_attachment=False)
+    return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
+
 

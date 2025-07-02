@@ -717,6 +717,18 @@
           document.getElementById("modalFilipeta").classList.add("show");
         });
 
+      function cancelarFilipeta() {
+        // Fecha o modal
+        document.getElementById("modalFilipeta").classList.add("hidden");
+        document.getElementById("modalFilipeta").classList.remove("show");
+
+        // Limpa os campos
+        document.getElementById("grupo").value = "";
+        document.getElementById("dataGrupo").value = "";
+        document.getElementById("horaGrupo").value = "";
+        document.getElementById("localGrupo").value = "";
+      }
+
       // Função para gerar o PDF
       function gerarPdfFilipetas() {
         const nomes = coletarNomesFiltrados(); // Você já deve ter essa função definida
@@ -758,6 +770,7 @@
       <label>Local:</label>
       <input type="text" id="localGrupo" />
       <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
+      <button onclick="cancelarFilipeta()">Cancelar</button>
     </div>
   </body>
 </html>

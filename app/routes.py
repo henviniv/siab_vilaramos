@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file
-from flask_login import login_user, logout_user, login_required, current_user, request, send_file
-from app.auth import User, USERS
+from flask_login import login_user, logout_user, login_required, current_user
 from app.google_sheets import get_sheet
 import re
 import builtins

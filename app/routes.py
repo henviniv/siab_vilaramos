@@ -419,20 +419,6 @@ def gerar_filipetas():
     pdf.output(file_path)
     return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
 
-@bp.route("/fechamento_geral")
-@login_required
-def fechamento_geral():
-    planilha = request.args.get("planilha")
-    aba = request.args.get("aba")
-
-    try:
-        dados = get_sheet(planilha, aba)
-    except Exception as e:
-        flash(f"Erro ao carregar dados: {e}", "danger")
-        return redirect(url_for("main.painel_admin"))
-
-    return render_template("fechamento.html", dados=dados, planilha=planilha, aba=aba)
-
 @bp.route("/fechamento_geral/<aba>")
 @login_required
 def fechamento_geral(aba):

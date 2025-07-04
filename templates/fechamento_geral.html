@@ -3,14 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fechamento {{ aba }}</title>
+    <title>Fechamento Geral - {{ aba }}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .tabela-scroll {
+        overflow-x: auto;
+        background-color: #fff;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      td,
+      th {
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: center;
+        min-width: 50px;
+      }
+      tr:nth-child(even) {
+        background-color: #f1f1f1;
+      }
+      .back-button {
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+      .back-button:hover {
+        background-color: #0056b3;
+      }
+    </style>
   </head>
   <body>
-    <a href="{{ url_for('main.index') }}" class="back-button">← Voltar</a>
+    <a href="{{ url_for('main.index') }}" class="back-button"
+      >← Voltar para o início</a
+    >
 
     <h1>📊 Fechamento Geral - {{ aba }}</h1>
 

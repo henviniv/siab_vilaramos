@@ -433,3 +433,16 @@ def fechamento_geral():
 
     return render_template("fechamento.html", dados=dados, planilha=planilha, aba=aba)
 
+@bp.route("/fechamento_geral/<aba>")
+@login_required
+def fechamento_geral(aba):
+    if current_user.role != "admin":
+        return redirect(url_for("main.index"))
+
+    planilha = "CONSOLIDADO GERAL"
+    valores = get_sheet(planilha, aba)
+    if not valores:
+        flash("Não foi possível carregar os dados da aba.", "danger")
+        return redirect(url_for("main.index"))
+
+    return render_template("fechamento_geral.html", aba=aba, valores=valores)

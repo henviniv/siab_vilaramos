@@ -419,16 +419,13 @@ def gerar_filipetas():
     pdf.output(file_path)
     return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
 
-@bp.route("/fechamento_geral/<aba>")
-@login_required
-def fechamento_geral(aba):
-    if current_user.role != "admin":
-        return redirect(url_for("main.index"))
+@bp.route('/fechamento_geral')
+def fechamento_geral():
+    planilha = request.args.get('planilha', 'CONSOLIDADO GERAL')
+    aba = request.args.get('aba')
 
-    planilha = "CONSOLIDADO GERAL"
-    valores = get_sheet(planilha, aba)
-    if not valores:
-        flash("Não foi possível carregar os dados da aba.", "danger")
-        return redirect(url_for("main.index"))
+    worksheet = get_sheet(planilha, aba)
+    valores = worksheet.get_all_values()  # ← Aqui é o ponto importante
 
-    return render_template("fechamento_geral.html", aba=aba, valores=valores)
+    return render_template('fechamento_geral.html', valores=valores, aba=aba)
+

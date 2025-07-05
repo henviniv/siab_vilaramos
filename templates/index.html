@@ -687,7 +687,7 @@
         if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
           idade--;
         }
-        campoIdade.value = parseInt(idade, 10);
+        campoIdade.value = parseInt(campoIdade.value.replace(/'/g, ""), 10);
       }
     });
   }

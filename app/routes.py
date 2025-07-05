@@ -91,25 +91,36 @@ def create_or_update_person():
 
         nova_pessoa = {}
         for campo in campos:
-            valor = builtins.str(request.form.get(campo, ""))
+            valor = builtins.str(request.form.get(campo, "")).strip()
             nova_pessoa[campo] = valor.upper() if campo.upper() != "CPF" else valor
 
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
-        if not cpf_limpo:
-            flash("CPF não informado ou inválido", "warning")
-            return redirect(url_for('main.index'))
+        familia_alvo = nova_pessoa.get("FAMILIA", "").strip()
 
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        familias = {}
+        for i, linha in enumerate(dados):
+            familia = linha.get("FAMILIA", "").strip()
+            if familia:
+                familias.setdefault(familia, []).append(i + 2)  # linha na planilha
+
         ultima_col = num_to_col(len(campos))
 
         if cpf_limpo in cpfs:
+            # Atualiza a linha existente
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
         else:
-            sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=3)
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} inserida na linha 3.")
+            # Inserir abaixo da última pessoa da mesma família
+            if familia_alvo in familias:
+                linha_inserir = max(familias[familia_alvo]) + 1
+            else:
+                linha_inserir = len(dados) + 2  # depois da última linha
+
+            sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
+            print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
 
         return redirect(url_for('main.index'))
 
@@ -117,6 +128,7 @@ def create_or_update_person():
         print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
         flash("Erro ao salvar os dados.", "danger")
         return redirect(url_for('main.index'))
+
 
 # Atualizar pessoa
 @bp.route('/update_person', methods=['POST'])
@@ -132,27 +144,51 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        cpf_limpo = limpar_cpf(request.form.get("CPF", ""))
-        if not cpf_limpo:
+        cpf_original = limpar_cpf(request.args.get("cpf", ""))
+        if not cpf_original:
             return jsonify({"erro": "CPF inválido"}), 400
 
-        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")) for campo in campos}
-        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        ultima_col = num_to_col(len(campos))
+        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")).strip() for campo in campos}
+        nova_familia = nova_pessoa.get("FAMILIA", "").strip()
 
-        if cpf_limpo in cpfs:
-            linha_atualizar = cpfs[cpf_limpo]
-            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
-                         [[nova_pessoa.get(col, "") for col in campos]])
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-            return redirect(url_for('main.index'))
-        else:
-            print(f"[AVISO] Pessoa com CPF {cpf_limpo} não encontrada para atualização.")
+        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        familias = {}
+        for i, linha in enumerate(dados):
+            familia = linha.get("FAMILIA", "").strip()
+            if familia:
+                familias.setdefault(familia, []).append(i + 2)
+
+        if cpf_original not in cpfs:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
+
+        linha_atual = cpfs[cpf_original]
+        sheet.delete_rows(linha_atual)
+        print(f"[INFO] Pessoa com CPF {cpf_original} removida da linha {linha_atual} para reordenação.")
+
+        # Atualizar os dados após remoção
+        dados = sheet.get_all_records()
+        familias = {}
+        for i, linha in enumerate(dados):
+            familia = linha.get("FAMILIA", "").strip()
+            if familia:
+                familias.setdefault(familia, []).append(i + 2)
+
+        # Nova linha com base na nova família
+        if nova_familia in familias:
+            linha_inserir = max(familias[nova_familia]) + 1
+        else:
+            linha_inserir = len(dados) + 2
+
+        ultima_col = num_to_col(len(campos))
+        sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
+        print(f"[INFO] Pessoa reinserida na linha {linha_inserir} (nova família: {nova_familia}).")
+
+        return redirect(url_for('main.index'))
 
     except Exception as e:
         print(f"[ERRO] Falha ao atualizar pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
+
 
 # Excluir pessoa
 @bp.route('/delete', methods=['POST'])
@@ -162,16 +198,16 @@ def delete_person():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        cpf_limpo = limpar_cpf(request.form.get("cpf", ""))
-        if not cpf_limpo:
-            flash("CPF inválido para exclusão.", "warning")
+        familia = request.form.get("familia", "").strip()
+        if not familia:
+            flash("Código da FAMÍLIA inválido para exclusão.", "warning")
             return redirect(url_for('main.index'))
 
-        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        familias = {linha.get("FAMILIA", "").strip(): i + 2 for i, linha in enumerate(dados) if linha.get("FAMILIA")}
 
-        if cpf_limpo in cpfs:
-            sheet.delete_rows(cpfs[cpf_limpo])
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} excluída.")
+        if familia in familias:
+            sheet.delete_rows(familias[familia])
+            print(f"[INFO] Pessoa da FAMÍLIA {familia} excluída.")
         else:
             flash("Pessoa não encontrada para exclusão.", "warning")
 
@@ -182,6 +218,7 @@ def delete_person():
         flash("Erro ao excluir pessoa.", "danger")
         return redirect(url_for('main.index'))
 
+
 # Obter dados da pessoa para edição
 @bp.route('/edit', methods=['GET'])
 @login_required
@@ -190,12 +227,12 @@ def get_person_data():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        cpf_limpo = limpar_cpf(request.args.get("cpf", ""))
-        if not cpf_limpo:
-            return jsonify({"erro": "CPF inválido"}), 400
+        familia = request.args.get("familia", "").strip()
+        if not familia:
+            return jsonify({"erro": "Código da FAMÍLIA inválido"}), 400
 
         for linha in dados:
-            if limpar_cpf(linha.get("CPF", "")) == cpf_limpo:
+            if linha.get("FAMILIA", "").strip() == familia:
                 return jsonify(linha)
 
         return jsonify({"erro": "Pessoa não encontrada"}), 404

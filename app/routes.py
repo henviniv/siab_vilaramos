@@ -92,7 +92,18 @@ def create_or_update_person():
         nova_pessoa = {}
         for campo in campos:
             valor = builtins.str(request.form.get(campo, "")).strip()
-            nova_pessoa[campo] = valor.upper() if campo.upper() != "CPF" else valor
+
+            if "DATA DE NASCIMENTO" in campo.upper():
+                try:
+                    valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except:
+                    valor = ""
+            elif campo.upper() == "IDADE":
+                valor = re.sub(r"\D", "", valor)  # apenas números
+            elif campo.upper() != "CPF":
+                valor = valor.upper()
+
+            nova_pessoa[campo] = valor
 
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
         familia_alvo = nova_pessoa.get("FAMILIA", "").strip()
@@ -102,22 +113,20 @@ def create_or_update_person():
         for i, linha in enumerate(dados):
             familia = linha.get("FAMILIA", "").strip()
             if familia:
-                familias.setdefault(familia, []).append(i + 2)  # linha na planilha
+                familias.setdefault(familia, []).append(i + 2)
 
         ultima_col = num_to_col(len(campos))
 
         if cpf_limpo in cpfs:
-            # Atualiza a linha existente
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
         else:
-            # Inserir abaixo da última pessoa da mesma família
             if familia_alvo in familias:
                 linha_inserir = max(familias[familia_alvo]) + 1
             else:
-                linha_inserir = len(dados) + 2  # depois da última linha
+                linha_inserir = len(dados) + 2
 
             sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
             print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
@@ -144,25 +153,35 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        # Pega a família original da URL
         familia_original = request.args.get("familia", "").strip()
         if not familia_original:
             return jsonify({"erro": "Código da FAMÍLIA inválido"}), 400
 
-        # Constrói o novo dicionário com os dados atualizados
-        nova_pessoa = {campo: builtins.str(request.form.get(campo, "")).strip() for campo in campos}
+        nova_pessoa = {}
+        for campo in campos:
+            valor = builtins.str(request.form.get(campo, "")).strip()
 
-        # Encontra a linha da família original
+            if "DATA DE NASCIMENTO" in campo.upper():
+                try:
+                    valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except:
+                    valor = ""
+            elif campo.upper() == "IDADE":
+                valor = re.sub(r"\D", "", valor)
+            elif campo.upper() != "CPF":
+                valor = valor.upper()
+
+            nova_pessoa[campo] = valor
+
         linha_atual = None
         for i, linha in enumerate(dados):
             if linha.get("FAMILIA", "").strip() == familia_original:
-                linha_atual = i + 2  # +2 porque gspread é 1-indexed e tem cabeçalho
+                linha_atual = i + 2
                 break
 
         if not linha_atual:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        # Atualiza diretamente a linha onde ela estava, mesmo que a família tenha mudado
         ultima_col = num_to_col(len(campos))
         sheet.update(f"A{linha_atual}:{ultima_col}{linha_atual}",
                      [[nova_pessoa.get(col, "") for col in campos]])

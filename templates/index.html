@@ -687,7 +687,7 @@
         if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
           idade--;
         }
-        campoIdade.value = idade.toString();
+        campoIdade.value = parseInt(idade, 10);
       }
     });
   }

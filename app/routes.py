@@ -100,6 +100,7 @@ def create_or_update_person():
                     valor = ""
             elif campo.upper() == "IDADE":
                 valor = re.sub(r"\D", "", valor)  # apenas números
+                valor = int(valor) if valor else ""
             elif campo.upper() != "CPF":
                 valor = valor.upper()
 
@@ -168,6 +169,7 @@ def update_person():
                     valor = ""
             elif campo.upper() == "IDADE":
                 valor = re.sub(r"\D", "", valor)
+                valor = int(valor) if valor else ""
             elif campo.upper() != "CPF":
                 valor = valor.upper()
 

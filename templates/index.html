@@ -727,6 +727,7 @@
         document.getElementById("dataGrupo").value = "";
         document.getElementById("horaGrupo").value = "";
         document.getElementById("localGrupo").value = "";
+        document.getElementById("opcao").value = "";
       }
 
       // Função para gerar o PDF
@@ -736,11 +737,12 @@
         const data = document.getElementById("dataGrupo").value;
         const hora = document.getElementById("horaGrupo").value;
         const local = document.getElementById("localGrupo").value;
+        const opcao = document.getElementById("opcao").value;
 
         fetch("/gerar_filipetas", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nomes, grupo, data, hora, local }),
+          body: JSON.stringify({ nomes, grupo, data, hora, local, opcao }),
         })
           .then((response) => response.blob())
           .then((blob) => {
@@ -757,12 +759,18 @@
             document.getElementById("dataGrupo").value = "";
             document.getElementById("horaGrupo").value = "";
             document.getElementById("localGrupo").value = "";
+            document.getElementById("opcao").value = "";
           });
       }
     </script>
     <div id="modalFilipeta" class="modal hidden">
-      <label>Grupo:</label>
-      <input type="text" id="grupo" placeholder="Ex: Hipertensos" />
+      <label>Tipo:</label>
+      <select id="opcao">
+      <option value="GRUPO DE">GRUPO DE</option>
+      <option value="CONSULTA COM">CONSULTA COM</option>
+      </select>
+      <label>Grupo/Profissional:</label>
+      <input type="text" id="grupo" placeholder="Ex: Hipertensos ou Nome do Profissional" />
       <label>Data:</label>
       <input type="date" id="dataGrupo" />
       <label>Hora:</label>

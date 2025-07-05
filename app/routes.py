@@ -375,9 +375,10 @@ def gerar_filipetas():
     nomes = request.json.get("nomes", [])
     grupo = request.json.get("grupo")
     data_iso = request.json.get("data")
-    data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d-%m-%Y")
+    data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y")
     local = request.json.get("local")
     hora = request.json.get("hora")
+    opcao = request.json.get("opcao")
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)
@@ -405,7 +406,7 @@ def gerar_filipetas():
         pdf.set_font("Arial", size=12)
         pdf.multi_cell(w=largura_filipeta, h=7,
             txt=(
-                f"GRUPO DE: {grupo}\n"
+                f"{opcao} {grupo}\n\n"
                 f"DIA: {data_formatada}  ÀS {hora}\n\n"
                 f"LOCAL: {local}\n"
                 f"CONVOCAÇÃO PARA\n\n"

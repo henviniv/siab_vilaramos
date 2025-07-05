@@ -672,29 +672,42 @@
         }
 
       document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("formCadastro");
-        const campoNascimento = form.querySelector('input[name*="DATA DE NASCIMENTO"]');
-        const campoIdade = form.querySelector('input[name*="IDADE"]');
-        if (campoNascimento && campoIdade) {
-          campoNascimento.addEventListener("change", function () {
-            const partes = this.value.split("-");
-            if (partes.length === 3) {
-              const hoje = new Date();
-              const nascimento = new Date(
-                +partes[0],
-                +partes[1] - 1,
-                +partes[2]
-              );
-              let idade = hoje.getFullYear() - nascimento.getFullYear();
-              const m = hoje.getMonth() - nascimento.getMonth();
-              if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
-                idade--;
-              }
-              campoIdade.value = idade;
-            }
-          });
+  const form = document.getElementById("formCadastro");
+  const campoNascimento = form.querySelector('input[name*="DATA DE NASCIMENTO"]');
+  const campoIdade = form.querySelector('input[name*="IDADE"]');
+
+  if (campoNascimento && campoIdade) {
+    campoNascimento.addEventListener("change", function () {
+      const partes = this.value.split("-"); // formato YYYY-MM-DD do input tipo date
+
+      if (partes.length === 3) {
+        // Reformatar para DD/MM/AAAA
+        const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+        this.value = dataFormatada;
+
+        // Calcular idade
+        const nascimento = new Date(+partes[0], +partes[1] - 1, +partes[2]);
+        const hoje = new Date();
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const m = hoje.getMonth() - nascimento.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+          idade--;
         }
-      });
+
+        campoIdade.value = idade.toString();
+      }
+    });
+
+    // Ao carregar o formulário com data no formato DD/MM/AAAA, converter de volta para YYYY-MM-DD (para mostrar no input)
+    const valorAtual = campoNascimento.value;
+    if (valorAtual.includes("/")) {
+      const partes = valorAtual.split("/");
+      if (partes.length === 3) {
+        campoNascimento.value = `${partes[2]}-${partes[1]}-${partes[0]}`; // mostra no campo
+      }
+    }
+  }
+});
       function coletarNomesFiltrados() {
         const nomes = [];
         const tabela = $("#tabelaPessoas").DataTable();

@@ -144,28 +144,26 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        cpf_original = limpar_cpf(request.args.get("cpf", ""))
-        if not cpf_original:
-            return jsonify({"erro": "CPF inválido"}), 400
+        # Pega o código da família enviado na URL (query param)
+        familia_original = request.args.get("familia", "").strip()
+        if not familia_original:
+            return jsonify({"erro": "FAMÍLIA inválida"}), 400
 
+        # Constrói novo dicionário com os dados atualizados da pessoa
         nova_pessoa = {campo: builtins.str(request.form.get(campo, "")).strip() for campo in campos}
         nova_familia = nova_pessoa.get("FAMILIA", "").strip()
 
-        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        familias = {}
-        for i, linha in enumerate(dados):
-            familia = linha.get("FAMILIA", "").strip()
-            if familia:
-                familias.setdefault(familia, []).append(i + 2)
+        # Encontra a linha onde está a pessoa com a FAMÍLIA atual
+        familias = {linha.get("FAMILIA", "").strip(): i + 2 for i, linha in enumerate(dados) if linha.get("FAMILIA")}
 
-        if cpf_original not in cpfs:
+        if familia_original not in familias:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        linha_atual = cpfs[cpf_original]
+        linha_atual = familias[familia_original]
         sheet.delete_rows(linha_atual)
-        print(f"[INFO] Pessoa com CPF {cpf_original} removida da linha {linha_atual} para reordenação.")
+        print(f"[INFO] Pessoa com FAMÍLIA {familia_original} removida da linha {linha_atual} para reordenação.")
 
-        # Atualizar os dados após remoção
+        # Recarrega os dados atualizados depois da exclusão
         dados = sheet.get_all_records()
         familias = {}
         for i, linha in enumerate(dados):
@@ -173,7 +171,7 @@ def update_person():
             if familia:
                 familias.setdefault(familia, []).append(i + 2)
 
-        # Nova linha com base na nova família
+        # Define a nova posição com base na nova família
         if nova_familia in familias:
             linha_inserir = max(familias[nova_familia]) + 1
         else:
@@ -188,6 +186,7 @@ def update_person():
     except Exception as e:
         print(f"[ERRO] Falha ao atualizar pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
+
 
 
 # Excluir pessoa

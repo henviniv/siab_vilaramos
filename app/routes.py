@@ -144,42 +144,29 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        # Pega o código da família enviado na URL (query param)
+        # Pega a família original da URL
         familia_original = request.args.get("familia", "").strip()
         if not familia_original:
-            return jsonify({"erro": "FAMÍLIA inválida"}), 400
+            return jsonify({"erro": "Código da FAMÍLIA inválido"}), 400
 
-        # Constrói novo dicionário com os dados atualizados da pessoa
+        # Constrói o novo dicionário com os dados atualizados
         nova_pessoa = {campo: builtins.str(request.form.get(campo, "")).strip() for campo in campos}
-        nova_familia = nova_pessoa.get("FAMILIA", "").strip()
 
-        # Encontra a linha onde está a pessoa com a FAMÍLIA atual
-        familias = {linha.get("FAMILIA", "").strip(): i + 2 for i, linha in enumerate(dados) if linha.get("FAMILIA")}
+        # Encontra a linha da família original
+        linha_atual = None
+        for i, linha in enumerate(dados):
+            if linha.get("FAMILIA", "").strip() == familia_original:
+                linha_atual = i + 2  # +2 porque gspread é 1-indexed e tem cabeçalho
+                break
 
-        if familia_original not in familias:
+        if not linha_atual:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        linha_atual = familias[familia_original]
-        sheet.delete_rows(linha_atual)
-        print(f"[INFO] Pessoa com FAMÍLIA {familia_original} removida da linha {linha_atual} para reordenação.")
-
-        # Recarrega os dados atualizados depois da exclusão
-        dados = sheet.get_all_records()
-        familias = {}
-        for i, linha in enumerate(dados):
-            familia = linha.get("FAMILIA", "").strip()
-            if familia:
-                familias.setdefault(familia, []).append(i + 2)
-
-        # Define a nova posição com base na nova família
-        if nova_familia in familias:
-            linha_inserir = max(familias[nova_familia]) + 1
-        else:
-            linha_inserir = len(dados) + 2
-
+        # Atualiza diretamente a linha onde ela estava, mesmo que a família tenha mudado
         ultima_col = num_to_col(len(campos))
-        sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
-        print(f"[INFO] Pessoa reinserida na linha {linha_inserir} (nova família: {nova_familia}).")
+        sheet.update(f"A{linha_atual}:{ultima_col}{linha_atual}",
+                     [[nova_pessoa.get(col, "") for col in campos]])
+        print(f"[INFO] Pessoa com FAMÍLIA {familia_original} atualizada na linha {linha_atual}.")
 
         return redirect(url_for('main.index'))
 

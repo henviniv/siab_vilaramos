@@ -480,24 +480,17 @@
           <td>{{ linha.get(chave, '') }}</td>
           {% endif %} {% endfor %}
           <td>
-            {% set cpf = linha.get("CPF", "") %} {% if
-            current_user.is_authenticated and current_user.role == 'micro' and
-            cpf %}
-            <div>
-              <button
-                type="button"
-                onclick="mostrarFormularioEdicao('{{ limpar_cpf(cpf) }}')"
-              >
-                ✏️ Editar
-              </button>
-              <button
-                type="button"
-                onclick="deletePerson('{{ limpar_cpf(cpf) }}')"
-              >
-                🗑️ Excluir
-              </button>
-            </div>
-            {% endif %}
+          {% if current_user.is_authenticated and current_user.role == 'micro' %}
+          {% set familia = linha.get("FAMILIA", "") %}
+          <div>
+          <button type="button" onclick="mostrarFormularioEdicao('{{ familia }}')">
+          ✏️ Editar
+          </button>
+          <button type="button" onclick="deletePerson('{{ familia }}')">
+          🗑️ Excluir
+          </button>
+          </div>
+          {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -621,21 +614,22 @@
         form.scrollIntoView({ behavior: "smooth" });
       }
 
-      function mostrarFormularioEdicao(cpf) {
-        fetch(`/edit?cpf=${cpf}`)
-          .then((res) => res.json())
-          .then((pessoa) => {
-            preencherFormulario(pessoa);
-            const form = document.getElementById("formCadastro");
-            form.classList.add("show", "editando");
-            form.action = `/update_person?cpf=${cpf}`;
-            document.getElementById("salvarBtn").classList.add("hidden");
-            document.getElementById("atualizarBtn").classList.remove("hidden");
-            document.getElementById("mostrarCadastro").style.display = "none";
-            form.scrollIntoView({ behavior: "smooth" });
-          })
-          .catch(() => alert("Erro ao buscar dados"));
+      function mostrarFormularioEdicao(familia) {
+        fetch(`/edit?familia=${familia}`)
+        .then((res) => res.json())
+        .then((pessoa) => {
+        preencherFormulario(pessoa);
+        const form = document.getElementById("formCadastro");
+        form.classList.add("show", "editando");
+        form.action = `/update_person?familia=${familia}`;
+        document.getElementById("salvarBtn").classList.add("hidden");
+        document.getElementById("atualizarBtn").classList.remove("hidden");
+        document.getElementById("mostrarCadastro").style.display = "none";
+        form.scrollIntoView({ behavior: "smooth" });
+        })
+        .catch(() => alert("Erro ao buscar dados"));
       }
+
 
       function cancelarFormulario() {
         const form = document.getElementById("formCadastro");
@@ -662,20 +656,20 @@
 
       window.addEventListener("DOMContentLoaded", () => ocultarColunas());
 
-      function deletePerson(cpf) {
-        if (confirm("Tem certeza que deseja excluir este registro?")) {
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "/delete";
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = "cpf";
-          input.value = cpf;
-          form.appendChild(input);
-          document.body.appendChild(form);
-          form.submit();
+      function deletePerson(familia) {
+        if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/delete";
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "familia";
+        input.value = familia;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+         }
         }
-      }
 
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");

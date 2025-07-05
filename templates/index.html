@@ -679,8 +679,8 @@
 
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
-        const campoNascimento = form.querySelector('input[name*="Data"]');
-        const campoIdade = form.querySelector('input[name*="idade"]');
+        const campoNascimento = form.querySelector('input[name*="DATA DE NASCIMENTO"]');
+        const campoIdade = form.querySelector('input[name*="IDADE"]');
         if (campoNascimento && campoIdade) {
           campoNascimento.addEventListener("change", function () {
             const partes = this.value.split("-");

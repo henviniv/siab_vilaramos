@@ -123,11 +123,11 @@ def create_or_update_person():
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-        else:
+                else:
             if familia_alvo in familias:
-                linha_inserir = max(familias[familia_alvo]) + 1
+                linha_inserir = max(3, max(familias[familia_alvo]) + 1)
             else:
-                linha_inserir = len(dados) + 2
+                linha_inserir = max(3, len(dados) + 2)
 
             sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
             print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")

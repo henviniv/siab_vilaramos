@@ -127,10 +127,9 @@ def create_or_update_person():
             if familia_alvo in familias:
                 linha_inserir = max(3, max(familias[familia_alvo]) + 1)
             else:
-                linha_inserir = max(3, len(dados) + 2)
-
-            sheet.insert_rows([[nova_pessoa.get(col, "") for col in campos]], row=linha_inserir)
-            print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
+                linha_inserir = 3
+                sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=linha_inserir)
+                print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
 
         return redirect(url_for('main.index'))
 

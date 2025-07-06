@@ -452,21 +452,21 @@
     <input type="text" name="{{ chave }}" required />
   {% elif chave_upper in campos_somente_s %}
     <input type="text" name="{{ chave }}" pattern="[Ss]" maxlength="1" title="Somente a letra S" />
-  {% elif chave_strip == 'GENERO' %}
-    <select name="{{ chave }}" required>
-      <option value="">Selecione</option>
-      <option value="MASCULINO">MASCULINO</option>
-      <option value="FEMININO">FEMININO</option>
-    </select> 
-  {% elif chave_strip == 'COR/ETNIA' %}
-    <select name="{{ chave }}" required>
-      <option value="">Selecione</option>
-      <option value="BRANCO">BRANCO</option>
-      <option value="PRETO">PRETO</option>
-      <option value="PARDO">PARDO</option>
-      <option value="AMARELO">AMARELO</option>
-      <option value="INDIGENA">INDIGENA</option>
-    </select>
+  {% elif chave.strip().upper() == 'GENERO' %}
+  <select name="{{ chave }}" required>
+    <option value="">Selecione</option>
+    <option value="MASCULINO">MASCULINO</option>
+    <option value="FEMININO">FEMININO</option>
+  </select> 
+{% elif chave.strip().upper() == 'COR/ETNIA' %}
+  <select name="{{ chave }}" required>
+    <option value="">Selecione</option>
+    <option value="BRANCO">BRANCO</option>
+    <option value="PRETO">PRETO</option>
+    <option value="PARDO">PARDO</option>
+    <option value="AMARELO">AMARELO</option>
+    <option value="INDIGENA">INDIGENA</option>
+  </select>
   {% else %}
     <input type="text" name="{{ chave }}" required />
   {% endif %}

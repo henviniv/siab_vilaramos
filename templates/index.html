@@ -442,6 +442,17 @@
       <input type="date" name="{{ chave }}" required />
       {% elif 'idade' in chave_lower %}
       <input type="text" name="{{ chave }}" required />
+      {% elif chave in [
+      'GESTANTE', 'DIA', 'HAS', 'HIPERDIA', 'INSULINO', 'SM', 'TB', 'HAN',
+      'OBESIDADE', 'TABAGISTA', 'USO DE DROGAS', 'USO DE ALCOOL', 'ACAMADO',
+      'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA', 'AMPI', 'FRALDA', 'SIFILIS'
+      ] %}
+      <label for="{{ chave }}">{{ chave }}:</label>
+      <select name="{{ chave }}" required>
+      <option value="">--</option>
+      <option value="S">S</option>
+      <option value="N">N</option>
+      </select>
       {% else %}
       <input type="text" name="{{ chave }}" required />
       {% endif %} {% endfor %}

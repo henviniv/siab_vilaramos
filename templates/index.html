@@ -430,42 +430,40 @@
 
     <!-- Formulário -->
     <form
-      id="formCadastro"
-      action="{{ url_for('main.create_or_update_person') }}"
-      method="POST"
-      class="data-form"
-    >
-      {% for chave in campos %}
-      <label for="{{ chave }}">{{ chave }}:</label>
-      {% set chave_lower = chave.lower() %} {% if 'data' in chave_lower and
-      'nascimento' in chave_lower %}
-      <input type="date" name="{{ chave }}" required />
-      {% elif 'idade' in chave_lower %}
-      <input type="text" name="{{ chave }}" required />
-      {% elif chave in [
-      'GESTANTE', 'DIA', 'HAS', 'HIPERDIA', 'INSULINO', 'SM', 'TB', 'HAN',
-      'OBESIDADE', 'TABAGISTA', 'USO DE DROGAS', 'USO DE ALCOOL', 'ACAMADO',
-      'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA', 'AMPI', 'FRALDA', 'SIFILIS'
-      ] %}
-      <label for="{{ chave }}">{{ chave }}:</label>
-      <select name="{{ chave }}" required>
-      <option value="">--</option>
-      <option value="S">S</option>
-      <option value="N">N</option>
-      </select>
-      {% else %}
-      <input type="text" name="{{ chave }}" required />
-      {% endif %} {% endfor %}
-      <button type="submit" id="salvarBtn">Salvar</button>
-      <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
-      <button
-        type="button"
-        onclick="cancelarFormulario()"
-        class="cancel-button"
-      >
-        Cancelar
-      </button>
-    </form>
+  id="formCadastro"
+  action="{{ url_for('main.create_or_update_person') }}"
+  method="POST"
+  class="data-form"
+>
+  {% set campos_somente_s = [
+    'GESTANTE', 'DIA', 'HAS', 'HIPERDIA', 'INSULINO', 'SM', 'TB', 'HAN',
+    'OBESIDADE', 'TABAGISTA', 'USO DE DROGAS', 'USO DE ALCOOL', 'ACAMADO',
+    'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA', 'AMPI', 'FRALDA', 'SIFILIS'
+  ] %}
+
+  {% for chave in campos %}
+  <label for="{{ chave }}">{{ chave }}:</label>
+  {% set chave_upper = chave.upper() %}
+  {% set chave_lower = chave.lower() %}
+
+  {% if 'data' in chave_lower and 'nascimento' in chave_lower %}
+    <input type="date" name="{{ chave }}" required />
+  {% elif 'idade' in chave_lower %}
+    <input type="text" name="{{ chave }}" required />
+  {% elif chave_upper in campos_somente_s %}
+    <input type="text" name="{{ chave }}" pattern="[Ss]" maxlength="1" title="Somente a letra S" />
+  {% else %}
+    <input type="text" name="{{ chave }}" required />
+  {% endif %}
+
+  {% endfor %}
+
+  <button type="submit" id="salvarBtn">Salvar</button>
+  <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
+  <button type="button" onclick="cancelarFormulario()" class="cancel-button">
+    Cancelar
+  </button>
+</form>
 
     <!-- Tabela -->
     {% if dados and dados|length > 0 %}

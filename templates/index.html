@@ -335,7 +335,9 @@
         border-radius: 4px;
       }
 
-      input[type="text"], input[type="date"], select {
+      input[type="text"],
+      input[type="date"],
+      select {
         width: 100%;
         padding: 8px;
         margin-bottom: 10px;
@@ -440,55 +442,58 @@
 
     <!-- Formulário -->
     <form
-  id="formCadastro"
-  action="{{ url_for('main.create_or_update_person') }}"
-  method="POST"
-  class="data-form"
->
-  {% set campos_somente_s = [
-    'GESTANTE', 'DIA', 'HAS', 'HIPERDIA', 'INSULINO', 'SM', 'TB', 'HAN',
-    'OBESA', 'TABAGISTA', 'USO DE DROGAS', 'USO DE ALCOOL', 'ACAMADO',
-    'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA', 'AMPI', 'FRALDA', 'SIFILIS'
-  ] %}
+      id="formCadastro"
+      action="{{ url_for('main.create_or_update_person') }}"
+      method="POST"
+      class="data-form"
+    >
+      {% set campos_somente_s = [ 'GESTANTE', 'DIA', 'HAS', 'HIPERDIA',
+      'INSULINO', 'SM', 'TB', 'HAN', 'OBESA', 'TABAGISTA', 'USO DE DROGAS', 'USO
+      DE ALCOOL', 'ACAMADO', 'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA',
+      'AMPI', 'FRALDA', 'SIFILIS' ] %} {% for chave in campos %}
+      <label for="{{ chave }}">{{ chave }}:</label>
+      {% set chave_upper = chave.upper() %} {% set chave_lower = chave.lower()
+      %} {% if 'data' in chave_lower and 'nascimento' in chave_lower %}
+      <input type="date" name="{{ chave }}" required />
+      {% elif 'idade' in chave_lower %}
+      <input type="text" name="{{ chave }}" required />
+      {% elif chave_upper in campos_somente_s %}
+      <input
+        type="text"
+        name="{{ chave }}"
+        pattern="[Ss]"
+        maxlength="1"
+        title="Somente a letra S"
+      />
+      {% elif chave.strip().upper() == 'GENERO' %}
+      <select name="{{ chave }}" class="input-campo" required>
+        <option value="">Selecione</option>
+        <option value="MASCULINO">MASCULINO</option>
+        <option value="FEMININO">FEMININO</option>
+      </select>
+      {% elif chave.strip().upper() == 'COR/ETNIA' %}
+      <select name="{{ chave }}" class="input-campo" required>
+        <option value="">Selecione</option>
+        <option value="BRANCA">BRANCA</option>
+        <option value="PRETA">PRETA</option>
+        <option value="PARDA">PARDA</option>
+        <option value="AMARELA">AMARELA</option>
+        <option value="INDIGENA">INDIGENA</option>
+      </select>
+      {% else %}
+      <input type="text" name="{{ chave }}" required />
+      {% endif %} {% endfor %}
 
-  {% for chave in campos %}
-  <label for="{{ chave }}">{{ chave }}:</label>
-  {% set chave_upper = chave.upper() %}
-  {% set chave_lower = chave.lower() %}
-
-  {% if 'data' in chave_lower and 'nascimento' in chave_lower %}
-    <input type="date" name="{{ chave }}" required />
-  {% elif 'idade' in chave_lower %}
-    <input type="text" name="{{ chave }}" required />
-  {% elif chave_upper in campos_somente_s %}
-    <input type="text" name="{{ chave }}" pattern="[Ss]" maxlength="1" title="Somente a letra S" />
-  {% elif chave.strip().upper() == 'GENERO' %}
-  <select name="{{ chave }}" class="input-campo" required>
-    <option value="">Selecione</option>
-    <option value="MASCULINO">MASCULINO</option>
-    <option value="FEMININO">FEMININO</option>
-  </select> 
-{% elif chave.strip().upper() == 'COR/ETNIA' %}
-  <select name="{{ chave }}" class="input-campo" required>
-    <option value="">Selecione</option>
-    <option value="BRANCO">BRANCA</option>
-    <option value="PRETO">PRETA</option>
-    <option value="PARDO">PARDA</option>
-    <option value="AMARELO">AMARELA</option>
-    <option value="INDIGENA">INDIGENA</option>
-  </select>
-  {% else %}
-    <input type="text" name="{{ chave }}" required />
-  {% endif %}
-
-  {% endfor %}
-
-  <button type="submit" id="salvarBtn">Salvar</button>
-  <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
-  <button type="button" onclick="cancelarFormulario()" class="cancel-button">
-    Cancelar
-  </button>
-</form>
+      <button type="submit" id="salvarBtn">Salvar</button>
+      <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
+      <button
+        type="button"
+        onclick="cancelarFormulario()"
+        class="cancel-button"
+      >
+        Cancelar
+      </button>
+    </form>
 
     <!-- Tabela -->
     {% if dados and dados|length > 0 %}
@@ -514,17 +519,20 @@
           <td>{{ linha.get(chave, '') }}</td>
           {% endif %} {% endfor %}
           <td>
-          {% if current_user.is_authenticated and current_user.role == 'micro' %}
-          {% set familia = linha.get("FAMILIA", "") %}
-          <div>
-          <button type="button" onclick="mostrarFormularioEdicao('{{ familia }}')">
-          ✏️ Editar
-          </button>
-          <button type="button" onclick="deletePerson('{{ familia }}')">
-          🗑️ Excluir
-          </button>
-          </div>
-          {% endif %}
+            {% if current_user.is_authenticated and current_user.role == 'micro'
+            %} {% set familia = linha.get("FAMILIA", "") %}
+            <div>
+              <button
+                type="button"
+                onclick="mostrarFormularioEdicao('{{ familia }}')"
+              >
+                ✏️ Editar
+              </button>
+              <button type="button" onclick="deletePerson('{{ familia }}')">
+                🗑️ Excluir
+              </button>
+            </div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -650,20 +658,19 @@
 
       function mostrarFormularioEdicao(familia) {
         fetch(`/edit?familia=${familia}`)
-        .then((res) => res.json())
-        .then((pessoa) => {
-        preencherFormulario(pessoa);
-        const form = document.getElementById("formCadastro");
-        form.classList.add("show", "editando");
-        form.action = `/update_person?familia=${familia}`;
-        document.getElementById("salvarBtn").classList.add("hidden");
-        document.getElementById("atualizarBtn").classList.remove("hidden");
-        document.getElementById("mostrarCadastro").style.display = "none";
-        form.scrollIntoView({ behavior: "smooth" });
-        })
-        .catch(() => alert("Erro ao buscar dados"));
+          .then((res) => res.json())
+          .then((pessoa) => {
+            preencherFormulario(pessoa);
+            const form = document.getElementById("formCadastro");
+            form.classList.add("show", "editando");
+            form.action = `/update_person?familia=${familia}`;
+            document.getElementById("salvarBtn").classList.add("hidden");
+            document.getElementById("atualizarBtn").classList.remove("hidden");
+            document.getElementById("mostrarCadastro").style.display = "none";
+            form.scrollIntoView({ behavior: "smooth" });
+          })
+          .catch(() => alert("Erro ao buscar dados"));
       }
-
 
       function cancelarFormulario() {
         const form = document.getElementById("formCadastro");
@@ -692,40 +699,46 @@
 
       function deletePerson(familia) {
         if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "/delete";
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "familia";
-        input.value = familia;
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-         }
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "/delete";
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "familia";
+          input.value = familia;
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
         }
+      }
 
       document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("formCadastro");
-  const campoNascimento = form.querySelector('input[name*="DATA DE NASCIMENTO"]');
-  const campoIdade = form.querySelector('input[name*="IDADE"]');
+        const form = document.getElementById("formCadastro");
+        const campoNascimento = form.querySelector(
+          'input[name*="DATA DE NASCIMENTO"]'
+        );
+        const campoIdade = form.querySelector('input[name*="IDADE"]');
 
-  if (campoNascimento && campoIdade) {
-    campoNascimento.addEventListener("change", function () {
-      const partes = this.value.split("-"); // YYYY-MM-DD
-      if (partes.length === 3) {
-        const hoje = new Date();
-        const nascimento = new Date(+partes[0], +partes[1] - 1, +partes[2]);
-        let idade = hoje.getFullYear() - nascimento.getFullYear();
-        const m = hoje.getMonth() - nascimento.getMonth();
-        if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
-          idade--;
+        if (campoNascimento && campoIdade) {
+          campoNascimento.addEventListener("change", function () {
+            const partes = this.value.split("-"); // YYYY-MM-DD
+            if (partes.length === 3) {
+              const hoje = new Date();
+              const nascimento = new Date(
+                +partes[0],
+                +partes[1] - 1,
+                +partes[2]
+              );
+              let idade = hoje.getFullYear() - nascimento.getFullYear();
+              const m = hoje.getMonth() - nascimento.getMonth();
+              if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+              }
+              campoIdade.value = String(idade).replace(/[^0-9]/g, "");
+            }
+          });
         }
-        campoIdade.value = String(idade).replace(/[^0-9]/g, '');
-      }
-    });
-  }
-});
+      });
 
       function coletarNomesFiltrados() {
         const nomes = [];
@@ -792,11 +805,15 @@
     <div id="modalFilipeta" class="modal hidden">
       <label>Tipo:</label>
       <select id="opcao">
-      <option value="GRUPO DE">GRUPO DE</option>
-      <option value="CONSULTA COM">CONSULTA COM</option>
+        <option value="GRUPO DE">GRUPO DE</option>
+        <option value="CONSULTA COM">CONSULTA COM</option>
       </select>
       <label>Grupo/Profissional:</label>
-      <input type="text" id="grupo" placeholder="Ex: Hipertensos ou Nome do Profissional" />
+      <input
+        type="text"
+        id="grupo"
+        placeholder="Ex: Hipertensos ou Nome do Profissional"
+      />
       <label>Data:</label>
       <input type="date" id="dataGrupo" />
       <label>Hora:</label>

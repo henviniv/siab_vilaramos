@@ -44,7 +44,7 @@ USERS = {
     "micro20": {"password": "senha20", "role": "micro", "aba": "MICRO 20", "planilha": "EQUIPE 4"},
     "micro21": {"password": "senha21", "role": "micro", "aba": "MICRO 21", "planilha": "EQUIPE 4"},
     "micro22": {"password": "senha22", "role": "micro", "aba": "MICRO 22", "planilha": "EQUIPE 4"},
-    "micro23": {"password": "senha23", "role": "micro", "aba": "MICRO 23", "planilha": "EQUIPE 4"},
+    "micro23": {"password": "Hidek_22", "role": "micro", "aba": "MICRO 23", "planilha": "EQUIPE 4"},
     "micro24": {"password": "senha24", "role": "micro", "aba": "MICRO 24", "planilha": "EQUIPE 4"},
     "micro25": {"password": "senha25", "role": "micro", "aba": "MICRO 25", "planilha": "EQUIPE 5"},
     "micro26": {"password": "senha26", "role": "micro", "aba": "MICRO 26", "planilha": "EQUIPE 5"},

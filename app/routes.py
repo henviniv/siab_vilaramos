@@ -83,12 +83,14 @@ def create_or_update_person():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
+        # Detecta os campos da planilha
         campos = []
         for linha in dados:
             for col in linha:
                 if col not in campos:
                     campos.append(col)
 
+        # Monta dicionário da nova pessoa a partir do formulário
         nova_pessoa = {}
         for campo in campos:
             valor = builtins.str(request.form.get(campo, "")).strip()
@@ -99,17 +101,23 @@ def create_or_update_person():
                 except:
                     valor = ""
             elif campo.upper() == "IDADE":
-                valor = re.sub(r"\D", "", valor)  # apenas números
+                valor = re.sub(r"\D", "", valor)
                 valor = int(valor) if valor else ""
             elif campo.upper() != "CPF":
                 valor = valor.upper()
 
             nova_pessoa[campo] = valor
 
+        # Chaves de identificação
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
+        nome_pessoa = nova_pessoa.get("NOME", "").strip().upper()
         familia_alvo = nova_pessoa.get("FAMILIA", "").strip()
 
+        # Índices por CPF e NOME
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        nomes = {linha.get("NOME", "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
+        
+        # Índice por FAMÍLIA (opcional, usado na lógica de inserção)
         familias = {}
         for i, linha in enumerate(dados):
             familia = linha.get("FAMILIA", "").strip()
@@ -118,18 +126,29 @@ def create_or_update_person():
 
         ultima_col = num_to_col(len(campos))
 
-        if cpf_limpo in cpfs:
+        # Atualização por CPF
+        if cpf_limpo and cpf_limpo in cpfs:
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
+        
+        # Atualização por NOME (se CPF não encontrado)
+        elif nome_pessoa and nome_pessoa in nomes:
+            linha_atualizar = nomes[nome_pessoa]
+            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
+                         [[nova_pessoa.get(col, "") for col in campos]])
+            print(f"[INFO] Pessoa com NOME {nome_pessoa} atualizada.")
+        
+        # Inserção de nova pessoa
         else:
             if familia_alvo in familias:
                 linha_inserir = max(3, max(familias[familia_alvo]) + 1)
             else:
                 linha_inserir = 3
-                sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=linha_inserir)
-                print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
+
+            sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=linha_inserir)
+            print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
 
         return redirect(url_for('main.index'))
 
@@ -137,6 +156,7 @@ def create_or_update_person():
         print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
         flash("Erro ao salvar os dados.", "danger")
         return redirect(url_for('main.index'))
+
 
 
 # Atualizar pessoa

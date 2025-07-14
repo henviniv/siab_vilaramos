@@ -640,7 +640,21 @@
         const form = document.getElementById("formCadastro");
         for (const key in pessoa) {
           const input = form.querySelector(`[name="${key}"]`);
-          if (input) input.value = pessoa[key];
+          if (input) {
+            // Se for um input do tipo data, trata a conversão de formato
+            if (input.type === "date" && pessoa[key]) {
+              const partes = pessoa[key].split("/");
+              if (partes.length === 3) {
+                const dataFormatada = `${partes[2]}-${partes[1].padStart(
+                  2,
+                  "0"
+                )}-${partes[0].padStart(2, "0")}`;
+                input.value = dataFormatada;
+              }
+            } else {
+              input.value = pessoa[key];
+            }
+          }
         }
       }
 

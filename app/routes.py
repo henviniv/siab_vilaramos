@@ -153,9 +153,9 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        familia_original = request.args.get("familia", "").strip()
-        if not familia_original:
-            return jsonify({"erro": "Código da FAMÍLIA inválido"}), 400
+        nome_original = request.args.get("nome", "").strip()
+        if not nome_original:
+            return jsonify({"erro": "Nome inválido"}), 400
 
         nova_pessoa = {}
         for campo in campos:
@@ -176,7 +176,7 @@ def update_person():
 
         linha_atual = None
         for i, linha in enumerate(dados):
-            if linha.get("FAMILIA", "").strip() == familia_original:
+            if linha.get("NOME", "").strip().upper() == nome_original.upper():
                 linha_atual = i + 2
                 break
 
@@ -186,7 +186,7 @@ def update_person():
         ultima_col = num_to_col(len(campos))
         sheet.update(f"A{linha_atual}:{ultima_col}{linha_atual}",
                      [[nova_pessoa.get(col, "") for col in campos]])
-        print(f"[INFO] Pessoa com FAMÍLIA {familia_original} atualizada na linha {linha_atual}.")
+        print(f"[INFO] Pessoa com NOME {nome_original} atualizada na linha {linha_atual}.")
 
         return redirect(url_for('main.index'))
 
@@ -204,16 +204,16 @@ def delete_person():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        familia = request.form.get("familia", "").strip()
-        if not familia:
-            flash("Código da FAMÍLIA inválido para exclusão.", "warning")
+        nome = request.form.get("nome", "").strip()
+        if not nome:
+            flash("Nome inválido para exclusão.", "warning")
             return redirect(url_for('main.index'))
 
-        familias = {linha.get("FAMILIA", "").strip(): i + 2 for i, linha in enumerate(dados) if linha.get("FAMILIA")}
+        nomes = {linha.get("NOME", "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
 
-        if familia in familias:
-            sheet.delete_rows(familias[familia])
-            print(f"[INFO] Pessoa da FAMÍLIA {familia} excluída.")
+        if nome.upper() in nomes:
+            sheet.delete_rows(nomes[nome.upper()])
+            print(f"[INFO] Pessoa com NOME {nome} excluída.")
         else:
             flash("Pessoa não encontrada para exclusão.", "warning")
 
@@ -233,12 +233,12 @@ def get_person_data():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        familia = request.args.get("familia", "").strip()
-        if not familia:
-            return jsonify({"erro": "Código da FAMÍLIA inválido"}), 400
+        nome = request.args.get("nome", "").strip()
+        if not nome:
+            return jsonify({"erro": "Nome inválido"}), 400
 
         for linha in dados:
-            if linha.get("FAMILIA", "").strip() == familia:
+            if linha.get("NOME", "").strip().upper() == nome.upper():
                 return jsonify(linha)
 
         return jsonify({"erro": "Pessoa não encontrada"}), 404

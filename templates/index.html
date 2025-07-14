@@ -440,6 +440,13 @@
       Cadastrar nova pessoa
     </button>
 
+    <div id="colunasFiltro" style="margin-bottom: 1rem">
+      <label for="seletorColunas"
+        ><strong>Mostrar/Ocultar Colunas:</strong></label
+      >
+      <select id="seletorColunas" multiple style="width: 100%"></select>
+    </div>
+
     <!-- Formulário -->
     <form
       id="formCadastro"
@@ -633,6 +640,35 @@
                 }
               });
           },
+        });
+        var todasColunas = [];
+        var seletorColunas = $("#seletorColunas");
+
+        // Captura os nomes das colunas (exceto AÇÕES)
+        table.columns().every(function (index) {
+          var title = $(this.header()).text();
+          if (title !== "AÇÕES") {
+            todasColunas.push({ index: index, title: title });
+            seletorColunas.append(
+              '<option value="' + index + '" selected>' + title + "</option>"
+            );
+          }
+        });
+
+        // Aplica Select2 no seletor de colunas
+        seletorColunas.select2({
+          placeholder: "Selecione as colunas que deseja ver",
+          width: "resolve",
+        });
+
+        // Evento para mostrar/ocultar colunas com base na seleção
+        seletorColunas.on("change", function () {
+          var selecionadas = $(this).val().map(Number); // índices das selecionadas
+
+          todasColunas.forEach(function (coluna) {
+            var visivel = selecionadas.includes(coluna.index);
+            table.column(coluna.index).visible(visivel);
+          });
         });
       });
 

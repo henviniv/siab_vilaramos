@@ -520,15 +520,15 @@
           {% endif %} {% endfor %}
           <td>
             {% if current_user.is_authenticated and current_user.role == 'micro'
-            %} {% set familia = linha.get("FAMILIA", "") %}
+            %} {% set nome = linha.get("NOME", "") %}
             <div>
               <button
                 type="button"
-                onclick="mostrarFormularioEdicao('{{ familia }}')"
+                onclick="mostrarFormularioEdicao('{{ nome }}')"
               >
                 ✏️ Editar
               </button>
-              <button type="button" onclick="deletePerson('{{ familia }}')">
+              <button type="button" onclick="deletePerson('{{ nome }}')">
                 🗑️ Excluir
               </button>
             </div>
@@ -656,14 +656,14 @@
         form.scrollIntoView({ behavior: "smooth" });
       }
 
-      function mostrarFormularioEdicao(familia) {
-        fetch(`/edit?familia=${familia}`)
+      function mostrarFormularioEdicao(nome) {
+        fetch(`/edit?nome=${encodeURIComponent(nome)}`)
           .then((res) => res.json())
           .then((pessoa) => {
             preencherFormulario(pessoa);
             const form = document.getElementById("formCadastro");
             form.classList.add("show", "editando");
-            form.action = `/update_person?familia=${familia}`;
+            form.action = `/update_person?nome=${encodeURIComponent(nome)}`;
             document.getElementById("salvarBtn").classList.add("hidden");
             document.getElementById("atualizarBtn").classList.remove("hidden");
             document.getElementById("mostrarCadastro").style.display = "none";
@@ -697,15 +697,15 @@
 
       window.addEventListener("DOMContentLoaded", () => ocultarColunas());
 
-      function deletePerson(familia) {
+      function deletePerson(nome) {
         if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "/delete";
           const input = document.createElement("input");
           input.type = "hidden";
-          input.name = "familia";
-          input.value = familia;
+          input.name = "nome";
+          input.value = nome;
           form.appendChild(input);
           document.body.appendChild(form);
           form.submit();

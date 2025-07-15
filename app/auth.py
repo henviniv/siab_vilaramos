@@ -26,7 +26,7 @@ USERS = {
     "micro02": {"password": "585283vb", "role": "micro", "aba": "MI 02", "planilha": "EQUIPE 1"},
     "micro03": {"password": "miewag7681", "role": "micro", "aba": "MI 03", "planilha": "EQUIPE 1"},
     "micro04": {"password": "920795g", "role": "micro", "aba": "MI 04", "planilha": "EQUIPE 1"},
-    "micro05": {"password": "senha05", "role": "micro", "aba": "MI 05", "planilha": "EQUIPE 1"},
+    "micro05": {"password": "134579", "role": "micro", "aba": "MI 05", "planilha": "EQUIPE 1"},
     "micro06": {"password": "gigu0106", "role": "micro", "aba": "MI 06", "planilha": "EQUIPE 1"},
     "micro07": {"password": "223344ma", "role": "micro", "aba": "MICRO 7", "planilha": "EQUIPE 2"},
     "micro08": {"password": "r4828", "role": "micro", "aba": "MICRO 8", "planilha": "EQUIPE 2"},

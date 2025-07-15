@@ -810,6 +810,7 @@
         document.getElementById("horaGrupo").value = "";
         document.getElementById("localGrupo").value = "";
         document.getElementById("opcao").value = "";
+        document.getElementById("trazer").value = "";
       }
 
       // Função para gerar o PDF
@@ -820,11 +821,20 @@
         const hora = document.getElementById("horaGrupo").value;
         const local = document.getElementById("localGrupo").value;
         const opcao = document.getElementById("opcao").value;
+        const trazer = document.getElementById("trazer").value;
 
         fetch("/gerar_filipetas", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nomes, grupo, data, hora, local, opcao }),
+          body: JSON.stringify({
+            nomes,
+            grupo,
+            data,
+            hora,
+            local,
+            opcao,
+            trazer,
+          }),
         })
           .then((response) => response.blob())
           .then((blob) => {
@@ -842,6 +852,7 @@
             document.getElementById("horaGrupo").value = "";
             document.getElementById("localGrupo").value = "";
             document.getElementById("opcao").value = "";
+            document.getElementById("trazer").value = "";
           });
       }
     </script>
@@ -863,6 +874,8 @@
       <input type="time" id="horaGrupo" />
       <label>Local:</label>
       <input type="text" id="localGrupo" />
+      <label>Trazer:</label>
+      <input type="text" id="trazer" />
       <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
       <button onclick="cancelarFilipeta()">Cancelar</button>
     </div>

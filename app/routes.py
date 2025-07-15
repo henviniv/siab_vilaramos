@@ -442,6 +442,7 @@ def gerar_filipetas():
     local = request.json.get("local")
     hora = request.json.get("hora")
     opcao = request.json.get("opcao")
+    trazer = request.json.get("trazer")
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)
@@ -474,7 +475,7 @@ def gerar_filipetas():
                 f"LOCAL: {local}\n"
                 f"CONVOCAÇÃO PARA\n\n"
                 f"{nome.upper()}\n\n"
-                f"TRAZER CARTÃO DO SUS"
+                f"TRAZER: {trazer}\n"
             ),
             border=1
         )

@@ -145,7 +145,22 @@ def create_or_update_person():
             if familia_alvo in familias:
                 linha_inserir = max(3, max(familias[familia_alvo]) + 1)
             else:
-                linha_inserir = 3
+                familias_ordenadas = sorted(familias.keys())
+        posicao = 3
+        inserida = False
+
+        for fam in familias_ordenadas:
+            if familia_alvo < fam:
+                linhas_da_familia = familias[fam]
+                posicao = min(linhas_da_familia)
+                inserida = True
+                break
+
+        if not inserida:
+            # insere após a última família existente
+            posicao = max(max(linhas) for linhas in familias.values()) + 1
+
+            linha_inserir = posicao
 
             sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=linha_inserir)
             print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")

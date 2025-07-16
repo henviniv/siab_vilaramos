@@ -347,6 +347,11 @@
         font-size: 14px;
       }
 
+      .tabela-container {
+        overflow-x: auto;
+        max-width: 100%;
+      }
+
       @media (max-width: 768px) {
         body {
           margin: 10px;
@@ -496,48 +501,50 @@
     </form>
 
     <!-- Tabela -->
-    {% if dados and dados|length > 0 %}
-    <table id="tabelaPessoas" class="display">
-      <thead>
-        <tr>
-          {% for chave in campos %} {% if campos.index(chave) >=
-          campos.index('GESTANTE') %}
-          <th class="col-extra">{{ chave }}</th>
-          {% else %}
-          <th>{{ chave }}</th>
-          {% endif %} {% endfor %}
-          <th>AÇÕES</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for linha in dados %}
-        <tr>
-          {% for chave in campos %} {% if campos.index(chave) >=
-          campos.index('GESTANTE') %}
-          <td class="col-extra">{{ linha.get(chave, '') }}</td>
-          {% else %}
-          <td>{{ linha.get(chave, '') }}</td>
-          {% endif %} {% endfor %}
-          <td>
-            {% if current_user.is_authenticated and current_user.role == 'micro'
-            %} {% set nome = linha.get("NOME", "") %}
-            <div>
-              <button
-                type="button"
-                onclick="mostrarFormularioEdicao('{{ nome }}')"
-              >
-                ✏️ Editar
-              </button>
-              <button type="button" onclick="deletePerson('{{ nome }}')">
-                🗑️ Excluir
-              </button>
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="tabela-container">
+      {% if dados and dados|length > 0 %}
+      <table id="tabelaPessoas" class="display">
+        <thead>
+          <tr>
+            {% for chave in campos %} {% if campos.index(chave) >=
+            campos.index('GESTANTE') %}
+            <th class="col-extra">{{ chave }}</th>
+            {% else %}
+            <th>{{ chave }}</th>
+            {% endif %} {% endfor %}
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in dados %}
+          <tr>
+            {% for chave in campos %} {% if campos.index(chave) >=
+            campos.index('GESTANTE') %}
+            <td class="col-extra">{{ linha.get(chave, '') }}</td>
+            {% else %}
+            <td>{{ linha.get(chave, '') }}</td>
+            {% endif %} {% endfor %}
+            <td>
+              {% if current_user.is_authenticated and current_user.role ==
+              'micro' %} {% set nome = linha.get("NOME", "") %}
+              <div>
+                <button
+                  type="button"
+                  onclick="mostrarFormularioEdicao('{{ nome }}')"
+                >
+                  ✏️ Editar
+                </button>
+                <button type="button" onclick="deletePerson('{{ nome }}')">
+                  🗑️ Excluir
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     <div class="text-center" style="margin-top: 20px">
       <button id="gerarFilipetas" class="btn btn-primary">
         Gerar Filipetas

@@ -440,11 +440,11 @@
         Mostrar todas as colunas
       </button>
     </div>
-
+     {% if current_user.is_authenticated and current_user.role == 'micro' %}
     <button id="mostrarCadastro" type="button" onclick="mostrarFormulario()">
       Cadastrar nova pessoa
     </button>
-
+    {% endif %}
     <!-- Formulário -->
     <form
       id="formCadastro"

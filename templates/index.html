@@ -440,7 +440,7 @@
         Mostrar todas as colunas
       </button>
     </div>
-     {% if current_user.is_authenticated and current_user.role == 'micro' %}
+    {% if current_user.is_authenticated and current_user.role == 'micro' %}
     <button id="mostrarCadastro" type="button" onclick="mostrarFormulario()">
       Cadastrar nova pessoa
     </button>
@@ -862,6 +862,44 @@
             document.getElementById("trazer").value = "";
           });
       }
+
+      const hasInput = document.querySelector("input[name='HAS']");
+      const diaInput = document.querySelector("input[name='DIA']");
+      const hiperdiaInput = document.querySelector("input[name='HIPERDIA']");
+
+      function limparInputs(...inputs) {
+        inputs.forEach((input) => (input.value = ""));
+      }
+
+      function atualizarCampos() {
+        const has = hasInput.value.trim().toUpperCase();
+        const dia = diaInput.value.trim().toUpperCase();
+        const hiperdia = hiperdiaInput.value.trim().toUpperCase();
+
+        // Regra 1: Se HIPERDIA = S, limpar HAS e DIA
+        if (hiperdia === "S") {
+          limparInputs(hasInput, diaInput);
+          return;
+        }
+
+        // Regra 2: Se DIA = S e HAS = S, limpar ambos e colocar S em HIPERDIA
+        if (dia === "S" && has === "S") {
+          limparInputs(hasInput, diaInput);
+          hiperdiaInput.value = "S";
+          return;
+        }
+
+        // Regra 3: Se HAS = S e DIA = S, mesma lógica acima (caso ordem seja inversa)
+        if (has === "S" && dia === "S") {
+          limparInputs(hasInput, diaInput);
+          hiperdiaInput.value = "S";
+          return;
+        }
+      }
+
+      hasInput.addEventListener("input", atualizarCampos);
+      diaInput.addEventListener("input", atualizarCampos);
+      hiperdiaInput.addEventListener("input", atualizarCampos);
     </script>
     <div id="modalFilipeta" class="modal hidden">
       <label>Tipo:</label>

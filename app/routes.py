@@ -94,7 +94,8 @@ def create_or_update_person():
         # Monta dicionário da nova pessoa a partir do formulário
         nova_pessoa = {}
         for campo in campos:
-            valor = str(request.form.get(campo) or "").strip()
+            raw_valor = request.form.get(campo, "")
+            valor = str(raw_valor).strip() if raw_valor is not None else ""
 
             if "DATA DE NASCIMENTO" in campo.upper():
                 try:

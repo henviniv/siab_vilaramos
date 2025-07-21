@@ -107,7 +107,7 @@ def create_or_update_person():
                 valor = int(valor) if valor else ""
             elif campo.upper() != "CPF":
                 valor = valor.upper()
-
+                
             nova_pessoa[campo] = valor
 
         # Chaves de identificação

@@ -106,8 +106,9 @@ def create_or_update_person():
                 valor = re.sub(r"\D", "", valor)
                 valor = int(valor) if valor else ""
             elif campo.upper() != "CPF":
-                valor = valor.upper()
-                
+                if isinstance(valor, str):
+                    valor = valor.upper()
+
             nova_pessoa[campo] = valor
 
         # Chaves de identificação

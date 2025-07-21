@@ -117,7 +117,15 @@ def create_or_update_person():
 
             except Exception as e:
                 print(f"[ERRO] Erro ao processar campo '{campo}' com valor '{raw_valor}': {e}")
-                raise  # Opcional: para parar e ver traceback completo
+                nova_pessoa[campo] = ""
+
+            try:
+                nome_pessoa = str(nova_pessoa.get("NOME", "")).strip().upper()
+                familia_alvo = str(nova_pessoa.get("FAMILIA", "")).strip()
+                cpf_limpo = limpar_cpf(str(nova_pessoa.get("CPF", "")))
+            except Exception as e:
+                print(f"[ERRO] Falha ao extrair campos-chave (CPF, NOME, FAMÍLIA): {e}")
+                raise
 
         # Chaves de identificação
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))

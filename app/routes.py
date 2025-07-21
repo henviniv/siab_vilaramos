@@ -94,22 +94,30 @@ def create_or_update_person():
         # Monta dicionário da nova pessoa a partir do formulário
         nova_pessoa = {}
         for campo in campos:
-            raw_valor = request.form.get(campo, "")
-            valor = str(raw_valor).strip() if raw_valor is not None else ""
+            try:
+                raw_valor = request.form.get(campo, "")
+                print(f"[DEBUG] Campo: {campo} | Valor bruto: {raw_valor} | Tipo: {type(raw_valor)}")
 
-            if "DATA DE NASCIMENTO" in campo.upper():
-                try:
-                    valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
-                except:
-                    valor = ""
-            elif campo.upper() == "IDADE":
-                valor = re.sub(r"\D", "", valor)
-                valor = int(valor) if valor else ""
-            elif campo.upper() != "CPF":
-                if isinstance(valor, str):
-                    valor = valor.upper()
+                valor = str(raw_valor).strip() if raw_valor is not None else ""
 
-            nova_pessoa[campo] = valor
+                if "DATA DE NASCIMENTO" in campo.upper():
+                    try:
+                        valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except Exception as e:
+                        print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
+                        valor = ""
+                elif campo.upper() == "IDADE":
+                    valor = re.sub(r"\D", "", valor)
+                    valor = int(valor) if valor else ""
+                elif campo.upper() != "CPF":
+                    if isinstance(valor, str):
+                        valor = valor.upper()
+
+                nova_pessoa[campo] = valor
+
+            except Exception as e:
+                print(f"[ERRO] Erro ao processar campo '{campo}' com valor '{raw_valor}': {e}")
+                raise  # Opcional: para parar e ver traceback completo
 
         # Chaves de identificação
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))

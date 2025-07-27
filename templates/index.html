@@ -751,15 +751,24 @@
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.add("hidden"));
+        document
+          .querySelector('.scroll-top-wrapper').style.display = 'none';
       }
 
       function mostrarColunas() {
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.remove("hidden"));
+        document
+          .querySelector('.scroll-top-wrapper').style.display = 'block';
       }
 
       window.addEventListener("DOMContentLoaded", () => ocultarColunas());
+
+      window.onload = function () {
+        document
+          .querySelector('.scroll-top-wrapper').style.display = 'none';
+      };
 
       function deletePerson(nome) {
         if (confirm("Tem certeza que deseja excluir esta pessoa?")) {

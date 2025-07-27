@@ -347,6 +347,17 @@
         font-size: 14px;
       }
 
+      .scroll-top-wrapper {
+        overflow-x: auto;
+        max-width: 100%;
+        height: 20px;
+      }
+
+      .scroll-simulada {
+        width: 2000px;
+        height: 1px;
+      }
+
       .tabela-container {
         overflow-x: auto;
         max-width: 100%;
@@ -501,7 +512,10 @@
     </form>
 
     <!-- Tabela -->
-    <div class="tabela-container">
+    <div class="scroll-top-wrapper">
+    <div id="scrollTop" class="scroll-simulada"></div>
+    </div>
+    <div id="tabela-wrapper" class="tabela-container">
       {% if dados and dados|length > 0 %}
       <table id="tabelaPessoas" class="display">
         <thead>
@@ -900,6 +914,17 @@
       hasInput.addEventListener("input", atualizarCampos);
       diaInput.addEventListener("input", atualizarCampos);
       hiperdiaInput.addEventListener("input", atualizarCampos);
+      
+      const scrollTop = document.getElementById('scrollTop');
+      const tabelaWrapper = document.getElementById('tabela-wrapper');
+
+      scrollTop.parentElement.addEventListener('scroll', function () {
+        tabelaWrapper.scrollLeft = this.scrollLeft;
+      });
+
+      tabelaWrapper.addEventListener('scroll', function () {
+        scrollTop.parentElement.scrollLeft = this.scrollLeft;
+      });
     </script>
     <div id="modalFilipeta" class="modal hidden">
       <label>Tipo:</label>

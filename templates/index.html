@@ -354,7 +354,6 @@
       }
 
       .scroll-simulada {
-        width: 2000px;
         height: 1px;
       }
 
@@ -915,16 +914,29 @@
       diaInput.addEventListener("input", atualizarCampos);
       hiperdiaInput.addEventListener("input", atualizarCampos);
       
+      const scrollTopWrapper = document.querySelector('.scroll-top-wrapper');
       const scrollTop = document.getElementById('scrollTop');
       const tabelaWrapper = document.getElementById('tabela-wrapper');
+      const tabelaReal = document.getElementById('tabelaPessoas');
 
-      scrollTop.parentElement.addEventListener('scroll', function () {
+      function ajustarLarguraScrollSuperior() {
+        scrollTop.style.width = tabelaReal.scrollWidth + "px";
+      }
+
+      scrollTopWrapper.addEventListener('scroll', function () {
         tabelaWrapper.scrollLeft = this.scrollLeft;
       });
 
       tabelaWrapper.addEventListener('scroll', function () {
-        scrollTop.parentElement.scrollLeft = this.scrollLeft;
+        scrollTopWrapper.scrollLeft = this.scrollLeft;
       });
+
+      window.addEventListener('load', ajustarLarguraScrollSuperior);
+
+      window.addEventListener('resize', ajustarLarguraScrollSuperior);
+
+      const observer = new MutationObserver(ajustarLarguraScrollSuperior);
+      observer.observe(tabelaReal, { childList: true, subtree: true });
     </script>
     <div id="modalFilipeta" class="modal hidden">
       <label>Tipo:</label>

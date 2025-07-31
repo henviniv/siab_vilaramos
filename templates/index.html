@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
     <title>SIAB</title>
     <!-- DataTables CSS -->
     <link
@@ -515,7 +518,7 @@
 
     <!-- Tabela -->
     <div class="scroll-top-wrapper">
-    <div id="scrollTop" class="scroll-simulada"></div>
+      <div id="scrollTop" class="scroll-simulada"></div>
     </div>
     <div id="tabela-wrapper" class="tabela-container">
       {% if dados and dados|length > 0 %}
@@ -753,23 +756,20 @@
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.add("hidden"));
-        document
-          .querySelector('.scroll-top-wrapper').style.display = 'none';
+        document.querySelector(".scroll-top-wrapper").style.display = "none";
       }
 
       function mostrarColunas() {
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.remove("hidden"));
-        document
-          .querySelector('.scroll-top-wrapper').style.display = 'block';
+        document.querySelector(".scroll-top-wrapper").style.display = "block";
       }
 
       window.addEventListener("DOMContentLoaded", () => ocultarColunas());
 
       window.onload = function () {
-        document
-          .querySelector('.scroll-top-wrapper').style.display = 'none';
+        document.querySelector(".scroll-top-wrapper").style.display = "none";
       };
 
       function deletePerson(nome) {
@@ -925,15 +925,15 @@
       hasInput.addEventListener("input", atualizarCampos);
       diaInput.addEventListener("input", atualizarCampos);
       hiperdiaInput.addEventListener("input", atualizarCampos);
-      
-      const scrollTop = document.getElementById('scrollTop');
-      const tabelaWrapper = document.getElementById('tabela-wrapper');
 
-      scrollTop.parentElement.addEventListener('scroll', function () {
+      const scrollTop = document.getElementById("scrollTop");
+      const tabelaWrapper = document.getElementById("tabela-wrapper");
+
+      scrollTop.parentElement.addEventListener("scroll", function () {
         tabelaWrapper.scrollLeft = this.scrollLeft;
       });
 
-      tabelaWrapper.addEventListener('scroll', function () {
+      tabelaWrapper.addEventListener("scroll", function () {
         scrollTop.parentElement.scrollLeft = this.scrollLeft;
       });
     </script>

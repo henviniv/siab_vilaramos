@@ -468,15 +468,27 @@ def visualizar_micro(micro_id):
 
 @bp.route("/gerar_filipetas", methods=["POST"])
 def gerar_filipetas():
+    from datetime import datetime
+    from flask import send_file, request
+    from fpdf import FPDF
 
     nomes = request.json.get("nomes", [])
-    grupo = request.json.get("grupo")
-    data_iso = request.json.get("data")
-    data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y")
-    local = request.json.get("local")
-    hora = request.json.get("hora")
-    opcao = request.json.get("opcao")
-    trazer = request.json.get("trazer")
+    grupo = request.json.get("grupo", "")
+    data_iso = request.json.get("data", "")
+    local = request.json.get("local", "")
+    hora = request.json.get("hora", "")
+    opcao = request.json.get("opcao", "")
+    trazer = request.json.get("trazer", "")
+
+    # Processa a data, mas com fallback seguro
+    data_formatada = "---"
+    if data_iso:
+        try:
+            data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y")
+        except ValueError:
+            pass  # continua com "---" se der erro
+
+    hora_formatada = hora if hora else "---"
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)
@@ -490,9 +502,9 @@ def gerar_filipetas():
     espacamento_vertical = 10
 
     for i, nome in enumerate(nomes):
-        idx_na_pagina = i % 8  # de 0 a 5
-        linha = idx_na_pagina // 2  # 0, 1, 2
-        coluna = idx_na_pagina % 2  # 0 ou 1
+        idx_na_pagina = i % 8
+        linha = idx_na_pagina // 2
+        coluna = idx_na_pagina % 2
 
         x = margem_esquerda + coluna * (largura_filipeta + espacamento_horizontal)
         y = margem_topo + linha * (altura_filipeta + espacamento_vertical)
@@ -502,17 +514,17 @@ def gerar_filipetas():
 
         pdf.set_xy(x, y)
         pdf.set_font("Arial", size=12)
-        pdf.multi_cell(w=largura_filipeta, h=7,
-            txt=(
-                f"{opcao} {grupo}\n\n"
-                f"DIA: {data_formatada}  ÀS {hora}\n\n"
-                f"LOCAL: {local}\n"
-                f"CONVOCAÇÃO PARA\n\n"
-                f"{nome.upper()}\n\n"
-                f"TRAZER: {trazer}\n"
-            ),
-            border=1
+
+        texto = (
+            f"{opcao} {grupo}\n\n"
+            f"DIA: {data_formatada}  ÀS: {hora_formatada}\n\n"
+            f"LOCAL: {local}\n"
+            f"CONVOCAÇÃO PARA\n\n"
+            f"{nome.upper()}\n\n"
+            f"TRAZER: {trazer}\n"
         )
+
+        pdf.multi_cell(w=largura_filipeta, h=7, txt=texto, border=1)
 
     file_path = "/tmp/filipetas.pdf"
     pdf.output(file_path)

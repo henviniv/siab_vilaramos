@@ -481,14 +481,14 @@ def gerar_filipetas():
     trazer = request.json.get("trazer", "")
 
     # Processa a data, mas com fallback seguro
-    data_formatada = "---"
+    data_formatada = "__/__/__"
     if data_iso:
         try:
             data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y")
         except ValueError:
             pass  # continua com "---" se der erro
 
-    hora_formatada = hora if hora else "---"
+    hora_formatada = hora if hora else "__:__"
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)

@@ -56,9 +56,8 @@ def index():
         if query:
             dados = [
                 linha for linha in dados if query in linha.get("NOME", "").lower()
-                or query in linha.get("SUS", "").lower()
-                or query in linha.get("CPF", "").lower()
-                or query in linha.get("FAMILIA", "").lower()
+                or query in linha.get("ENDEREÇO", "").lower()
+                
             ]
 
         return render_template(

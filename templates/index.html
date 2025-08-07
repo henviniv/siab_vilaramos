@@ -820,10 +820,21 @@
         const tabela = $("#tabelaPessoas").DataTable();
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
-          nomes.push(linha[1]); // Supondo que a coluna NOME seja a primeira
+          nomes.push(linha[1]);
         });
         return nomes;
       }
+
+      function coletarFamiliasFiltradas() {
+        const familias = [];
+        const tabela = $("#tabelaPessoas").DataTable();
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          familias.push(linha[3]);
+        });
+        return familias;
+      }
+
       document
         .getElementById("gerarFilipetas")
         .addEventListener("click", function () {
@@ -832,11 +843,9 @@
         });
 
       function cancelarFilipeta() {
-        // Fecha o modal
         document.getElementById("modalFilipeta").classList.add("hidden");
         document.getElementById("modalFilipeta").classList.remove("show");
 
-        // Limpa os campos
         document.getElementById("grupo").value = "";
         document.getElementById("dataGrupo").value = "";
         document.getElementById("horaGrupo").value = "";
@@ -845,9 +854,8 @@
         document.getElementById("trazer").value = "";
       }
 
-      // Função para gerar o PDF
       function gerarPdfFilipetas() {
-        const nomes = coletarNomesFiltrados(); // Você já deve ter essa função definida
+        const nomes = coletarNomesFiltrados();
         const grupo = document.getElementById("grupo").value;
         const data = document.getElementById("dataGrupo").value;
         const hora = document.getElementById("horaGrupo").value;
@@ -860,6 +868,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nomes,
+            familias,
             grupo,
             data,
             hora,
@@ -874,11 +883,9 @@
             const win = window.open(url);
             win.focus();
 
-            // Fecha o modal depois de gerar o PDF
             document.getElementById("modalFilipeta").classList.add("hidden");
             document.getElementById("modalFilipeta").classList.remove("show");
 
-            // Limpa os campos
             document.getElementById("grupo").value = "";
             document.getElementById("dataGrupo").value = "";
             document.getElementById("horaGrupo").value = "";

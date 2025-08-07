@@ -448,7 +448,7 @@ def visualizar_micro(micro_id):
         flash("Micro não encontrada.", "warning")
         return redirect(url_for("main.painel_admin"))
 
-    session["micro"] = micro_id  # Salva na sessão
+    session["micro"] = micro_id  
 
     try:
         sheet = get_sheet(user_info["planilha"], user_info["aba"])
@@ -472,6 +472,7 @@ def gerar_filipetas():
     from fpdf import FPDF
 
     nomes = request.json.get("nomes", [])
+    familias = request.json.get("familias", [])
     grupo = request.json.get("grupo", "")
     data_iso = request.json.get("data", "")
     local = request.json.get("local", "")
@@ -479,13 +480,13 @@ def gerar_filipetas():
     opcao = request.json.get("opcao", "")
     trazer = request.json.get("trazer", "")
 
-    # Processa a data, mas com fallback seguro
+    
     data_formatada = "__/__/__"
     if data_iso:
         try:
             data_formatada = datetime.strptime(data_iso, "%Y-%m-%d").strftime("%d/%m/%Y")
         except ValueError:
-            pass  # continua com "---" se der erro
+            pass  
 
     hora_formatada = hora if hora else "__:__"
 
@@ -494,13 +495,18 @@ def gerar_filipetas():
     pdf.add_page()
 
     largura_filipeta = 90
-    altura_filipeta = 60
+    altura_filipeta = 80
     margem_esquerda = 10
     margem_topo = 10
     espacamento_horizontal = 10
     espacamento_vertical = 10
 
     for i, nome in enumerate(nomes):
+        idx_na_pagina = i % 8
+        linha = idx_na_pagina // 2
+        coluna = idx_na_pagina % 2
+
+    for i, familia in enumerate(familias):
         idx_na_pagina = i % 8
         linha = idx_na_pagina // 2
         coluna = idx_na_pagina % 2
@@ -518,8 +524,9 @@ def gerar_filipetas():
             f"{opcao} {grupo}\n\n"
             f"DIA: {data_formatada}  ÀS: {hora_formatada}\n\n"
             f"LOCAL: {local}\n"
-            f"CONVOCAÇÃO PARA\n\n"
+            f"CONVOCAÇÃO PARA:\n\n"
             f"{nome.upper()}\n\n"
+            f"FAMILIA: {familia.upper()}\n\n"
             f"TRAZER: {trazer}\n"
         )
 
@@ -535,7 +542,7 @@ def fechamento_geral():
     aba = request.args.get('aba')
 
     worksheet = get_sheet(planilha, aba)
-    valores = worksheet.get_all_values()  # ← Aqui é o ponto importante
+    valores = worksheet.get_all_values()  
 
     return render_template('fechamento_geral.html', valores=valores, aba=aba)
 

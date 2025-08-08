@@ -501,12 +501,7 @@ def gerar_filipetas():
     espacamento_horizontal = 10
     espacamento_vertical = 10
 
-    for i, nome in enumerate(nomes):
-        idx_na_pagina = i % 6
-        linha = idx_na_pagina // 2
-        coluna = idx_na_pagina % 2
-
-    for i, familia in enumerate(familias):
+    for i, (nome, familia) in enumerate(zip(nomes, familias)):
         idx_na_pagina = i % 6
         linha = idx_na_pagina // 2
         coluna = idx_na_pagina % 2

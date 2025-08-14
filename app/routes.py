@@ -7,6 +7,7 @@ import builtins
 from string import ascii_uppercase
 from fpdf import FPDF
 from datetime import datetime
+from flask import send_file, request
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -467,9 +468,6 @@ def visualizar_micro(micro_id):
 
 @bp.route("/gerar_filipetas", methods=["POST"])
 def gerar_filipetas():
-    from datetime import datetime
-    from flask import send_file, request
-    from fpdf import FPDF
 
     nomes = request.json.get("nomes", [])
     familias = request.json.get("familias", [])

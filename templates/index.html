@@ -270,12 +270,11 @@
       a[href*="fechamento"]:hover {
         background-color: #0056b3;
       }
-      /* Define uma largura mínima maior para os filtros Select2 */
+
       .select2-container {
-        min-width: 150px !important; /* Aumente esse valor conforme necessário */
+        min-width: 150px !important;
       }
 
-      /* Ajusta a largura da caixa de seleção múltipla */
       .select2-container--default .select2-selection--multiple {
         min-height: 30px;
         height: 30px !important;
@@ -287,12 +286,10 @@
         white-space: nowrap;
       }
 
-      /* Remove os "chips" visuais dos itens */
       .select2-selection__choice {
         display: none !important;
       }
 
-      /* Substitui os chips por um texto-resumo */
       .select2-selection__rendered::after {
         content: attr(title);
         font-size: 0.9em;
@@ -300,7 +297,6 @@
         padding-left: 6px;
       }
 
-      /* Evita que a dropdown (lista) fique muito estreita */
       .select2-dropdown {
         min-width: 200px !important;
       }
@@ -436,7 +432,6 @@
 
     <h1>Gerenciar Pessoas na Planilha</h1>
 
-    <!-- Pesquisa -->
     <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
       <label for="query">Buscar por Nome ou Endereço:</label>
       <input
@@ -447,7 +442,6 @@
       <button type="submit">Pesquisar</button>
     </form>
 
-    <!-- Botões -->
     <div class="text-center my-2">
       <button type="button" onclick="ocultarColunas()">
         Ocultar colunas extras
@@ -958,64 +952,6 @@
         document.getElementById("modalLista").classList.add("hidden");
         document.getElementById("modalLista").classList.remove("show");
       }
-
-      function gerarPdfLista() {
-        const checkboxes = document.querySelectorAll(".colunaCheckbox:checked");
-        const colunasSelecionadas = [];
-        const colunasSelecionadasNomes = [];
-
-        checkboxes.forEach((chk) => {
-          colunasSelecionadas.push(parseInt(chk.value));
-          colunasSelecionadasNomes.push(chk.dataset.nome);
-        });
-
-        const dados = coletarDadosFiltrados(colunasSelecionadas);
-
-        fetch("/gerar_lista", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            dados: dados,
-            colunas: colunasSelecionadasNomes,
-            titulo: document.getElementById("tituloLista").value || "Lista",
-          }),
-        })
-          .then((response) => response.blob())
-          .then((blob) => {
-            const url = window.URL.createObjectURL(blob);
-            const win = window.open(url);
-            win.focus();
-            cancelarLista();
-          });
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        let tabela = document.querySelector("#minhaTabela");
-        let cabecalhos = tabela.querySelectorAll("thead th");
-
-        let divFiltros = document.getElementById("filtros-colunas");
-        divFiltros.innerHTML = "";
-
-        cabecalhos.forEach((th, index) => {
-          let nomeColuna = th.innerText.trim();
-          if (nomeColuna) {
-            let label = document.createElement("label");
-            label.innerHTML = `
-                <input type="checkbox" class="colunaCheckbox" value="${index}" data-nome="${nomeColuna}" checked> ${nomeColuna}
-            `;
-            divFiltros.appendChild(label);
-          }
-        });
-
-        document.querySelectorAll(".colunaCheckbox").forEach((cb) => {
-          cb.addEventListener("change", function () {
-            let table = $("#minhaTabela").DataTable();
-            let colIndex = parseInt(this.value);
-            let visible = this.checked;
-            table.column(colIndex).visible(visible);
-          });
-        });
-      });
     </script>
     <div id="modalFilipeta" class="modal hidden">
       <label>Tipo:</label>
@@ -1039,21 +975,6 @@
       <input type="text" id="trazer" />
       <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
       <button onclick="cancelarFilipeta()">Cancelar</button>
-    </div>
-
-    <div id="modalLista" class="modal hidden">
-      <label>Título da Lista:</label>
-      <input
-        type="text"
-        id="tituloLista"
-        placeholder="Ex: Lista de Pacientes"
-      />
-
-      <label>Selecione as colunas:</label>
-      <div id="filtros-colunas"></div>
-
-      <button onclick="gerarPdfLista()">Confirmar e Gerar Lista</button>
-      <button onclick="cancelarLista()">Cancelar</button>
     </div>
   </body>
 </html>

@@ -529,6 +529,43 @@ def gerar_filipetas():
     pdf.output(file_path)
     return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
 
+@bp.route("/gerar_lista", methods=["POST"])
+def gerar_lista():
+    dados = request.json.get("dados", [])
+    colunas = request.json.get("colunas", [])
+    titulo = request.json.get("titulo", "Lista Gerada")
+    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    if not dados or not colunas:
+        return jsonify({"error": "É necessário enviar dados e colunas"}), 400
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.add_page()
+
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, titulo, ln=True, align="C")
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 8, f"Gerado em: {data_geracao}", ln=True, align="C")
+    pdf.ln(8)
+
+    pdf.set_font("Arial", "B", 9)
+    largura_coluna = 190 / len(colunas)
+    for col in colunas:
+        pdf.cell(largura_coluna, 8, col.upper(), border=1, align="C")
+    pdf.ln()
+
+    pdf.set_font("Arial", "", 9)
+    for linha in dados:
+        for i, col in enumerate(colunas):
+            valor = str(linha[i]) if i < len(linha) else ""
+            pdf.cell(largura_coluna, 8, valor, border=1)
+        pdf.ln()
+
+    file_path = "/tmp/lista.pdf"
+    pdf.output(file_path)
+    return send_file(file_path, as_attachment=False, download_name="lista.pdf", mimetype="application/pdf")
+
 @bp.route('/fechamento_geral')
 def fechamento_geral():
     planilha = request.args.get('planilha', 'CONSOLIDADO GERAL')

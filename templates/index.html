@@ -563,6 +563,25 @@
         Gerar Filipetas
       </button>
     </div>
+    <div class="text-center" style="margin-top: 20px">
+      <button id="gerarLista" class="btn btn-success">Gerar Lista</button>
+    </div>
+
+    <div id="modalLista" class="modal hidden">
+      <div class="modal-content">
+        <h3>Selecione as colunas para a lista</h3>
+        <div id="colunasDisponiveis"></div>
+
+        <div class="text-center" style="margin-top: 15px">
+          <button onclick="gerarPdfLista()" class="btn btn-primary">
+            Gerar
+          </button>
+          <button onclick="cancelarLista()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
     {% else %}
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
@@ -951,6 +970,60 @@
       function cancelarLista() {
         document.getElementById("modalLista").classList.add("hidden");
         document.getElementById("modalLista").classList.remove("show");
+      }
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          montarSeletorColunas();
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+      }
+
+      // Monta as opções dinamicamente de acordo com o header da tabela
+      function montarSeletorColunas() {
+        let colunasDisponiveis = [];
+        $("#tabelaPessoas thead th").each(function () {
+          colunasDisponiveis.push($(this).text().trim());
+        });
+
+        let container = document.getElementById("colunasDisponiveis");
+        container.innerHTML = "";
+
+        colunasDisponiveis.forEach((c) => {
+          container.innerHTML += `
+      <label style="margin-right:10px;">
+        <input type="checkbox" class="coluna" value="${c}" checked> ${c}
+      </label>
+    `;
+        });
+      }
+
+      function gerarPdfLista() {
+        const tabela = $("#tabelaPessoas").DataTable();
+        const dados = tabela.rows({ filter: "applied" }).data().toArray();
+
+        let colunas = [];
+        document
+          .querySelectorAll(".coluna:checked")
+          .forEach((c) => colunas.push(c.value));
+
+        fetch("/gerar_lista", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dados, colunas, titulo: "Lista de Pessoas" }),
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const win = window.open(url);
+            win.focus();
+            cancelarLista();
+          });
       }
     </script>
     <div id="modalFilipeta" class="modal hidden">

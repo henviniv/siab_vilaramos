@@ -984,7 +984,6 @@
         document.getElementById("modalLista").classList.remove("show");
       }
 
-      // Monta as opções dinamicamente de acordo com o header da tabela
       function montarSeletorColunas() {
         let colunasDisponiveis = [];
         $("#tabelaPessoas thead th").each(function () {
@@ -1012,10 +1011,13 @@
           .querySelectorAll(".coluna:checked")
           .forEach((c) => colunas.push(c.value));
 
+        let titulo =
+          document.getElementById("tituloLista").value || "Lista Gerada";
+
         fetch("/gerar_lista", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dados, colunas, titulo: "Lista de Pessoas" }),
+          body: JSON.stringify({ dados, colunas, titulo }),
         })
           .then((response) => response.blob())
           .then((blob) => {
@@ -1024,6 +1026,38 @@
             win.focus();
             cancelarLista();
           });
+      }
+
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          montarSeletorColunas();
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+        document.getElementById("tituloLista").value = "";
+      }
+
+      function montarSeletorColunas() {
+        let colunasDisponiveis = [];
+        $("#tabelaPessoas thead th").each(function () {
+          colunasDisponiveis.push($(this).text().trim());
+        });
+
+        let container = document.getElementById("colunasDisponiveis");
+        container.innerHTML = "";
+
+        colunasDisponiveis.forEach((c) => {
+          container.innerHTML += `
+      <label style="margin-right:10px; display:inline-block;">
+        <input type="checkbox" class="coluna" value="${c}" checked> ${c}
+      </label>
+    `;
+        });
       }
     </script>
     <div id="modalFilipeta" class="modal hidden">
@@ -1048,6 +1082,17 @@
       <input type="text" id="trazer" />
       <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
       <button onclick="cancelarFilipeta()">Cancelar</button>
+    </div>
+    <div id="modalLista" class="modal hidden">
+      <h3>Gerar Lista</h3>
+      <label>Selecione as colunas que deseja exibir:</label>
+      <div id="colunasDisponiveis" style="margin: 10px 0"></div>
+
+      <label>Título da Lista:</label>
+      <input type="text" id="tituloLista" placeholder="Ex: Lista de Pessoas" />
+
+      <button onclick="gerarPdfLista()">Confirmar e Gerar PDF</button>
+      <button onclick="cancelarLista()">Cancelar</button>
     </div>
   </body>
 </html>

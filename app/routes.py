@@ -555,7 +555,6 @@ def gerar_lista():
         pdf.cell(largura_coluna, 8, col.upper(), border=1, align='C')
     pdf.ln()
 
-    
     pdf.set_font("Arial", '', 10)
     for linha in dados:
         for col in colunas:

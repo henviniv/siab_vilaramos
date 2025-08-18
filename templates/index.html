@@ -568,22 +568,28 @@
       <button id="gerarFilipetas" class="btn btn-primary">
         Gerar Filipetas
       </button>
+      <input
+        type="text"
+        id="tituloLista"
+        placeholder="Digite o título da lista"
+        style="padding: 5px; margin-right: 10px"
+      />
+      <button type="button" onclick="gerarPdfLista()" class="btn btn-primary">
+        📄 Gerar Lista
+      </button>
     </div>
     {% else %}
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-    <!-- jQuery -->
+
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
-    <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-    <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
       $(document).ready(function () {
-        // Cria os cabeçalhos com selects múltiplos
         $("#tabelaPessoas thead th").each(function () {
           var title = $(this).text();
           if (title !== "AÇÕES") {
@@ -593,7 +599,6 @@
           }
         });
 
-        // Inicializa o DataTable
         var table = $("#tabelaPessoas").DataTable({
           responsive: true,
           order: [],
@@ -609,7 +614,6 @@
                 if (title !== "AÇÕES") {
                   var select = $(column.header()).find("select");
 
-                  // Preenche as opções únicas
                   column
                     .data()
                     .unique()
@@ -622,7 +626,6 @@
                       }
                     });
 
-                  // Aplica Select2 no select com contador de opções
                   select
                     .select2({
                       placeholder: "Filtrar " + title,
@@ -641,9 +644,8 @@
                         .attr("title", label);
                     });
 
-                  // Evento de filtro múltiplo
                   select.on("change", function () {
-                    var selected = $(this).val(); // array de valores
+                    var selected = $(this).val();
                     if (selected && selected.length > 0) {
                       var regex = selected
                         .map(
@@ -663,7 +665,6 @@
         var todasColunas = [];
         var seletorColunas = $("#seletorColunas");
 
-        // Captura os nomes das colunas (exceto AÇÕES)
         table.columns().every(function (index) {
           var title = $(this.header()).text();
           if (title !== "AÇÕES") {
@@ -674,15 +675,13 @@
           }
         });
 
-        // Aplica Select2 no seletor de colunas
         seletorColunas.select2({
           placeholder: "Selecione as colunas que deseja ver",
           width: "resolve",
         });
 
-        // Evento para mostrar/ocultar colunas com base na seleção
         seletorColunas.on("change", function () {
-          var selecionadas = $(this).val().map(Number); // índices das selecionadas
+          var selecionadas = $(this).val().map(Number);
 
           todasColunas.forEach(function (coluna) {
             var visivel = selecionadas.includes(coluna.index);
@@ -696,7 +695,6 @@
         for (const key in pessoa) {
           const input = form.querySelector(`[name="${key}"]`);
           if (input) {
-            // Se for um input do tipo data, trata a conversão de formato
             if (input.type === "date" && pessoa[key]) {
               const partes = pessoa[key].split("/");
               if (partes.length === 3) {

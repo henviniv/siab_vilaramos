@@ -27,7 +27,7 @@ def num_to_col(n):
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
-    # Só verifica o papel se o usuário estiver autenticado (garantido por @login_required)
+    
     if current_user.is_authenticated and current_user.role == "admin" and not request.args.get("query"):
         return redirect(url_for("main.painel_admin"))
 
@@ -76,7 +76,7 @@ def index():
                                mensagem_erro=str(e), mostrar_todas=True)
 
 
-# Criação ou atualização de pessoa
+
 @bp.route('/create_or_update_person', methods=['POST'])
 @login_required
 def create_or_update_person():
@@ -84,14 +84,14 @@ def create_or_update_person():
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados = sheet.get_all_records()
 
-        # Detecta os campos da planilha
+        
         campos = []
         for linha in dados:
             for col in linha:
                 if col not in campos:
                     campos.append(col)
 
-        # Monta dicionário da nova pessoa a partir do formulário
+        
         nova_pessoa = {}
         for campo in campos:
             try:
@@ -127,16 +127,16 @@ def create_or_update_person():
                 print(f"[ERRO] Falha ao extrair campos-chave (CPF, NOME, FAMÍLIA): {e}")
                 raise
 
-        # Chaves de identificação
+        
         cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
         nome_pessoa = nova_pessoa.get("NOME", "").strip().upper()
         familia_alvo = nova_pessoa.get("FAMILIA", "").strip()
 
-        # Índices por CPF e NOME
+        
         cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
         nomes = {linha.get("NOME", "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
         
-        # Índice por FAMÍLIA (opcional, usado na lógica de inserção)
+        
         familias = {}
         for i, linha in enumerate(dados):
             familia = linha.get("FAMILIA", "").strip()
@@ -145,21 +145,21 @@ def create_or_update_person():
 
         ultima_col = num_to_col(len(campos))
 
-        # Atualização por CPF
+        
         if cpf_limpo and cpf_limpo in cpfs:
             linha_atualizar = cpfs[cpf_limpo]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
         
-        # Atualização por NOME (se CPF não encontrado)
+        
         elif nome_pessoa and nome_pessoa in nomes:
             linha_atualizar = nomes[nome_pessoa]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com NOME {nome_pessoa} atualizada.")
         
-        # Inserção de nova pessoa
+        
         else:
             if familia_alvo in familias:
                 linha_inserir = max(3, max(familias[familia_alvo]) + 1)
@@ -176,7 +176,7 @@ def create_or_update_person():
                         break
 
                 if not inserida:
-                    # insere após a última família existente
+                    
                     posicao = max(max(linhas) for linhas in familias.values()) + 1
 
                 linha_inserir = posicao
@@ -193,7 +193,7 @@ def create_or_update_person():
 
 
 
-# Atualizar pessoa
+
 @bp.route('/update_person', methods=['POST'])
 @login_required
 def update_person():
@@ -250,7 +250,7 @@ def update_person():
 
 
 
-# Excluir pessoa
+
 @bp.route('/delete', methods=['POST'])
 @login_required
 def delete_person():
@@ -279,7 +279,7 @@ def delete_person():
         return redirect(url_for('main.index'))
 
 
-# Obter dados da pessoa para edição
+
 @bp.route('/edit', methods=['GET'])
 @login_required
 def get_person_data():
@@ -301,7 +301,7 @@ def get_person_data():
         print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
-# Login
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -394,7 +394,7 @@ def fechamento_admin(micro_id):
 
     nome_aba = user_info["aba"]
 
-    # Determina o nome da aba de fechamento com base no nome da aba da micro
+    
     if nome_aba.startswith("MI"):
         aba_fechamento = f"FECHAMENTO {nome_aba}"
     else:
@@ -424,9 +424,9 @@ def painel_admin():
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
-    from app.auth import USERS  # importa USERS diretamente
+    from app.auth import USERS  
 
-    # Filtra apenas usuários com role = "micro"
+    
     lista_usuarios = {
         username: info
         for username, info in USERS.items()
@@ -528,6 +528,44 @@ def gerar_filipetas():
     file_path = "/tmp/filipetas.pdf"
     pdf.output(file_path)
     return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
+
+@bp.route("/gerar_lista", methods=["POST"])
+def gerar_lista():
+    
+    dados = request.json.get("dados", [])
+    colunas = request.json.get("colunas", [])
+    titulo = request.json.get("titulo", "Lista Gerada")
+    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.add_page()
+
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(0, 10, titulo, ln=True, align='C')
+    pdf.set_font("Arial", '', 10)
+    pdf.cell(0, 8, f"Gerado em: {data_geracao}", ln=True, align='C')
+    pdf.ln(5)
+
+    largura_coluna = 190 / len(colunas)
+
+    
+    pdf.set_font("Arial", 'B', 10)
+    for col in colunas:
+        pdf.cell(largura_coluna, 8, col.upper(), border=1, align='C')
+    pdf.ln()
+
+    
+    pdf.set_font("Arial", '', 10)
+    for linha in dados:
+        for col in colunas:
+            valor = str(linha.get(col, ""))
+            pdf.cell(largura_coluna, 8, valor, border=1, align='C')
+        pdf.ln()
+
+    file_path = "/tmp/lista.pdf"
+    pdf.output(file_path)
+    return send_file(file_path, as_attachment=False, download_name="lista.pdf", mimetype="application/pdf")
 
 @bp.route('/fechamento_geral')
 def fechamento_geral():

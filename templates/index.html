@@ -909,20 +909,17 @@
         const dia = diaInput.value.trim().toUpperCase();
         const hiperdia = hiperdiaInput.value.trim().toUpperCase();
 
-        // Regra 1: Se HIPERDIA = S, limpar HAS e DIA
         if (hiperdia === "S") {
           limparInputs(hasInput, diaInput);
           return;
         }
 
-        // Regra 2: Se DIA = S e HAS = S, limpar ambos e colocar S em HIPERDIA
         if (dia === "S" && has === "S") {
           limparInputs(hasInput, diaInput);
           hiperdiaInput.value = "S";
           return;
         }
 
-        // Regra 3: Se HAS = S e DIA = S, mesma lógica acima (caso ordem seja inversa)
         if (has === "S" && dia === "S") {
           limparInputs(hasInput, diaInput);
           hiperdiaInput.value = "S";
@@ -943,6 +940,92 @@
 
       tabelaWrapper.addEventListener("scroll", function () {
         scrollTop.parentElement.scrollLeft = this.scrollLeft;
+      });
+
+      function coletarDadosFiltrados(colunasSelecionadas) {
+        const tabela = $("#tabelaPessoas").DataTable();
+        const dados = [];
+
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          const linhaObj = {};
+          colunasSelecionadas.forEach((colIdx) => {
+            linhaObj[colunasSelecionadasNomes[colIdx]] = linha[colIdx];
+          });
+          dados.push(linhaObj);
+        });
+
+        return dados;
+      }
+
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+      }
+
+      function gerarPdfLista() {
+        const checkboxes = document.querySelectorAll(".colunaCheckbox:checked");
+        const colunasSelecionadas = [];
+        const colunasSelecionadasNomes = [];
+
+        checkboxes.forEach((chk) => {
+          colunasSelecionadas.push(parseInt(chk.value));
+          colunasSelecionadasNomes.push(chk.dataset.nome);
+        });
+
+        const dados = coletarDadosFiltrados(colunasSelecionadas);
+
+        fetch("/gerar_lista", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dados: dados,
+            colunas: colunasSelecionadasNomes,
+            titulo: document.getElementById("tituloLista").value || "Lista",
+          }),
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const win = window.open(url);
+            win.focus();
+            cancelarLista();
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        let tabela = document.querySelector("#minhaTabela");
+        let cabecalhos = tabela.querySelectorAll("thead th");
+
+        let divFiltros = document.getElementById("filtros-colunas");
+        divFiltros.innerHTML = "";
+
+        cabecalhos.forEach((th, index) => {
+          let nomeColuna = th.innerText.trim();
+          if (nomeColuna) {
+            let label = document.createElement("label");
+            label.innerHTML = `
+                <input type="checkbox" class="colunaCheckbox" value="${index}" data-nome="${nomeColuna}" checked> ${nomeColuna}
+            `;
+            divFiltros.appendChild(label);
+          }
+        });
+
+        document.querySelectorAll(".colunaCheckbox").forEach((cb) => {
+          cb.addEventListener("change", function () {
+            let table = $("#minhaTabela").DataTable();
+            let colIndex = parseInt(this.value);
+            let visible = this.checked;
+            table.column(colIndex).visible(visible);
+          });
+        });
       });
     </script>
     <div id="modalFilipeta" class="modal hidden">
@@ -967,6 +1050,21 @@
       <input type="text" id="trazer" />
       <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
       <button onclick="cancelarFilipeta()">Cancelar</button>
+    </div>
+
+    <div id="modalLista" class="modal hidden">
+      <label>Título da Lista:</label>
+      <input
+        type="text"
+        id="tituloLista"
+        placeholder="Ex: Lista de Pacientes"
+      />
+
+      <label>Selecione as colunas:</label>
+      <div id="filtros-colunas"></div>
+
+      <button onclick="gerarPdfLista()">Confirmar e Gerar Lista</button>
+      <button onclick="cancelarLista()">Cancelar</button>
     </div>
   </body>
 </html>

@@ -1004,12 +1004,23 @@
 
       function gerarPdfLista() {
         const tabela = $("#tabelaPessoas").DataTable();
-        const dados = tabela.rows({ filter: "applied" }).data().toArray();
+        const dadosTabela = tabela.rows({ filter: "applied" }).data().toArray();
 
+        // Pega as colunas selecionadas pelo usuário
         let colunas = [];
         document
           .querySelectorAll(".coluna:checked")
           .forEach((c) => colunas.push(c.value));
+
+        // Transforma cada linha em um objeto {coluna: valor}
+        let dados = dadosTabela.map((linha) => {
+          let obj = {};
+          $("#tabelaPessoas thead th").each(function (i) {
+            const colName = $(this).text().trim();
+            obj[colName] = linha[i]; // vincula nome da coluna ao valor
+          });
+          return obj;
+        });
 
         let titulo =
           document.getElementById("tituloLista").value || "Lista Gerada";

@@ -995,9 +995,8 @@
 
       function gerarPdfLista() {
         const tabela = $("#tabelaPessoas").DataTable();
-        const dadosTabela = tabela.rows({ filter: "applied" }).data().toArray();
 
-        let colunas = [
+        const colunas = [
           "NOME",
           "DATA DE NASCIMENTO",
           "IDADE",
@@ -1006,15 +1005,17 @@
           "ENDEREÇO",
         ];
 
-        let dados = dadosTabela.map((linha) => {
-          let obj = {};
+        let dados = [];
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          const obj = {};
           $("#tabelaPessoas thead th").each(function (i) {
             const colName = $(this).text().trim();
             if (colunas.includes(colName)) {
               obj[colName] = linha[i];
             }
           });
-          return obj;
+          dados.push(obj);
         });
 
         let titulo =

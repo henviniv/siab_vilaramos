@@ -1010,8 +1010,7 @@
           let obj = {};
           $("#tabelaPessoas thead th").each(function (i) {
             const colName = $(this).text().trim();
-            if (colunasDesejadas.includes(colName)) {
-              obj[colName] = linha[i];
+            if (colunas.includes(colName)) {
             }
           });
           return obj;

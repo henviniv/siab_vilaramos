@@ -564,24 +564,15 @@
       </button>
     </div>
     <div class="text-center" style="margin-top: 20px">
-      <button id="gerarLista" class="btn btn-success">Gerar Lista</button>
+      <button
+        id="gerarLista"
+        class="btn btn-success"
+        onclick="abrirModalLista()"
+      >
+        Gerar Lista
+      </button>
     </div>
 
-    <div id="modalLista" class="modal hidden">
-      <div class="modal-content">
-        <h3>Selecione as colunas para a lista</h3>
-        <div id="colunasDisponiveis"></div>
-
-        <div class="text-center" style="margin-top: 15px">
-          <button onclick="gerarPdfLista()" class="btn btn-primary">
-            Gerar
-          </button>
-          <button onclick="cancelarLista()" class="btn btn-secondary">
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
     {% else %}
     <p>Nenhum dado encontrado na planilha.</p>
     {% endif %}
@@ -1006,18 +997,20 @@
         const tabela = $("#tabelaPessoas").DataTable();
         const dadosTabela = tabela.rows({ filter: "applied" }).data().toArray();
 
-        // Pega as colunas selecionadas pelo usuário
-        let colunas = [];
-        document
-          .querySelectorAll(".coluna:checked")
-          .forEach((c) => colunas.push(c.value));
+        let colunas = [
+          "NOME",
+          "DATA DE NASCIMENTO",
+          "IDADE",
+          "SUS",
+          "FAMILIA",
+          "ENDEREÇO",
+        ];
 
-        // Transforma cada linha em um objeto {coluna: valor}
         let dados = dadosTabela.map((linha) => {
           let obj = {};
           $("#tabelaPessoas thead th").each(function (i) {
             const colName = $(this).text().trim();
-            obj[colName] = linha[i]; // vincula nome da coluna ao valor
+            obj[colName] = linha[i];
           });
           return obj;
         });
@@ -1042,33 +1035,18 @@
       document
         .getElementById("gerarLista")
         .addEventListener("click", function () {
-          montarSeletorColunas();
           document.getElementById("modalLista").classList.remove("hidden");
           document.getElementById("modalLista").classList.add("show");
         });
+
+      function abrirModalLista() {
+        document.getElementById("modalLista").classList.remove("hidden");
+      }
 
       function cancelarLista() {
         document.getElementById("modalLista").classList.add("hidden");
         document.getElementById("modalLista").classList.remove("show");
         document.getElementById("tituloLista").value = "";
-      }
-
-      function montarSeletorColunas() {
-        let colunasDisponiveis = [];
-        $("#tabelaPessoas thead th").each(function () {
-          colunasDisponiveis.push($(this).text().trim());
-        });
-
-        let container = document.getElementById("colunasDisponiveis");
-        container.innerHTML = "";
-
-        colunasDisponiveis.forEach((c) => {
-          container.innerHTML += `
-      <label style="margin-right:10px; display:inline-block;">
-        <input type="checkbox" class="coluna" value="${c}" checked> ${c}
-      </label>
-    `;
-        });
       }
     </script>
     <div id="modalFilipeta" class="modal hidden">
@@ -1095,15 +1073,32 @@
       <button onclick="cancelarFilipeta()">Cancelar</button>
     </div>
     <div id="modalLista" class="modal hidden">
-      <h3>Gerar Lista</h3>
-      <label>Selecione as colunas que deseja exibir:</label>
-      <div id="colunasDisponiveis" style="margin: 10px 0"></div>
+      <div class="modal-content">
+        <h3>Gerar Lista</h3>
 
-      <label>Título da Lista:</label>
-      <input type="text" id="tituloLista" placeholder="Ex: Lista de Pessoas" />
+        <label for="tituloLista">Título da Lista:</label>
+        <input
+          type="text"
+          id="tituloLista"
+          placeholder="Ex: Lista de Pessoas"
+          style="
+            margin-bottom: 12px;
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+        />
 
-      <button onclick="gerarPdfLista()">Confirmar e Gerar PDF</button>
-      <button onclick="cancelarLista()">Cancelar</button>
+        <div class="text-center" style="margin-top: 15px">
+          <button onclick="gerarPdfLista()" class="btn btn-primary">
+            Confirmar e Gerar PDF
+          </button>
+          <button onclick="cancelarLista()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   </body>
 </html>

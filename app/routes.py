@@ -539,11 +539,11 @@ def gerar_lista():
     if not dados or not colunas:
         return jsonify({"error": "É necessário enviar dados e colunas"}), 400
 
-    pdf = FPDF()
+    
+    pdf = FPDF(orientation="L")
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
 
-    
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, titulo, ln=True, align="C")
     pdf.set_font("Arial", "", 10)
@@ -552,7 +552,7 @@ def gerar_lista():
 
     
     pdf.set_font("Arial", "B", 9)
-    largura_coluna = 190 / len(colunas)
+    largura_coluna = 270 / len(colunas)
     for col in colunas:
         pdf.cell(largura_coluna, 8, col.upper(), border=1, align="C")
     pdf.ln()
@@ -561,13 +561,18 @@ def gerar_lista():
     pdf.set_font("Arial", "", 9)
     for linha in dados:
         for col in colunas:
-            valor = str(linha.get(col, ""))
+            valor = str(linha.get(col, ""))[:40]
             pdf.cell(largura_coluna, 8, valor, border=1)
         pdf.ln()
 
     file_path = "/tmp/lista.pdf"
     pdf.output(file_path)
-    return send_file(file_path, as_attachment=False, download_name="lista.pdf", mimetype="application/pdf")
+    return send_file(
+        file_path,
+        as_attachment=False,
+        download_name="lista.pdf",
+        mimetype="application/pdf"
+    )
 
 @bp.route('/fechamento_geral')
 def fechamento_geral():

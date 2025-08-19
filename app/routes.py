@@ -531,7 +531,7 @@ def gerar_filipetas():
     pdf.output(file_path)
     return send_file(file_path, as_attachment=False, download_name="filipetas.pdf", mimetype="application/pdf")
 
-@bp_listas.route("/gerar_lista", methods=["POST"])
+@bp.route("/gerar_lista", methods=["POST"])
 def gerar_lista():
     dados = request.json.get("dados", [])
     colunas = request.json.get("colunas", [])

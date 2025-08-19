@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import send_file, request
 from io import BytesIO
 
-bp = Blueprint('main', __name__, template_folder='../templates')
+bp = Blueprint('main', "listas", __name__, template_folder='../templates')
 
 
 def limpar_cpf(cpf):
@@ -533,40 +533,43 @@ def gerar_filipetas():
 @bp.route("/gerar_lista", methods=["POST"])
 def gerar_lista():
     dados = request.json.get("dados", [])
+    colunas = request.json.get("colunas", [])
     titulo = request.json.get("titulo", "Lista Gerada")
     data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    colunas_desejadas = ["NOME", "DATA DE NASCIMENTO", "IDADE", "SUS", "FAMILIA", "ENDEREÇO"]
+    if not dados or not colunas:
+        return jsonify({"error": "Dados ou colunas não fornecidos"}), 400
 
-    if not dados:
-        return {"error": "Sem dados para gerar a lista"}, 400
-
-    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
+
+    
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, titulo, 0, 1, "C")
+    pdf.cell(0, 10, titulo, ln=True, align="C")
     pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 10, f"Gerado em: {data_geracao}", 0, 1, "R")
+    pdf.cell(0, 10, f"Gerado em: {data_geracao}", ln=True, align="C")
+    pdf.ln(10)
 
     
     pdf.set_font("Arial", "B", 10)
-    for col in colunas_desejadas:
-        pdf.cell(40, 10, col, 1, 0, "C")
+    for coluna in colunas:
+        pdf.cell(38, 10, coluna, border=1, align="C")
     pdf.ln()
 
     
-    pdf.set_font("Arial", "", 9)
-    for row in dados:
-        for col in colunas_desejadas:
-            valor = str(row.get(col, ""))  
-            pdf.cell(40, 8, valor, 1, 0, "C")
+    pdf.set_font("Arial", "", 10)
+    for linha in dados[1:]:
+        for coluna in colunas:
+            valor = linha.get(coluna, "")
+            pdf.cell(38, 10, str(valor), border=1)
         pdf.ln()
 
-    output = BytesIO()
-    pdf.output(output)
-    output.seek(0)
-
-    return send_file(output, mimetype="application/pdf", as_attachment=True, download_name="lista.pdf")
+    
+    buffer = BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="lista.pdf", mimetype="application/pdf")
 
 @bp.route('/fechamento_geral')
 def fechamento_geral():

@@ -8,6 +8,7 @@ from string import ascii_uppercase
 from fpdf import FPDF
 from datetime import datetime
 from flask import send_file, request
+from io import BytesIO
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -532,47 +533,48 @@ def gerar_filipetas():
 @bp.route("/gerar_lista", methods=["POST"])
 def gerar_lista():
     dados = request.json.get("dados", [])
-    colunas = request.json.get("colunas", [])
     titulo = request.json.get("titulo", "Lista Gerada")
     data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    if not dados or not colunas:
-        return jsonify({"error": "É necessário enviar dados e colunas"}), 400
+    
+    colunas_desejadas = ["NOME", "DATA DE NASCIMENTO", "IDADE", "SUS", "FAMILIA", "ENDEREÇO"]
 
     
-    pdf = FPDF(orientation="L")
-    pdf.set_auto_page_break(auto=True, margin=10)
+    if not dados:
+        return {"error": "Sem dados para gerar a lista"}, 400
+
+    cabecalho = dados[0]  
+    indices = {col: cabecalho.index(col) for col in colunas_desejadas if col in cabecalho}
+
+    
+    pdf = FPDF(orientation="L", unit="mm", format="A4")  
     pdf.add_page()
-
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, titulo, ln=True, align="C")
+    pdf.cell(0, 10, titulo, 0, 1, "C")
     pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 8, f"Gerado em: {data_geracao}", ln=True, align="C")
-    pdf.ln(8)
+    pdf.cell(0, 10, f"Gerado em: {data_geracao}", 0, 1, "R")
 
     
-    pdf.set_font("Arial", "B", 9)
-    largura_coluna = 270 / len(colunas)
-    for col in colunas:
-        pdf.cell(largura_coluna, 8, col.upper(), border=1, align="C")
+    pdf.set_font("Arial", "B", 10)
+    for col in colunas_desejadas:
+        if col in indices:
+            pdf.cell(40, 10, col, 1, 0, "C")
     pdf.ln()
 
     
     pdf.set_font("Arial", "", 9)
-    for linha in dados:
-        for col in colunas:
-            valor = str(linha.get(col, ""))[:40]
-            pdf.cell(largura_coluna, 8, valor, border=1)
+    for row in dados[1:]:
+        for col in colunas_desejadas:
+            if col in indices:
+                valor = str(row[indices[col]]) if indices[col] < len(row) else ""
+                pdf.cell(40, 8, valor, 1, 0, "C")
         pdf.ln()
 
-    file_path = "/tmp/lista.pdf"
-    pdf.output(file_path)
-    return send_file(
-        file_path,
-        as_attachment=False,
-        download_name="lista.pdf",
-        mimetype="application/pdf"
-    )
+    output = BytesIO()
+    pdf.output(output)
+    output.seek(0)
+
+    return send_file(output, mimetype="application/pdf", as_attachment=True, download_name="lista.pdf")
 
 @bp.route('/fechamento_geral')
 def fechamento_geral():

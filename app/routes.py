@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import send_file, request
 from io import BytesIO
 
-bp = Blueprint('main', "listas", __name__, template_folder='../templates')
+bp = Blueprint('main', __name__, template_folder='../templates')
 
 
 def limpar_cpf(cpf):

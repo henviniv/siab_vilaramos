@@ -541,7 +541,7 @@ def gerar_lista():
     if not dados or not colunas:
         return jsonify({"error": "Dados ou colunas não fornecidos"}), 400
 
-    pdf = FPDF()
+    pdf = FPDF("L", "mm", "A4")
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
 

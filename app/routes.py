@@ -560,7 +560,7 @@ def gerar_lista():
 
     
     pdf.set_font("Arial", "", 10)
-    for linha in dados[1:]:
+    for linha in dados:
         for coluna in colunas:
             valor = linha.get(coluna, "")
             pdf.cell(38, 10, str(valor), border=1)

@@ -536,18 +536,12 @@ def gerar_lista():
     titulo = request.json.get("titulo", "Lista Gerada")
     data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    
     colunas_desejadas = ["NOME", "DATA DE NASCIMENTO", "IDADE", "SUS", "FAMILIA", "ENDEREÇO"]
 
-    
     if not dados:
         return {"error": "Sem dados para gerar a lista"}, 400
 
-    cabecalho = dados[0]  
-    indices = {col: cabecalho.index(col) for col in colunas_desejadas if col in cabecalho}
-
-    
-    pdf = FPDF(orientation="L", unit="mm", format="A4")  
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, titulo, 0, 1, "C")
@@ -557,17 +551,15 @@ def gerar_lista():
     
     pdf.set_font("Arial", "B", 10)
     for col in colunas_desejadas:
-        if col in indices:
-            pdf.cell(40, 10, col, 1, 0, "C")
+        pdf.cell(40, 10, col, 1, 0, "C")
     pdf.ln()
 
     
     pdf.set_font("Arial", "", 9)
-    for row in dados[1:]:
+    for row in dados:
         for col in colunas_desejadas:
-            if col in indices:
-                valor = str(row[indices[col]]) if indices[col] < len(row) else ""
-                pdf.cell(40, 8, valor, 1, 0, "C")
+            valor = str(row.get(col, ""))  
+            pdf.cell(40, 8, valor, 1, 0, "C")
         pdf.ln()
 
     output = BytesIO()

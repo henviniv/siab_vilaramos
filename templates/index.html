@@ -996,7 +996,7 @@
       function gerarPdfLista() {
         const tabela = $("#tabelaPessoas").DataTable();
 
-        const colunas = [
+        const colunasFixas = [
           "NOME",
           "DATA DE NASCIMENTO",
           "IDADE",
@@ -1005,26 +1005,47 @@
           "ENDEREÇO",
         ];
 
-        let dados = [];
+        const norm = (s) =>
+          (s || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toUpperCase();
+
+        const headerMap = {};
+        $(tabela.columns().header()).each(function (i, el) {
+          const texto = $(el).text();
+          const chave = norm(texto);
+          headerMap[chave] = i;
+        });
+
+        const indicesFixos = {};
+        colunasFixas.forEach((col) => {
+          const chave = norm(col);
+          if (headerMap[chave] !== undefined) {
+            indicesFixos[col] = headerMap[chave];
+          }
+        });
+
+        const dados = [];
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
           const obj = {};
-          $("#tabelaPessoas thead th").each(function (i) {
-            const colName = $(this).text().trim();
-            if (colunas.includes(colName)) {
-              obj[colName] = linha[i];
-            }
+          colunasFixas.forEach((col) => {
+            const idx = indicesFixos[col];
+            obj[col] = idx !== undefined ? linha[idx] : "";
           });
           dados.push(obj);
         });
 
-        let titulo =
+        const titulo =
           document.getElementById("tituloLista").value || "Lista Gerada";
 
         fetch("/gerar_lista", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dados, colunas, titulo }),
+          body: JSON.stringify({ dados, colunas: colunasFixas, titulo }),
         })
           .then((response) => response.blob())
           .then((blob) => {

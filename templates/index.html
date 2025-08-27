@@ -1005,37 +1005,25 @@
           "ENDEREÇO",
         ];
 
-        const norm = (s) =>
-          (s || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .toUpperCase();
+        const indicesFixos = {
+          NOME: 1,
+          "DATA DE NASCIMENTO": 2,
+          IDADE: 3,
+          SUS: 4,
+          FAMILIA: 5,
+          ENDEREÇO: 27,
+        };
 
-        const headerMap = {};
-        $(tabela.columns().header()).each(function (i, el) {
-          const texto = $(el).text();
-          const chave = norm(texto);
-          headerMap[chave] = i;
-        });
-
-        const indicesFixos = {};
-        colunasFixas.forEach((col) => {
-          const chave = norm(col);
-          if (headerMap[chave] !== undefined) {
-            indicesFixos[col] = headerMap[chave];
-          }
-        });
-
-        const dados = [];
+        let dados = [];
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
           const obj = {};
+
           colunasFixas.forEach((col) => {
             const idx = indicesFixos[col];
-            obj[col] = idx !== undefined ? linha[idx] : "";
+            obj[col] = linha[idx] !== undefined ? linha[idx] : "";
           });
+
           dados.push(obj);
         });
 

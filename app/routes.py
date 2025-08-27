@@ -545,7 +545,6 @@ def gerar_lista():
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
 
-    
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, titulo, ln=True, align="C")
     pdf.set_font("Arial", "", 10)
@@ -554,19 +553,29 @@ def gerar_lista():
 
     
     pdf.set_font("Arial", "B", 10)
+    larguras = []
     for coluna in colunas:
-        pdf.cell(38, 10, coluna, border=1, align="C")
+        max_len = pdf.get_string_width(coluna) + 6
+        for linha in dados:
+            valor = str(linha.get(coluna, ""))
+            largura_valor = pdf.get_string_width(valor) + 6
+            if largura_valor > max_len:
+                max_len = largura_valor
+        larguras.append(max_len)
+
+    
+    for i, coluna in enumerate(colunas):
+        pdf.cell(larguras[i], 10, coluna, border=1, align="C")
     pdf.ln()
 
     
     pdf.set_font("Arial", "", 10)
     for linha in dados:
-        for coluna in colunas:
-            valor = linha.get(coluna, "")
-            pdf.cell(38, 10, str(valor), border=1)
+        for i, coluna in enumerate(colunas):
+            valor = str(linha.get(coluna, ""))
+            pdf.cell(larguras[i], 10, valor, border=1)
         pdf.ln()
 
-    
     buffer = BytesIO()
     pdf.output(buffer)
     buffer.seek(0)

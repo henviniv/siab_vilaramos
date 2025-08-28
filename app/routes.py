@@ -93,27 +93,31 @@ def create_or_update_person():
                 if col not in campos:
                     campos.append(col)
 
-        
         nova_pessoa = {}
         for campo in campos:
             try:
                 raw_valor = request.form.get(campo, "")
                 print(f"[DEBUG] Campo: {campo} | Valor bruto: {raw_valor} | Tipo: {type(raw_valor)}")
 
-                valor = str(raw_valor).strip() if raw_valor is not None else ""
+                if raw_valor is None:
+                    valor = ""
+                else:
+                    valor = str(raw_valor).strip()
 
+                
                 if "DATA DE NASCIMENTO" in campo.upper():
                     try:
                         valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
                     except Exception as e:
                         print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
                         valor = ""
-                elif campo.upper() == "IDADE":
+
+                elif campo.upper() in ["IDADE", "SUS", "CPF"]:
                     valor = re.sub(r"\D", "", valor)
-                    valor = int(valor) if valor else ""
-                elif campo.upper() != "CPF":
-                    if isinstance(valor, str):
-                        valor = valor.upper()
+                    valor = int(valor) if valor else None
+
+                else:
+                    valor = valor.upper() if isinstance(valor, str) else valor
 
                 nova_pessoa[campo] = valor
 
@@ -121,27 +125,22 @@ def create_or_update_person():
                 print(f"[ERRO] Erro ao processar campo '{campo}' com valor '{raw_valor}': {e}")
                 nova_pessoa[campo] = ""
 
-            try:
-                nome_pessoa = str(nova_pessoa.get("NOME", "")).strip().upper()
-                familia_alvo = str(nova_pessoa.get("FAMILIA", "")).strip()
-                cpf_limpo = limpar_cpf(str(nova_pessoa.get("CPF", "")))
-            except Exception as e:
-                print(f"[ERRO] Falha ao extrair campos-chave (CPF, NOME, FAMÍLIA): {e}")
-                raise
+        
+        try:
+            nome_pessoa = str(nova_pessoa.get("NOME", "") or "").strip().upper()
+            familia_alvo = str(nova_pessoa.get("FAMILIA", "") or "").strip()
+            cpf_limpo = limpar_cpf(str(nova_pessoa.get("CPF", "") or ""))
+        except Exception as e:
+            print(f"[ERRO] Falha ao extrair campos-chave (CPF, NOME, FAMÍLIA): {e}")
+            raise
 
         
-        cpf_limpo = limpar_cpf(nova_pessoa.get("CPF", ""))
-        nome_pessoa = nova_pessoa.get("NOME", "").strip().upper()
-        familia_alvo = nova_pessoa.get("FAMILIA", "").strip()
+        cpfs = {limpar_cpf(str(linha.get("CPF", "") or "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
+        nomes = {str(linha.get("NOME", "") or "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
 
-        
-        cpfs = {limpar_cpf(linha.get("CPF", "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        nomes = {linha.get("NOME", "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
-        
-        
         familias = {}
         for i, linha in enumerate(dados):
-            familia = linha.get("FAMILIA", "").strip()
+            familia = str(linha.get("FAMILIA", "") or "").strip()
             if familia:
                 familias.setdefault(familia, []).append(i + 2)
 
@@ -153,14 +152,14 @@ def create_or_update_person():
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-        
+
         
         elif nome_pessoa and nome_pessoa in nomes:
             linha_atualizar = nomes[nome_pessoa]
             sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
                          [[nova_pessoa.get(col, "") for col in campos]])
             print(f"[INFO] Pessoa com NOME {nome_pessoa} atualizada.")
-        
+
         
         else:
             if familia_alvo in familias:
@@ -178,7 +177,6 @@ def create_or_update_person():
                         break
 
                 if not inserida:
-                    
                     posicao = max(max(linhas) for linhas in familias.values()) + 1
 
                 linha_inserir = posicao

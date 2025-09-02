@@ -102,11 +102,16 @@ def create_or_update_person():
                 print(f"[DEBUG] Campo: {campo} | Valor bruto: {raw_valor} | Tipo: {type(raw_valor)}")
 
                 if raw_valor is None:
-                    valor = ""
+                   valor = ""
                 else:
                     valor = str(raw_valor).strip()
 
-                
+        
+                if campo.upper() == "IDADE":
+                    nova_pessoa[campo] = ""
+                    continue
+
+        
                 if "DATA DE NASCIMENTO" in campo.upper():
                     try:
                         valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -114,7 +119,8 @@ def create_or_update_person():
                         print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
                         valor = ""
 
-                elif campo.upper() in ["IDADE", "SUS", "CPF"]:
+        
+                elif campo.upper() in ["SUS", "CPF"]:
                     valor = re.sub(r"\D", "", valor)
                     valor = int(valor) if valor else None
 
@@ -210,7 +216,6 @@ def update_person():
                 if col not in campos:
                     campos.append(col)
 
-        
         nome_original = request.args.get("nome", "").strip()
         if not nome_original:
             return jsonify({"erro": "Nome inválido"}), 400
@@ -225,6 +230,11 @@ def update_person():
                 valor = str(raw_valor).strip()
 
             
+            if campo.upper() == "IDADE":
+                nova_pessoa[campo] = ""
+                continue  
+
+            
             if "DATA DE NASCIMENTO" in campo.upper():
                 try:
                     valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -232,9 +242,11 @@ def update_person():
                     print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
                     valor = ""
 
-            elif campo.upper() in ["IDADE", "SUS", "CPF"]:
+            
+            elif campo.upper() in ["SUS", "CPF"]:
                 valor = re.sub(r"\D", "", valor)
                 valor = int(valor) if valor else None
+
             else:
                 valor = valor.upper() if isinstance(valor, str) else valor
 
@@ -250,7 +262,6 @@ def update_person():
         if not linha_atual:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        
         ultima_col = num_to_col(len(campos))
         sheet.update(f"A{linha_atual}:{ultima_col}{linha_atual}",
                      [[nova_pessoa.get(col, "") for col in campos]])

@@ -107,7 +107,9 @@ def create_or_update_person():
                     valor = str(raw_valor).strip()
 
         
-              
+                if campo.upper() == "IDADE":
+                    nova_pessoa[campo] = None
+                    continue
 
         
                 if "DATA DE NASCIMENTO" in campo.upper():
@@ -118,7 +120,7 @@ def create_or_update_person():
                         valor = ""
 
         
-                elif campo.upper() in ["SUS", "CPF"]:
+                elif campo.upper() in ["IDADE", "SUS", "CPF"]:
                     valor = re.sub(r"\D", "", valor)
                     valor = int(valor) if valor else None
 
@@ -228,7 +230,9 @@ def update_person():
                 valor = str(raw_valor).strip()
 
             
-            
+            if campo.upper() == "IDADE":
+                nova_pessoa[campo] = None
+                continue  
 
             
             if "DATA DE NASCIMENTO" in campo.upper():
@@ -239,7 +243,7 @@ def update_person():
                     valor = ""
 
             
-            elif campo.upper() in ["SUS", "CPF"]:
+            elif campo.upper() in ["IDADE", "SUS", "CPF"]:
                 valor = re.sub(r"\D", "", valor)
                 valor = int(valor) if valor else None
 

@@ -44,6 +44,8 @@ def index():
         dados_crus = sheet.get_all_records()
         dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
+        dados.sort(key=lambda x: x.get("FAMILIA", ""))
+
         mostrar_todas = True
         todas_colunas = []
 

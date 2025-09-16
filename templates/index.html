@@ -625,7 +625,9 @@
                     .select2({
                       placeholder: "Filtrar " + title,
                       closeOnSelect: false,
+                      allowClear: true,
                       width: "resolve",
+                      minimumResultsForSearch: 0,
                     })
                     .on("change", function () {
                       const selected = $(this).val();
@@ -649,8 +651,13 @@
                         )
                         .join("|");
                       column.search(regex, true, false).draw();
+                      $(column.header()).find(".contador-filtro").remove();
+                      $(column.header()).append(
+                        `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`
+                      );
                     } else {
                       column.search("", true, false).draw();
+                      $(column.header()).find(".contador-filtro").remove();
                     }
                   });
                 }

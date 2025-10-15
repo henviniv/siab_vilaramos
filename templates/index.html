@@ -371,21 +371,24 @@
           "inline-block";
       }
 
-      table.columns(".col-extra").visible(false, false);
-      table.columns.adjust().draw(false);
-
-      document.querySelector(".scroll-top-wrapper").style.display = "none";
-
-      window.ocultarColunas = function () {
-        table.columns(".col-extra").visible(false, false);
-        table.columns.adjust().draw(false);
+      function ocultarColunas() {
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.add("hidden"));
         document.querySelector(".scroll-top-wrapper").style.display = "none";
-      };
+      }
 
-      window.mostrarColunas = function () {
-        table.columns(".col-extra").visible(true, false);
-        table.columns.adjust().draw(false);
+      function mostrarColunas() {
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.remove("hidden"));
         document.querySelector(".scroll-top-wrapper").style.display = "block";
+      }
+
+      window.addEventListener("DOMContentLoaded", () => ocultarColunas());
+
+      window.onload = function () {
+        document.querySelector(".scroll-top-wrapper").style.display = "none";
       };
 
       function deletePerson(nome) {

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file, Flask
 from flask_login import login_user, logout_user, login_required, current_user
 from app.google_sheets import get_sheet
 from app.auth import USERS, User
@@ -622,4 +622,11 @@ def fechamento_geral():
     valores = worksheet.get_all_values()  
 
     return render_template('fechamento_geral.html', valores=valores, aba=aba)
+
+app = Flask(__name__)
+
+@app.before_request
+def force_https():
+    if request.headers.get("X-Forwarded-Proto") == "http":
+        return redirect(request.url.replace("http://", "https://"), code=301)
 

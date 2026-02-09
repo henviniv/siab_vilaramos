@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta
@@ -208,8 +208,18 @@
           var title = $(this).text();
           if (title !== "AÇÕES") {
             $(this).append(
-              '<br><select class="filtro-multiplo" multiple="multiple" style="min-width: auto; width: 100%;"></select>'
+              '<br><select class="filtro-multiplo" multiple="multiple" style="min-width: auto; width: 100%;"></select>',
             );
+          }
+        });
+
+        let colunasVisiveis = false;
+
+        $("#tabelaPessoas").on("draw.dt", function () {
+          if (colunasVisiveis) {
+            mostrarColunas();
+          } else {
+            ocultarColunas();
           }
         });
 
@@ -235,7 +245,7 @@
                     .each(function (d) {
                       if (d) {
                         select.append(
-                          '<option value="' + d + '">' + d + "</option>"
+                          '<option value="' + d + '">' + d + "</option>",
                         );
                       }
                     });
@@ -266,13 +276,13 @@
                       var regex = selected
                         .map(
                           (val) =>
-                            "^" + $.fn.dataTable.util.escapeRegex(val) + "$"
+                            "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
                         )
                         .join("|");
                       column.search(regex, true, false).draw();
                       $(column.header()).find(".contador-filtro").remove();
                       $(column.header()).append(
-                        `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`
+                        `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`,
                       );
                     } else {
                       column.search("", true, false).draw();
@@ -291,7 +301,7 @@
           if (title !== "AÇÕES") {
             todasColunas.push({ index: index, title: title });
             seletorColunas.append(
-              '<option value="' + index + '" selected>' + title + "</option>"
+              '<option value="' + index + '" selected>' + title + "</option>",
             );
           }
         });
@@ -321,7 +331,7 @@
               if (partes.length === 3) {
                 const dataFormatada = `${partes[2]}-${partes[1].padStart(
                   2,
-                  "0"
+                  "0",
                 )}-${partes[0].padStart(2, "0")}`;
                 input.value = dataFormatada;
               }
@@ -372,24 +382,24 @@
       }
 
       function ocultarColunas() {
+        colunasVisiveis = false;
+
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.add("hidden"));
+
         document.querySelector(".scroll-top-wrapper").style.display = "none";
       }
 
       function mostrarColunas() {
+        colunasVisiveis = true;
+
         document
           .querySelectorAll("th.col-extra, td.col-extra")
           .forEach((el) => el.classList.remove("hidden"));
+
         document.querySelector(".scroll-top-wrapper").style.display = "block";
       }
-
-      window.addEventListener("DOMContentLoaded", () => ocultarColunas());
-
-      window.onload = function () {
-        document.querySelector(".scroll-top-wrapper").style.display = "none";
-      };
 
       function deletePerson(nome) {
         if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
@@ -409,7 +419,7 @@
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
         const campoNascimento = form.querySelector(
-          'input[name*="DATA DE NASCIMENTO"]'
+          'input[name*="DATA DE NASCIMENTO"]',
         );
         const campoIdade = form.querySelector('input[name*="IDADE"]');
 
@@ -421,7 +431,7 @@
               const nascimento = new Date(
                 +partes[0],
                 +partes[1] - 1,
-                +partes[2]
+                +partes[2],
               );
               let idade = hoje.getFullYear() - nascimento.getFullYear();
               const m = hoje.getMonth() - nascimento.getMonth();

@@ -213,13 +213,6 @@
           }
         });
 
-        var table = $("#tabelaPessoas").DataTable({
-          scrollY: "400px", // altura da área rolável
-          scrollCollapse: true,
-          paging: true,
-          fixedHeader: true, // congela o cabeçalho
-        });
-
         let colunasVisiveis = false;
 
         $("#tabelaPessoas").on("draw.dt", function () {

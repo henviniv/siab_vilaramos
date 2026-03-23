@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file, Flask
 from flask_login import login_user, logout_user, login_required, current_user
-from app.google_sheets import get_sheet, get_data_from_sheet
+from app.google_sheets import get_sheet
 from app.auth import USERS, User
 import re
 import builtins
@@ -664,17 +664,22 @@ def force_https():
 @bp.route("/familias_vagas")
 @login_required
 def familias_vagas():
-    
-    dados = get_data_from_sheet(current_user.planilha, current_user.aba)
 
-    familias_existentes = [
-        linha.get("FAMÍLIA")
-        for linha in dados
-        if linha.get("FAMÍLIA")
-    ]
+    # 🔹 pega a planilha corretamente
+    sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
+    dados_crus = sheet.get_all_records()
 
+    # 🔹 extrai famílias (com e sem acento)
+    familias_existentes = []
+    for linha in dados_crus:
+        familia = linha.get("FAMÍLIA") or linha.get("FAMILIA")
+        if familia:
+            familias_existentes.append(str(familia))
+
+    # 🔹 pega número da micro
     micro_numero = obter_numero_micro(current_user.aba)
 
+    # 🔹 calcula vagas
     vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
 
     return render_template("familias_vagas.html", vagas=vagas)

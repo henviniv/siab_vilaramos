@@ -49,17 +49,55 @@
     >
     {% endif %}{% endif %}
 
-    <h1>Gerenciar Pessoas na Planilha</h1>
+    <div style="display: flex; align-items: flex-start; gap: 20px">
+      <!-- 🔍 FORMULÁRIO -->
+      <div style="flex: 1">
+        <h1>Gerenciar Pessoas na Planilha</h1>
 
-    <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
-      <label for="query">Buscar por Nome ou Endereço:</label>
-      <input
-        type="text"
-        name="query"
-        value="{{ request.args.get('query', '') }}"
-      />
-      <button type="submit">Pesquisar</button>
-    </form>
+        <form
+          action="{{ url_for('main.index') }}"
+          method="GET"
+          class="search-form"
+        >
+          <label for="query">Buscar por Nome ou Endereço:</label>
+          <input
+            type="text"
+            name="query"
+            value="{{ request.args.get('query', '') }}"
+          />
+          <button type="submit">Pesquisar</button>
+        </form>
+      </div>
+
+      <!-- 📦 BOX DE FAMÍLIAS VAGAS -->
+      <div
+        style="
+          width: 260px;
+          background: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 10px;
+          max-height: 230px; /* ~6 itens visíveis */
+          overflow-y: auto;
+        "
+      >
+        <h4 style="margin-top: 0">Famílias Vagas ({{ vagas|length }})</h4>
+
+        {% if vagas %}
+        <ul style="list-style: none; padding: 0; margin: 0">
+          {% for familia in vagas %}
+          <li
+            style="padding: 6px; border-bottom: 1px solid #eee; font-size: 14px"
+          >
+            {{ familia }}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p style="font-size: 14px">Nenhuma vaga disponível</p>
+        {% endif %}
+      </div>
+    </div>
 
     <div class="text-center my-2">
       <button type="button" onclick="ocultarColunas()">

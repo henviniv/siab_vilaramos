@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file, Flask
 from flask_login import login_user, logout_user, login_required, current_user
-from app.google_sheets import get_sheet
+from app.google_sheets import get_sheet, get_data_from_sheet
 from app.auth import USERS, User
 import re
 import builtins
@@ -9,6 +9,10 @@ from fpdf import FPDF
 from datetime import datetime
 from flask import send_file, request
 from io import BytesIO
+from app.familias_vagas import (
+    encontrar_familias_vagas,
+    obter_numero_micro
+)
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -36,16 +40,14 @@ def index():
     try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-       # if not current_user.aba or not current_user.planilha:
-           # flash("Nenhuma aba ou planilha associada ao usuário.", "danger")
-           # return redirect(url_for("main.logout"))
-
         sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
         dados_crus = sheet.get_all_records()
         dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
+        # 🔹 ORDENAÇÃO
         dados.sort(key=lambda x: x.get("FAMILIA", ""))
 
+        # 🔹 COLUNAS DINÂMICAS
         mostrar_todas = True
         todas_colunas = []
 
@@ -57,13 +59,32 @@ def index():
         campos = todas_colunas
         colunas_extras = []
 
+        # 🔹 FILTRO DE BUSCA
         query = request.args.get("query", "").strip().lower()
         if query:
             dados = [
-                linha for linha in dados if query in linha.get("NOME", "").lower()
+                linha for linha in dados
+                if query in linha.get("NOME", "").lower()
                 or query in linha.get("ENDEREÇO", "").lower()
-                
             ]
+
+        # =========================
+        # 🔥 NOVA PARTE (FAMÍLIAS VAGAS)
+        # =========================
+
+        micro_numero = obter_numero_micro(current_user.aba)
+
+        familias_existentes = []
+        for linha in dados_crus:
+            familia = linha.get("FAMÍLIA") or linha.get("FAMILIA")
+            if familia:
+                familias_existentes.append(str(familia))
+
+        vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
+
+        proxima_familia = vagas[0] if vagas else None
+
+        # =========================
 
         return render_template(
             "index.html",
@@ -71,13 +92,23 @@ def index():
             campos=campos,
             colunas_extras=colunas_extras,
             limpar_cpf=limpar_cpf,
-            mostrar_todas=mostrar_todas
+            mostrar_todas=mostrar_todas,
+            vagas=vagas,
+            proxima_familia=proxima_familia
         )
 
     except Exception as e:
         print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
-        return render_template("index.html", dados=[], campos=[], colunas_extras=[],
-                               mensagem_erro=str(e), mostrar_todas=True)
+        return render_template(
+            "index.html",
+            dados=[],
+            campos=[],
+            colunas_extras=[],
+            mensagem_erro=str(e),
+            mostrar_todas=True,
+            vagas=[],
+            proxima_familia=None
+        )
 
 
 
@@ -630,3 +661,20 @@ def force_https():
     if request.headers.get("X-Forwarded-Proto") == "http":
         return redirect(request.url.replace("http://", "https://"), code=301)
 
+@bp.route("/familias_vagas")
+@login_required
+def familias_vagas():
+    
+    dados = get_data_from_sheet(current_user.planilha, current_user.aba)
+
+    familias_existentes = [
+        linha.get("FAMÍLIA")
+        for linha in dados
+        if linha.get("FAMÍLIA")
+    ]
+
+    micro_numero = obter_numero_micro(current_user.aba)
+
+    vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
+
+    return render_template("familias_vagas.html", vagas=vagas)

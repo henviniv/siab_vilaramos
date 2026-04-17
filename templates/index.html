@@ -251,7 +251,7 @@
           }
         });
 
-        let colunasVisiveis = true;
+        let colunasVisiveis = false;
 
         $("#tabelaPessoas").on("draw.dt", function () {
           if (colunasVisiveis) {
@@ -419,24 +419,16 @@
           "inline-block";
       }
 
+      let tabela = $("#tabelaPessoas").DataTable();
+
       function ocultarColunas() {
         colunasVisiveis = false;
-
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.add("hidden"));
-
-        document.querySelector(".scroll-top-wrapper").style.display = "none";
+        tabela.columns(".col-extra").visible(false);
       }
 
       function mostrarColunas() {
         colunasVisiveis = true;
-
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.remove("hidden"));
-
-        document.querySelector(".scroll-top-wrapper").style.display = "block";
+        tabela.columns(".col-extra").visible(true);
       }
 
       function deletePerson(nome) {

@@ -4,6 +4,7 @@ from app.google_sheets import get_sheet
 from app.auth import USERS, User
 import re
 import builtins
+import unicodedata
 from string import ascii_uppercase
 from fpdf import FPDF
 from datetime import datetime
@@ -20,6 +21,16 @@ bp_listas = Blueprint('listas', __name__, template_folder='../templates')
 
 def limpar_cpf(cpf):
     return re.sub(r"\D", "", builtins.str(cpf))
+
+
+def normalizar_texto_busca(valor):
+    texto = builtins.str(valor or "").strip().lower()
+    texto_sem_acentos = unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII")
+    return re.sub(r"\s+", " ", texto_sem_acentos)
+
+
+def somente_digitos(valor):
+    return re.sub(r"\D", "", builtins.str(valor or ""))
 
 
 def num_to_col(n):
@@ -480,16 +491,79 @@ def painel_admin():
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
-    from app.auth import USERS  
+    from app.auth import USERS
 
-    
     lista_usuarios = {
         username: info
         for username, info in USERS.items()
         if info["role"] == "micro"
     }
 
-    return render_template("painel_admin.html", lista_usuarios=lista_usuarios)
+    return render_template(
+        "painel_admin.html",
+        lista_usuarios=lista_usuarios,
+        termo_pesquisa="",
+        resultados_pesquisa=[],
+        pesquisa_realizada=False,
+    )
+
+
+@bp.route('/admin/pesquisar_usuarios', methods=['GET'])
+@login_required
+def pesquisar_usuarios_admin():
+    if current_user.role != "admin":
+        flash("Acesso restrito ao administrador.", "danger")
+        return redirect(url_for("main.index"))
+
+    lista_usuarios = {
+        username: info
+        for username, info in USERS.items()
+        if info["role"] == "micro"
+    }
+
+    termo_original = request.args.get("q", "").strip()
+    termo_normalizado = normalizar_texto_busca(termo_original)
+    termo_digitos = somente_digitos(termo_original)
+    resultados = []
+
+    if termo_normalizado or termo_digitos:
+        for username, info in lista_usuarios.items():
+            try:
+                sheet = get_sheet(planilha=info["planilha"], aba=info["aba"])
+                dados = sheet.get_all_records()
+            except Exception as e:
+                print(f"[ERRO] Falha ao pesquisar dados da {username} ({info['aba']}): {e}")
+                continue
+
+            for linha in dados:
+                nome = builtins.str(linha.get("NOME", "") or "").strip()
+                sus = builtins.str(linha.get("SUS", "") or "").strip()
+                nome_normalizado = normalizar_texto_busca(nome)
+                sus_digitos = somente_digitos(sus)
+
+                encontrou_nome = bool(termo_normalizado and termo_normalizado in nome_normalizado)
+                encontrou_sus = bool(termo_digitos and termo_digitos in sus_digitos)
+
+                if encontrou_nome or encontrou_sus:
+                    resultados.append({
+                        "nome": nome,
+                        "sus": sus,
+                        "familia": linha.get("FAMILIA") or linha.get("FAMÍLIA") or "",
+                        "endereco": linha.get("ENDEREÇO") or linha.get("ENDERECO") or "",
+                        "micro_id": username,
+                        "micro": info["aba"],
+                        "planilha": info["planilha"],
+                    })
+
+    resultados.sort(key=lambda item: (item["micro"], item["nome"]))
+
+    return render_template(
+        "painel_admin.html",
+        lista_usuarios=lista_usuarios,
+        termo_pesquisa=termo_original,
+        resultados_pesquisa=resultados,
+        pesquisa_realizada=True,
+    )
 
 @bp.route('/admin/micro/<micro_id>')
 @login_required

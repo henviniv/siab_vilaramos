@@ -515,47 +515,42 @@ def pesquisar_usuarios_admin():
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
+    termo_original = request.args.get("q", "").strip()
+    termo_normalizado = normalizar_texto_busca(termo_original)
+
+    resultados = []
+
+    if termo_normalizado:
+        try:
+            # Ajuste o nome da planilha caso seja diferente
+            sheet = get_sheet(
+                planilha="Init API",
+                aba="Geral"
+            )
+
+            dados = sheet.get('B:E')
+
+            for linha in dados:
+                nome = str(linha.get("NOME", "")).strip()
+
+                if termo_normalizado in normalizar_texto_busca(nome):
+                    resultados.append({
+                        "nome": nome,
+                        "familia": linha.get("FAMILIA", ""),
+                        "data_nascimento": linha.get("DATA DE NASCIMENTO", ""),
+                        "idade": linha.get("IDADE", "")
+                    })
+
+        except Exception as e:
+            print(f"[ERRO PESQUISA GERAL] {e}")
+
+    resultados.sort(key=lambda item: item["nome"])
+
     lista_usuarios = {
         username: info
         for username, info in USERS.items()
         if info["role"] == "micro"
     }
-
-    termo_original = request.args.get("q", "").strip()
-    termo_normalizado = normalizar_texto_busca(termo_original)
-    termo_digitos = somente_digitos(termo_original)
-    resultados = []
-
-    if termo_normalizado or termo_digitos:
-        for username, info in lista_usuarios.items():
-            try:
-                sheet = get_sheet(planilha=info["planilha"], aba=info["aba"])
-                dados = sheet.get_all_records()
-            except Exception as e:
-                print(f"[ERRO] Falha ao pesquisar dados da {username} ({info['aba']}): {e}")
-                continue
-
-            for linha in dados:
-                nome = builtins.str(linha.get("NOME", "") or "").strip()
-                sus = builtins.str(linha.get("SUS", "") or "").strip()
-                nome_normalizado = normalizar_texto_busca(nome)
-                sus_digitos = somente_digitos(sus)
-
-                encontrou_nome = bool(termo_normalizado and termo_normalizado in nome_normalizado)
-                encontrou_sus = bool(termo_digitos and termo_digitos in sus_digitos)
-
-                if encontrou_nome or encontrou_sus:
-                    resultados.append({
-                        "nome": nome,
-                        "sus": sus,
-                        "familia": linha.get("FAMILIA") or linha.get("FAMÍLIA") or "",
-                        "endereco": linha.get("ENDEREÇO") or linha.get("ENDERECO") or "",
-                        "micro_id": username,
-                        "micro": info["aba"],
-                        "planilha": info["planilha"],
-                    })
-
-    resultados.sort(key=lambda item: (item["micro"], item["nome"]))
 
     return render_template(
         "painel_admin.html",

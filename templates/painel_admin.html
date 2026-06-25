@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -199,67 +199,57 @@
 
     <section class="pesquisa-admin">
       <h2>Pesquisar usuários cadastrados</h2>
-      <p>
-        Busque por nome completo, parte do nome ou número do SUS em todas as 30 micros.
-      </p>
+
+      <p>Busque pelo nome na aba Geral.</p>
+
       <form
         class="pesquisa-form"
         action="{{ url_for('main.pesquisar_usuarios_admin') }}"
         method="get"
       >
         <label for="q">
-          Nome ou SUS
+          Nome
           <input
             id="q"
             name="q"
             type="search"
             value="{{ termo_pesquisa }}"
-            placeholder="Ex.: Gustavo ou 123456789"
+            placeholder="Digite o nome do usuário"
             autocomplete="off"
             required
           />
         </label>
+
         <button type="submit">Pesquisar</button>
       </form>
 
-      {% if pesquisa_realizada %}
-        {% if resultados_pesquisa %}
-          <table class="display micro-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>SUS</th>
-                <th>Família</th>
-                <th>Endereço</th>
-                <th>Micro</th>
-                <th>Planilha</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for resultado in resultados_pesquisa %}
-              <tr>
-                <td>{{ resultado.nome }}</td>
-                <td>{{ resultado.sus }}</td>
-                <td>{{ resultado.familia }}</td>
-                <td>{{ resultado.endereco }}</td>
-                <td>{{ resultado.micro }}</td>
-                <td>{{ resultado.planilha }}</td>
-                <td>
-                  <a href="{{ url_for('main.visualizar_micro', micro_id=resultado.micro_id) }}">
-                    Ver micro
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <div class="resultado-vazio">
-            Nenhum usuário encontrado para "{{ termo_pesquisa }}" em todas as micros.
-          </div>
-        {% endif %}
-      {% endif %}
+      {% if pesquisa_realizada %} {% if resultados_pesquisa %}
+      <table class="display micro-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Família</th>
+            <th>Data de Nascimento</th>
+            <th>Idade</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for resultado in resultados_pesquisa %}
+          <tr>
+            <td>{{ resultado.nome }}</td>
+            <td>{{ resultado.familia }}</td>
+            <td>{{ resultado.data_nascimento }}</td>
+            <td>{{ resultado.idade }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="resultado-vazio">
+        Nenhum usuário encontrado para "{{ termo_pesquisa }}".
+      </div>
+      {% endif %} {% endif %}
     </section>
 
     <script>

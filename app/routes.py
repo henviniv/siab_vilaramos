@@ -522,13 +522,12 @@ def pesquisar_usuarios_admin():
 
     if termo_normalizado:
         try:
-            # Ajuste o nome da planilha caso seja diferente
             sheet = get_sheet(
-                planilha="Init API",
-                aba="Geral"
+                planilha="Geral",
+                aba="Página1"
             )
 
-            dados = sheet.get('B:E')
+            dados = sheet.get_all_records()
 
             for linha in dados:
                 nome = str(linha.get("NOME", "")).strip()
@@ -544,7 +543,7 @@ def pesquisar_usuarios_admin():
         except Exception as e:
             print(f"[ERRO PESQUISA GERAL] {e}")
 
-    resultados.sort(key=lambda item: item["nome"])
+    resultados.sort(key=lambda x: x["nome"])
 
     lista_usuarios = {
         username: info

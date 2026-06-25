@@ -531,8 +531,12 @@ def pesquisar_usuarios_admin():
 
             for linha in dados:
                 nome = str(linha.get("NOME", "")).strip()
+                familia = str(linha.get("FAMILIA", "")).strip()
 
-                if termo_normalizado in normalizar_texto_busca(nome):
+                nome_normalizado = normalizar_texto_busca(nome)
+                familia_normalizada = normalizar_texto_busca(familia)
+
+                if (termo_normalizado in nome_normalizado or termo_normalizado in familia_normalizada):
                     resultados.append({
                         "nome": nome,
                         "familia": linha.get("FAMILIA", ""),

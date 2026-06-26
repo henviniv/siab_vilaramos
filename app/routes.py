@@ -541,7 +541,9 @@ def pesquisar_usuarios_admin():
                         "nome": nome,
                         "familia": linha.get("FAMILIA", ""),
                         "data_nascimento": linha.get("DATA DE NASCIMENTO", ""),
-                        "idade": linha.get("IDADE", "")
+                        "idade": linha.get("IDADE", ""),
+                        "sus": linha.get("SUS", ""),
+                        "endereco": linha.get("ENDEREÇO", "")
                     })
 
         except Exception as e:

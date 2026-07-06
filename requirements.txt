@@ -6,3 +6,4 @@ gunicorn
 flask-login
 fpdf2
 supabase
+python-dotenv

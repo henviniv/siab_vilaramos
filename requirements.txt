@@ -5,3 +5,4 @@ python-dotenv
 gunicorn
 flask-login
 fpdf2
+supabase

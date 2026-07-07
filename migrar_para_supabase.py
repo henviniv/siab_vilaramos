@@ -3,7 +3,44 @@ from app.supabase_db import supabase
 
 PLANILHAS = {
     "EQUIPE 1": [
-        "MI 01"
+        "MI 01",
+        "MI 02",
+        "MI 03",
+        "MI 04",
+        "MI 05",
+        "MI 06"
+    ],
+    "EQUIPE 2": [
+        "MICRO 7",
+        "MICRO 8",
+        "MICRO 9",
+        "MICRO 10",
+        "MICRO 11",
+        "MICRO 12"
+    ],
+    "EQUIPE 3": [
+        "MICRO 13",
+        "MICRO 14",
+        "MICRO 15",
+        "MICRO 16",
+        "MICRO 17",
+        "MICRO 18"
+    ],
+    "EQUIPE 4": [
+        "MICRO 19",
+        "MICRO 20",
+        "MICRO 21",
+        "MICRO 22",
+        "MICRO 23",
+        "MICRO 24"
+    ],
+    "EQUIPE 5": [
+        "MICRO 25",
+        "MICRO 26",
+        "MICRO 27",
+        "MICRO 28",
+        "MICRO 29",
+        "MICRO 30"
     ]
 }
 

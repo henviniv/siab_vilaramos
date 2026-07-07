@@ -11,14 +11,24 @@ def get_client():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    # 🟢 Render / Local (variável de ambiente)
+    # 1º Prioridade: variável de ambiente (Cloud Run)
     credenciais_json = os.getenv("GOOGLE_CREDS_JSON")
 
     if credenciais_json:
         creds_info = json.loads(credenciais_json)
-        creds = Credentials.from_service_account_info(creds_info, scopes=scope)
+        creds = Credentials.from_service_account_info(
+            creds_info,
+            scopes=scope
+        )
 
-    # 🔵 Cloud Run (service account automática do Google)
+    # 2º Prioridade: arquivo JSON local (desenvolvimento)
+    elif os.path.exists("siab-vila-ramos-26e8cfe5c1c8.json"):
+        creds = Credentials.from_service_account_file(
+            "siab-vila-ramos-26e8cfe5c1c8.json",
+            scopes=scope
+        )
+
+    # 3º Cloud Run
     else:
         creds, _ = default(scopes=scope)
 

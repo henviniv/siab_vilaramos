@@ -22,9 +22,9 @@ def get_client():
         )
 
     # 2º Prioridade: arquivo JSON local (desenvolvimento)
-    elif os.path.exists("siab-vila-ramos-e04b713c173a.json"):
+    elif os.path.exists("app/siab-vila-ramos-e04b713c173a.json"):
         creds = Credentials.from_service_account_file(
-            "siab-vila-ramos-e04b713c173a.json",
+            "app/siab-vila-ramos-e04b713c173a.json",
             scopes=scope
         )
 

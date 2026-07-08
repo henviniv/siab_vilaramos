@@ -22,6 +22,134 @@ bp = Blueprint('main', __name__, template_folder='../templates')
 
 bp_listas = Blueprint('listas', __name__, template_folder='../templates')
 
+
+CAMPOS_PESSOA = [
+    "id",
+    "equipe",
+    "micro",
+    "cor_etnia",
+    "nome",
+    "sus",
+    "familia",
+    "data_nascimento",
+    "idade",
+    "genero",
+    "gestante",
+    "dia",
+    "has",
+    "hiperdia",
+    "insulino",
+    "sm",
+    "cpf",
+    "tb",
+    "han",
+    "obesa",
+    "tabagista",
+    "uso_de_drogas",
+    "uso_de_alcool",
+    "acamado",
+    "restrito",
+    "asmatico_dpoc",
+    "bolsa_familia",
+    "ampi",
+    "fralda",
+    "sifilis",
+    "endereco",
+]
+
+CAMPOS_SISTEMA = {"id", "created_at", "updated_at", "google_row"}
+
+MAPA_CAMPOS_FORMULARIO = {
+    "cor_etnia": ["cor_etnia", "COR/ETNIA", "COR_ETNIA"],
+    "nome": ["nome", "NOME"],
+    "sus": ["sus", "SUS"],
+    "familia": ["familia", "FAMILIA", "FAMÍLIA"],
+    "data_nascimento": ["data_nascimento", "DATA DE NASCIMENTO"],
+    "idade": ["idade", "IDADE"],
+    "genero": ["genero", "GENERO", "GÊNERO"],
+    "gestante": ["gestante", "GESTANTE"],
+    "dia": ["dia", "DIA"],
+    "has": ["has", "HAS"],
+    "hiperdia": ["hiperdia", "HIPERDIA"],
+    "insulino": ["insulino", "INSULINO"],
+    "sm": ["sm", "SM"],
+    "cpf": ["cpf", "CPF"],
+    "tb": ["tb", "TB"],
+    "han": ["han", "HAN"],
+    "obesa": ["obesa", "OBESA"],
+    "tabagista": ["tabagista", "TABAGISTA"],
+    "uso_de_drogas": ["uso_de_drogas", "USO DE DROGAS"],
+    "uso_de_alcool": ["uso_de_alcool", "USO DE ALCOOL", "USO DE ÁLCOOL"],
+    "acamado": ["acamado", "ACAMADO"],
+    "restrito": ["restrito", "RESTRITO"],
+    "asmatico_dpoc": ["asmatico_dpoc", "ASMÁTICO DPOC", "ASMATICO DPOC"],
+    "bolsa_familia": ["bolsa_familia", "BOLSA FAMÍLIA", "BOLSA FAMILIA"],
+    "ampi": ["ampi", "AMPI"],
+    "fralda": ["fralda", "FRALDA"],
+    "sifilis": ["sifilis", "SIFILIS", "SÍFILIS"],
+    "endereco": ["endereco", "ENDEREÇO", "ENDERECO"],
+}
+
+def valor_formulario(campo):
+    for nome in MAPA_CAMPOS_FORMULARIO.get(campo, [campo]):
+        if nome in request.form:
+            return request.form.get(nome, "")
+    return ""
+
+def texto_formulario(campo):
+    return str(valor_formulario(campo)).strip().upper()
+
+def normalizar_data_formulario():
+    data_nascimento = str(valor_formulario("data_nascimento")).strip()
+    if not data_nascimento:
+        return ""
+    for formato in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(data_nascimento, formato).strftime("%d/%m/%Y")
+        except ValueError:
+            continue
+    return data_nascimento
+
+def montar_pessoa_formulario(equipe, micro):
+    return {
+        "equipe": equipe,
+        "micro": micro,
+        "cor_etnia": texto_formulario("cor_etnia"),
+        "nome": texto_formulario("nome"),
+        "sus": limpar_cpf(valor_formulario("sus")),
+        "familia": texto_formulario("familia"),
+        "data_nascimento": normalizar_data_formulario(),
+        "idade": somente_digitos(valor_formulario("idade")),
+        "genero": texto_formulario("genero"),
+        "gestante": texto_formulario("gestante"),
+        "dia": texto_formulario("dia"),
+        "has": texto_formulario("has"),
+        "hiperdia": texto_formulario("hiperdia"),
+        "insulino": texto_formulario("insulino"),
+        "sm": texto_formulario("sm"),
+        "cpf": limpar_cpf(valor_formulario("cpf")),
+        "tb": texto_formulario("tb"),
+        "han": texto_formulario("han"),
+        "obesa": texto_formulario("obesa"),
+        "tabagista": texto_formulario("tabagista"),
+        "uso_de_drogas": texto_formulario("uso_de_drogas"),
+        "uso_de_alcool": texto_formulario("uso_de_alcool"),
+        "acamado": texto_formulario("acamado"),
+        "restrito": texto_formulario("restrito"),
+        "asmatico_dpoc": texto_formulario("asmatico_dpoc"),
+        "bolsa_familia": texto_formulario("bolsa_familia"),
+        "ampi": texto_formulario("ampi"),
+        "fralda": texto_formulario("fralda"),
+        "sifilis": texto_formulario("sifilis"),
+        "endereco": texto_formulario("endereco"),
+    }
+
+def pessoa_id_requisicao():
+    return str(request.values.get("id", "")).strip()
+
+def aplicar_escopo_micro(query):
+    return query.eq("equipe", current_user.equipe).eq("micro", current_user.micro)
+
 def limpar_cpf(cpf):
     return re.sub(r"\D", "", builtins.str(cpf))
 
@@ -113,7 +241,11 @@ def index():
 
 
 
-        campos = todas_colunas
+        campos = todas_colunas or CAMPOS_PESSOA
+
+        for campo in CAMPOS_PESSOA:
+            if campo not in campos:
+                campos.append(campo)
 
         colunas_extras = []
 
@@ -201,6 +333,7 @@ def index():
             colunas_extras=colunas_extras,
             limpar_cpf=limpar_cpf,
             mostrar_todas=mostrar_todas,
+            campos_sistema=CAMPOS_SISTEMA,
             vagas=vagas,
             proxima_familia=proxima_familia
         )
@@ -221,6 +354,7 @@ def index():
             colunas_extras=[],
             mensagem_erro=str(e),
             mostrar_todas=True,
+            campos_sistema=CAMPOS_SISTEMA,
             vagas=[],
             proxima_familia=None
         )
@@ -231,451 +365,154 @@ def index():
 @login_required
 def create_or_update_person():
     try:
+        pessoa = montar_pessoa_formulario(current_user.equipe, current_user.micro)
 
-        def texto(campo):
-            valor = request.form.get(campo, "")
-            return str(valor).strip().upper()
+        if not pessoa["nome"]:
+            flash("Informe o nome da pessoa.", "warning")
+            return redirect(url_for("main.index"))
 
+        pessoa_id = pessoa_id_requisicao()
 
-        data_nascimento = request.form.get(
-            "DATA DE NASCIMENTO",
-            ""
-        ).strip()
-
-
-        if data_nascimento:
-            try:
-                data_nascimento = datetime.strptime(
-                    data_nascimento,
-                    "%Y-%m-%d"
-                ).strftime("%d/%m/%Y")
-
-            except:
-                data_nascimento = ""
-
-
-        pessoa = {
-
-            # NOVO PADRÃO SUPABASE
-            "equipe": current_user.equipe,
-            "micro": current_user.micro,
-
-
-            "cor_etnia": texto("COR/ETNIA"),
-            "nome": texto("NOME"),
-            "sus": limpar_cpf(request.form.get("SUS", "")),
-            "familia": texto("FAMILIA"),
-
-            "data_nascimento": data_nascimento,
-
-            # idade será calculada depois
-            "idade": "",
-
-            "genero": texto("GENERO"),
-            "gestante": texto("GESTANTE"),
-            "dia": texto("DIA"),
-            "has": texto("HAS"),
-            "hiperdia": texto("HIPERDIA"),
-            "insulino": texto("INSULINO"),
-            "sm": texto("SM"),
-
-            "cpf": limpar_cpf(
-                request.form.get("CPF", "")
-            ),
-
-            "tb": texto("TB"),
-            "han": texto("HAN"),
-            "obesa": texto("OBESA"),
-            "tabagista": texto("TABAGISTA"),
-
-            "uso_de_drogas": texto("USO DE DROGAS"),
-            "uso_de_alcool": texto("USO DE ALCOOL"),
-
-            "acamado": texto("ACAMADO"),
-            "restrito": texto("RESTRITO"),
-
-            "asmatico_dpoc": texto("ASMÁTICO DPOC"),
-
-            "bolsa_familia": texto("BOLSA FAMÍLIA"),
-
-            "ampi": texto("AMPI"),
-            "fralda": texto("FRALDA"),
-
-            "sifilis": texto("SIFILIS"),
-
-            "endereco": texto("ENDEREÇO"),
-        }
-
-
-
-        # ==========================
-        # PROCURA PELO CPF
-        # ==========================
-
-        if pessoa["cpf"]:
-
+        if pessoa_id:
             resultado = (
-                supabase
-                .table("pessoas")
-                .select("id")
-                .eq("cpf", pessoa["cpf"])
-                .eq("micro", current_user.micro)
+                aplicar_escopo_micro(supabase.table("pessoas").select("id"))
+                .eq("id", pessoa_id)
                 .execute()
             )
-
 
             if resultado.data:
+                supabase.table("pessoas").update(pessoa).eq("id", pessoa_id).execute()
+                flash("Pessoa atualizada com sucesso.", "success")
+                return redirect(url_for("main.index"))
 
-                (
-                    supabase
-                    .table("pessoas")
-                    .update(pessoa)
-                    .eq(
-                        "id",
-                        resultado.data[0]["id"]
-                    )
-                    .execute()
-                )
+        consulta = supabase.table("pessoas").select("id")
 
+        if pessoa["cpf"]:
+            consulta = consulta.eq("cpf", pessoa["cpf"])
+        else:
+            consulta = consulta.eq("nome", pessoa["nome"])
 
-                flash(
-                    "Pessoa atualizada com sucesso.",
-                    "success"
-                )
-
-                return redirect(
-                    url_for("main.index")
-                )
-
-
-
-        # ==========================
-        # PROCURA PELO NOME
-        # ==========================
-
-        resultado = (
-            supabase
-            .table("pessoas")
-            .select("id")
-            .eq("nome", pessoa["nome"])
-            .eq("micro", current_user.micro)
-            .execute()
-        )
-
+        resultado = aplicar_escopo_micro(consulta).execute()
 
         if resultado.data:
-
-            (
-                supabase
-                .table("pessoas")
-                .update(pessoa)
-                .eq(
-                    "id",
-                    resultado.data[0]["id"]
-                )
-                .execute()
-            )
-
-
-            flash(
-                "Pessoa atualizada com sucesso.",
-                "success"
-            )
-
-
+            supabase.table("pessoas").update(pessoa).eq("id", resultado.data[0]["id"]).execute()
+            flash("Pessoa atualizada com sucesso.", "success")
         else:
+            supabase.table("pessoas").insert(pessoa).execute()
+            flash("Pessoa cadastrada com sucesso.", "success")
 
-            (
-                supabase
-                .table("pessoas")
-                .insert(pessoa)
-                .execute()
-            )
-
-
-            flash(
-                "Pessoa cadastrada com sucesso.",
-                "success"
-            )
-
-
-
-        return redirect(
-            url_for("main.index")
-        )
-
+        return redirect(url_for("main.index"))
 
     except Exception as e:
-
-        print(
-            f"[ERRO CREATE PERSON] {e}"
-        )
-
-        flash(
-            "Erro ao salvar.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("main.index")
-        )
-
-
+        print(f"[ERRO CREATE PERSON] {e}")
+        flash("Erro ao salvar.", "danger")
+        return redirect(url_for("main.index"))
 
 
 @bp.route('/update_person', methods=['POST'])
 @login_required
 def update_person():
-
     try:
-
+        pessoa = montar_pessoa_formulario(current_user.equipe, current_user.micro)
+        pessoa_id = pessoa_id_requisicao()
         nome_original = request.args.get("nome", "").strip().upper()
 
-
-        if not nome_original:
-            return jsonify({"erro": "Nome inválido"}), 400
-
-
-        def texto(campo):
-
-            valor = request.form.get(campo, "")
-
-            return str(valor).strip().upper()
-
-
-        data_nascimento = request.form.get(
-            "DATA DE NASCIMENTO",
-            ""
-        ).strip()
-
-
-        if data_nascimento:
-
-            try:
-
-                data_nascimento = datetime.strptime(
-                    data_nascimento,
-                    "%Y-%m-%d"
-                ).strftime("%d/%m/%Y")
-
-            except:
-
-                data_nascimento = ""
-
-
-        pessoa = {
-
-            "cor_etnia": texto("COR/ETNIA"),
-            "nome": texto("NOME"),
-            "sus": limpar_cpf(request.form.get("SUS", "")),
-            "familia": texto("FAMILIA"),
-            "data_nascimento": data_nascimento,
-            "idade": "",
-            "genero": texto("GENERO"),
-            "gestante": texto("GESTANTE"),
-            "dia": texto("DIA"),
-            "has": texto("HAS"),
-            "hiperdia": texto("HIPERDIA"),
-            "insulino": texto("INSULINO"),
-            "sm": texto("SM"),
-            "cpf": limpar_cpf(request.form.get("CPF", "")),
-            "tb": texto("TB"),
-            "han": texto("HAN"),
-            "obesa": texto("OBESA"),
-            "tabagista": texto("TABAGISTA"),
-            "uso_de_drogas": texto("USO DE DROGAS"),
-            "uso_de_alcool": texto("USO DE ALCOOL"),
-            "acamado": texto("ACAMADO"),
-            "restrito": texto("RESTRITO"),
-            "asmatico_dpoc": texto("ASMÁTICO DPOC"),
-            "bolsa_familia": texto("BOLSA FAMÍLIA"),
-            "ampi": texto("AMPI"),
-            "fralda": texto("FRALDA"),
-            "sifilis": texto("SIFILIS"),
-            "endereco": texto("ENDEREÇO"),
-
-        }
-
-
-        resultado = (
-            supabase
-            .table("pessoas")
-            .select("id")
-            .eq("nome", nome_original)
-            .eq("micro", current_user.micro)
-            .execute()
-        )
-
+        if pessoa_id:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("id"))
+                .eq("id", pessoa_id)
+                .execute()
+            )
+        elif nome_original:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("id"))
+                .eq("nome", nome_original)
+                .execute()
+            )
+        else:
+            return jsonify({"erro": "Identificador inválido"}), 400
 
         if not resultado.data:
+            return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-            return jsonify({
-                "erro": "Pessoa não encontrada"
-            }), 404
+        supabase.table("pessoas").update(pessoa).eq("id", resultado.data[0]["id"]).execute()
 
-
-
-        (
-            supabase
-            .table("pessoas")
-            .update(pessoa)
-            .eq("id", resultado.data[0]["id"])
-            .execute()
-        )
-
-
-        return redirect(
-            url_for("main.index")
-        )
-
+        flash("Pessoa atualizada com sucesso.", "success")
+        return redirect(url_for("main.index"))
 
     except Exception as e:
-
-        print(
-            f"[ERRO] {e}"
-        )
-
-        return jsonify({
-            "erro": "Erro interno"
-        }), 500
-
+        print(f"[ERRO] {e}")
+        return jsonify({"erro": "Erro interno"}), 500
 
 
 @bp.route('/delete', methods=['POST'])
 @login_required
 def delete_person():
-
     try:
-
+        pessoa_id = pessoa_id_requisicao()
         nome = request.form.get("nome", "").strip().upper()
 
-
-        if not nome:
-
-            flash(
-                "Nome inválido para exclusão.",
-                "warning"
+        if pessoa_id:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("id, nome"))
+                .eq("id", pessoa_id)
+                .execute()
             )
-
-            return redirect(
-                url_for('main.index')
+        elif nome:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("id, nome"))
+                .eq("nome", nome)
+                .execute()
             )
-
-
-        # Procura a pessoa no Supabase pelo nome e micro
-
-        resultado = (
-            supabase
-            .table("pessoas")
-            .select("id")
-            .eq("nome", nome)
-            .eq("micro", current_user.micro)
-            .execute()
-        )
-
+        else:
+            flash("Identificador inválido para exclusão.", "warning")
+            return redirect(url_for('main.index'))
 
         if not resultado.data:
+            flash("Pessoa não encontrada para exclusão.", "warning")
+            return redirect(url_for('main.index'))
 
-            flash(
-                "Pessoa não encontrada para exclusão.",
-                "warning"
-            )
-
-            return redirect(
-                url_for('main.index')
-            )
-
-
-        # Exclui usando o id do Supabase
-
-        (
-            supabase
-            .table("pessoas")
-            .delete()
-            .eq("id", resultado.data[0]["id"])
-            .execute()
-        )
-
-
-        print(
-            f"[INFO] Pessoa com NOME {nome} excluída."
-        )
-
-
-        flash(
-            "Pessoa excluída com sucesso.",
-            "success"
-        )
-
-
-        return redirect(
-            url_for('main.index')
-        )
-
+        supabase.table("pessoas").delete().eq("id", resultado.data[0]["id"]).execute()
+        print(f"[INFO] Pessoa ID {resultado.data[0]['id']} excluída.")
+        flash("Pessoa excluída com sucesso.", "success")
+        return redirect(url_for('main.index'))
 
     except Exception as e:
-
-        print(
-            f"[ERRO] Falha ao excluir pessoa: {e}"
-        )
-
-        flash(
-            "Erro ao excluir pessoa.",
-            "danger"
-        )
-
-        return redirect(
-            url_for('main.index')
-        )
-
+        print(f"[ERRO] Falha ao excluir pessoa: {e}")
+        flash("Erro ao excluir pessoa.", "danger")
+        return redirect(url_for('main.index'))
 
 
 @bp.route('/edit', methods=['GET'])
 @login_required
 def get_person_data():
-
     try:
-
+        pessoa_id = pessoa_id_requisicao()
         nome = request.args.get("nome", "").strip().upper()
 
-
-        if not nome:
-            return jsonify({
-                "erro": "Nome inválido"
-            }), 400
-
-
-        resultado = (
-            supabase
-            .table("pessoas")
-            .select("*")
-            .eq("nome", nome)
-            .eq("micro", current_user.micro)
-            .execute()
-        )
-
+        if pessoa_id:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("*"))
+                .eq("id", pessoa_id)
+                .execute()
+            )
+        elif nome:
+            resultado = (
+                aplicar_escopo_micro(supabase.table("pessoas").select("*"))
+                .eq("nome", nome)
+                .execute()
+            )
+        else:
+            return jsonify({"erro": "Identificador inválido"}), 400
 
         if not resultado.data:
+            return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-            return jsonify({
-                "erro": "Pessoa não encontrada"
-            }), 404
-
-
-        return jsonify(
-            resultado.data[0]
-        )
-
+        return jsonify(resultado.data[0])
 
     except Exception as e:
-
-        print(
-            f"[ERRO] Falha ao buscar dados da pessoa: {e}"
-        )
-
-        return jsonify({
-            "erro": "Erro interno"
-        }), 500
+        print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
+        return jsonify({"erro": "Erro interno"}), 500
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -1055,11 +892,11 @@ def visualizar_micro(micro_id):
             .select("*")
             .eq(
                 "equipe",
-                user_info["planilha"]
+                user_info["equipe"]
             )
             .eq(
                 "micro",
-                user_info["aba"]
+                user_info["micro"]
             )
             .execute()
         )
@@ -1077,10 +914,16 @@ def visualizar_micro(micro_id):
         ]
 
 
-        campos = (
-            list(dados[0].keys())
-            if dados
-            else []
+        campos = list(dados[0].keys()) if dados else CAMPOS_PESSOA.copy()
+
+        for campo in CAMPOS_PESSOA:
+            if campo not in campos:
+                campos.append(campo)
+
+        familias_existentes = [str(linha.get("familia")) for linha in dados_crus if linha.get("familia")]
+        vagas = encontrar_familias_vagas(
+            familias_existentes,
+            obter_numero_micro(user_info["micro"])
         )
 
 
@@ -1090,7 +933,10 @@ def visualizar_micro(micro_id):
             campos=campos,
             colunas_extras=[],
             limpar_cpf=limpar_cpf,
-            mostrar_todas=True
+            mostrar_todas=True,
+            campos_sistema=CAMPOS_SISTEMA,
+            vagas=vagas,
+            proxima_familia=vagas[0] if vagas else None
         )
 
 
@@ -1233,14 +1079,29 @@ def gerar_lista():
     return send_file(buffer, as_attachment=True, download_name="lista.pdf", mimetype="application/pdf")
 
 @bp.route('/fechamento_geral')
+@login_required
 def fechamento_geral():
-    planilha = request.args.get('planilha', 'CONSOLIDADO GERAL')
-    aba = request.args.get('aba')
+    if current_user.role != "admin":
+        flash("Acesso restrito ao administrador.", "danger")
+        return redirect(url_for("main.index"))
 
-    worksheet = get_sheet(planilha, aba)
-    valores = worksheet.get_all_values()  
+    aba = request.args.get('aba', 'GERAL')
+    dados = []
 
-    return render_template('fechamento_geral.html', valores=valores, aba=aba)
+    for usuario, info in USERS.items():
+        if info["role"] != "micro":
+            continue
+
+        if aba != "GERAL" and info["equipe"] != aba:
+            continue
+
+        dados.append({
+            "aba": f"FECHAMENTO {info['micro']}",
+            "equipe": info["equipe"],
+            "valores": gerar_fechamento_micro(info["equipe"], info["micro"]),
+        })
+
+    return render_template("fechamento.html", dados=dados)
 
 app = Flask(__name__)
 

@@ -77,7 +77,9 @@ form.data-form {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transition: max-height 0.5s ease, opacity 0.5s ease;
+  transition:
+    max-height 0.5s ease,
+    opacity 0.5s ease;
   background: #fff;
   padding: 0 20px;
   border-radius: 8px;
@@ -331,7 +333,7 @@ select {
 
 .scroll-simulada {
   height: 1px;
-  width: 5500px;
+  width: 5000px;
 }
 
 .tabela-container {

@@ -145,10 +145,12 @@ micro_id=session.get('micro')
       method="POST"
       class="data-form"
     >
+      <input type="hidden" name="id" />
       {% set campos_somente_s = [ 'gestante', 'dia', 'has', 'hiperdia',
       'insulino', 'sm', 'tb', 'han', 'obesa', 'tabagista', 'uso_de_drogas',
       'acamado', 'uso_de_alcool', 'restrito', 'asmatico_dpoc', 'bolsa_familia',
       'ampi', 'fralda', 'sifilis' ] %} {% for chave in campos %}
+      {% if chave not in campos_sistema and chave not in ['equipe', 'micro'] %}
 
       <label for="{{ chave }}"> {{ chave.replace("_"," ").upper() }}: </label>
 
@@ -200,7 +202,9 @@ micro_id=session.get('micro')
 
       <input type="text" name="{{ chave }}" />
 
-      {% endif %} {% endfor %}
+      {% endif %}
+      {% endif %}
+      {% endfor %}
 
       <button type="submit" id="salvarBtn">Salvar</button>
 
@@ -243,14 +247,15 @@ micro_id=session.get('micro')
             <td>
               {% if current_user.is_authenticated and current_user.role ==
               'micro' %} {% set nome = linha.get("nome", "") %}
+              {% set pessoa_id = linha.get("id", "") %}
               <div>
                 <button
                   type="button"
-                  onclick="mostrarFormularioEdicao('{{ nome }}')"
+                  onclick="mostrarFormularioEdicao('{{ pessoa_id }}')"
                 >
                   ✏️ Editar
                 </button>
-                <button type="button" onclick="deletePerson('{{ nome }}')">
+                <button type="button" onclick="deletePerson('{{ pessoa_id }}')">
                   🗑️ Excluir
                 </button>
               </div>
@@ -437,14 +442,14 @@ micro_id=session.get('micro')
         form.scrollIntoView({ behavior: "smooth" });
       }
 
-      function mostrarFormularioEdicao(nome) {
-        fetch(`/edit?nome=${encodeURIComponent(nome)}`)
+      function mostrarFormularioEdicao(id) {
+        fetch(`/edit?id=${encodeURIComponent(id)}`)
           .then((res) => res.json())
           .then((pessoa) => {
             preencherFormulario(pessoa);
             const form = document.getElementById("formCadastro");
             form.classList.add("show", "editando");
-            form.action = `/update_person?nome=${encodeURIComponent(nome)}`;
+            form.action = `/update_person?id=${encodeURIComponent(id)}`;
             document.getElementById("salvarBtn").classList.add("hidden");
             document.getElementById("atualizarBtn").classList.remove("hidden");
             document.getElementById("mostrarCadastro").style.display = "none";
@@ -484,15 +489,15 @@ micro_id=session.get('micro')
         document.querySelector(".scroll-top-wrapper").style.display = "block";
       }
 
-      function deletePerson(nome) {
+      function deletePerson(id) {
         if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "/delete";
           const input = document.createElement("input");
           input.type = "hidden";
-          input.name = "nome";
-          input.value = nome;
+          input.name = "id";
+          input.value = id;
           form.appendChild(input);
           document.body.appendChild(form);
           form.submit();

@@ -7,69 +7,87 @@
     />
 
     <title>SIAB</title>
-    <!-- DataTables CSS -->
+
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
     />
 
-    <!-- Select2 CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
       rel="stylesheet"
     />
+
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css"
     />
+
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
   </head>
+
   <body>
     {% if current_user.is_authenticated %}
+
     <div class="logout-container">
-      <span>Olá, {{ current_user.username }}!</span>
-      <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
+      <span> Olá, {{ current_user.username }}! </span>
+
+      <a href="{{ url_for('auth.logout') }}" class="logout-link"> Sair </a>
     </div>
+
     {% endif %} {% if current_user.is_authenticated and current_user.role ==
     'admin' %}
+
     <div class="back-container">
-      <a href="{{ url_for('main.painel_admin') }}" class="back-link">Voltar</a>
+      <a href="{{ url_for('main.painel_admin') }}" class="back-link">
+        Voltar
+      </a>
     </div>
+
     {% endif %} {% if current_user.is_authenticated %} {% if current_user.role
-    == 'admin' and session.get('micro') %}<a
-      href="{{ url_for('main.fechamento_admin', micro_id=session.get('micro')) }}"
-      >Fechamento {{ session.get('micro') }}</a
+    == 'admin' and session.get('micro') %}
+
+    <a
+      href="{{ url_for(
+'main.fechamento_admin',
+micro_id=session.get('micro')
+) }}"
     >
-    {% elif current_user.role == 'micro' %}<a
-      href="{{ url_for('main.fechamento') }}"
-      >Fechamento {{ current_user.aba }}</a
-    >
-    {% endif %}{% endif %}
+      Fechamento {{ session.get('micro') }}
+    </a>
+
+    {% elif current_user.role == 'micro' %}
+
+    <a href="{{ url_for('main.fechamento') }}">
+      Fechamento {{ current_user.micro }}
+    </a>
+
+    {% endif %} {% endif %}
 
     <div style="display: flex; align-items: flex-start; gap: 20px">
-      <!-- 🔍 FORMULÁRIO -->
       <div style="flex: 1">
-        <h1>Gerenciar Pessoas na Planilha</h1>
+        <h1>Gerenciar Pessoas</h1>
 
         <form
           action="{{ url_for('main.index') }}"
           method="GET"
           class="search-form"
         >
-          <label for="query">Buscar por Nome ou Endereço:</label>
+          <label> Buscar por Nome ou Endereço: </label>
+
           <input
             type="text"
             name="query"
-            value="{{ request.args.get('query', '') }}"
+            value="{{ request.args.get('query','') }}"
           />
+
           <button type="submit">Pesquisar</button>
         </form>
       </div>
 
-      <!-- 📦 BOX DE FAMÍLIAS VAGAS -->
       <div
         style="
           width: 260px;
@@ -77,24 +95,30 @@
           border: 1px solid #ddd;
           border-radius: 8px;
           padding: 10px;
-          max-height: 230px; /* ~6 itens visíveis */
+          max-height: 230px;
           overflow-y: auto;
         "
       >
-        <h4 style="margin-top: 0">Famílias Vagas ({{ vagas|length }})</h4>
+        <h4>Famílias Vagas ({{ vagas|length }})</h4>
 
         {% if vagas %}
+
         <ul style="list-style: none; padding: 0; margin: 0">
           {% for familia in vagas %}
+
           <li
             style="padding: 6px; border-bottom: 1px solid #eee; font-size: 14px"
           >
             {{ familia }}
           </li>
+
           {% endfor %}
         </ul>
+
         {% else %}
-        <p style="font-size: 14px">Nenhuma vaga disponível</p>
+
+        <p>Nenhuma vaga disponível</p>
+
         {% endif %}
       </div>
     </div>
@@ -108,28 +132,36 @@
       </button>
     </div>
     {% if current_user.is_authenticated and current_user.role == 'micro' %}
+
     <button id="mostrarCadastro" type="button" onclick="mostrarFormulario()">
       Cadastrar nova pessoa
     </button>
+
     {% endif %}
-    <!-- Formulário -->
+
     <form
       id="formCadastro"
       action="{{ url_for('main.create_or_update_person') }}"
       method="POST"
       class="data-form"
     >
-      {% set campos_somente_s = [ 'GESTANTE', 'DIA', 'HAS', 'HIPERDIA',
-      'INSULINO', 'SM', 'TB', 'HAN', 'OBESA', 'TABAGISTA', 'USO DE DROGAS',
-      'ACAMADO', 'USO DE ALCOOL', 'RESTRITO', 'ASMÁTICO DPOC', 'BOLSA FAMÍLIA',
-      'AMPI', 'FRALDA', 'SIFILIS' ] %} {% for chave in campos %}
-      <label for="{{ chave }}">{{ chave }}:</label>
-      {% set chave_upper = chave.upper() %} {% set chave_lower = chave.lower()
-      %} {% if 'data' in chave_lower and 'nascimento' in chave_lower %}
-      <input type="date" name="{{ chave }}" required />
-      {% elif 'idade' in chave_lower %}
-      <input type="text" name="{{ chave }}" required />
-      {% elif chave_upper in campos_somente_s %}
+      {% set campos_somente_s = [ 'gestante', 'dia', 'has', 'hiperdia',
+      'insulino', 'sm', 'tb', 'han', 'obesa', 'tabagista', 'uso_de_drogas',
+      'acamado', 'uso_de_alcool', 'restrito', 'asmatico_dpoc', 'bolsa_familia',
+      'ampi', 'fralda', 'sifilis' ] %} {% for chave in campos %}
+
+      <label for="{{ chave }}"> {{ chave.replace("_"," ").upper() }}: </label>
+
+      {% if chave == "data_nascimento" %}
+
+      <input type="date" name="{{ chave }}" />
+
+      {% elif chave == "idade" %}
+
+      <input type="text" name="{{ chave }}" readonly />
+
+      {% elif chave in campos_somente_s %}
+
       <input
         type="text"
         name="{{ chave }}"
@@ -137,27 +169,43 @@
         maxlength="1"
         title="Somente a letra S"
       />
-      {% elif chave.strip().upper() == 'GENERO' %}
-      <select name="{{ chave }}" class="input-campo" required>
+
+      {% elif chave == "genero" %}
+
+      <select name="{{ chave }}" class="input-campo">
         <option value="">Selecione</option>
+
         <option value="MASCULINO">MASCULINO</option>
+
         <option value="FEMININO">FEMININO</option>
       </select>
-      {% elif chave.strip().upper() == 'COR/ETNIA' %}
-      <select name="{{ chave }}" class="input-campo" required>
+
+      {% elif chave == "cor_etnia" %}
+
+      <select name="{{ chave }}" class="input-campo">
         <option value="">Selecione</option>
+
         <option value="BRANCA">BRANCA</option>
+
         <option value="PRETA">PRETA</option>
+
         <option value="PARDA">PARDA</option>
+
         <option value="AMARELA">AMARELA</option>
+
         <option value="INDIGENA">INDIGENA</option>
       </select>
+
       {% else %}
-      <input type="text" name="{{ chave }}" required />
+
+      <input type="text" name="{{ chave }}" />
+
       {% endif %} {% endfor %}
 
       <button type="submit" id="salvarBtn">Salvar</button>
+
       <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
+
       <button
         type="button"
         onclick="cancelarFormulario()"
@@ -176,8 +224,7 @@
       <table id="tabelaPessoas" class="display">
         <thead>
           <tr>
-            {% for chave in campos %} {% if campos.index(chave) >=
-            campos.index('GESTANTE') %}
+            {% for chave in campos %} {% if chave in campos_somente_s %}
             <th class="col-extra">{{ chave }}</th>
             {% else %}
             <th>{{ chave }}</th>
@@ -188,15 +235,14 @@
         <tbody>
           {% for linha in dados %}
           <tr>
-            {% for chave in campos %} {% if campos.index(chave) >=
-            campos.index('GESTANTE') %}
+            {% for chave in campos %} {% if chave in campos_somente_s %}
             <td class="col-extra">{{ linha.get(chave, '') }}</td>
             {% else %}
             <td>{{ linha.get(chave, '') }}</td>
             {% endif %} {% endfor %}
             <td>
               {% if current_user.is_authenticated and current_user.role ==
-              'micro' %} {% set nome = linha.get("NOME", "") %}
+              'micro' %} {% set nome = linha.get("nome", "") %}
               <div>
                 <button
                   type="button"
@@ -361,21 +407,20 @@
 
       function preencherFormulario(pessoa) {
         const form = document.getElementById("formCadastro");
+
         for (const key in pessoa) {
           const input = form.querySelector(`[name="${key}"]`);
-          if (input) {
-            if (input.type === "date" && pessoa[key]) {
-              const partes = pessoa[key].split("/");
-              if (partes.length === 3) {
-                const dataFormatada = `${partes[2]}-${partes[1].padStart(
-                  2,
-                  "0",
-                )}-${partes[0].padStart(2, "0")}`;
-                input.value = dataFormatada;
-              }
-            } else {
-              input.value = pessoa[key];
+
+          if (!input) continue;
+
+          if (input.type === "date" && pessoa[key]) {
+            const partes = pessoa[key].split("/");
+
+            if (partes.length === 3) {
+              input.value = `${partes[2]}-${partes[1]}-${partes[0]}`;
             }
+          } else {
+            input.value = pessoa[key] ?? "";
           }
         }
       }
@@ -457,9 +502,10 @@
       document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("formCadastro");
         const campoNascimento = form.querySelector(
-          'input[name*="DATA DE NASCIMENTO"]',
+          'input[name="data_nascimento"]',
         );
-        const campoIdade = form.querySelector('input[name*="IDADE"]');
+
+        const campoIdade = form.querySelector('input[name="idade"]');
 
         if (campoNascimento && campoIdade) {
           campoNascimento.addEventListener("change", function () {
@@ -482,23 +528,52 @@
         }
       });
 
+      function indiceColuna(nome) {
+        const tabela = $("#tabelaPessoas").DataTable();
+
+        let indice = -1;
+
+        tabela.columns().every(function (i) {
+          const titulo = $(this.header())
+            .clone()
+            .children()
+            .remove()
+            .end()
+            .text()
+            .trim()
+            .toLowerCase();
+
+          if (titulo === nome) indice = i;
+        });
+
+        return indice;
+      }
+
       function coletarNomesFiltrados() {
         const nomes = [];
+
         const tabela = $("#tabelaPessoas").DataTable();
+
+        const idx = indiceColuna("nome");
+
         tabela.rows({ filter: "applied" }).every(function () {
-          const linha = this.data();
-          nomes.push(linha[1]);
+          nomes.push(this.data()[idx]);
         });
+
         return nomes;
       }
 
       function coletarFamiliasFiltradas() {
         const familias = [];
+
         const tabela = $("#tabelaPessoas").DataTable();
+
+        const idx = indiceColuna("familia");
+
         tabela.rows({ filter: "applied" }).every(function () {
-          const linha = this.data();
-          familias.push(linha[3]);
+          familias.push(this.data()[idx]);
         });
+
         return familias;
       }
 
@@ -563,9 +638,11 @@
           });
       }
 
-      const hasInput = document.querySelector("input[name='HAS']");
-      const diaInput = document.querySelector("input[name='DIA']");
-      const hiperdiaInput = document.querySelector("input[name='HIPERDIA']");
+      const hasInput = document.querySelector("input[name='has']");
+
+      const diaInput = document.querySelector("input[name='dia']");
+
+      const hiperdiaInput = document.querySelector("input[name='hiperdia']");
 
       function limparInputs(...inputs) {
         inputs.forEach((input) => (input.value = ""));
@@ -670,50 +747,58 @@
       function gerarPdfLista() {
         const tabela = $("#tabelaPessoas").DataTable();
 
-        const colunasFixas = [
-          "NOME",
-          "SUS",
-          "FAMILIA",
-          "DATA DE NASCIMENTO",
-          "IDADE",
-          "ENDEREÇO",
+        const indices = obterIndicesColunas();
+
+        const colunas = [
+          "nome",
+
+          "sus",
+
+          "familia",
+
+          "data_nascimento",
+
+          "idade",
+
+          "endereco",
         ];
 
-        const indicesFixos = {
-          NOME: 1,
-          SUS: 2,
-          FAMILIA: 3,
-          "DATA DE NASCIMENTO": 4,
-          IDADE: 5,
-          ENDEREÇO: 27,
-        };
-
         let dados = [];
+
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
+
           const obj = {};
 
-          colunasFixas.forEach((col) => {
-            const idx = indicesFixos[col];
-            obj[col] = linha[idx] !== undefined ? linha[idx] : "";
+          colunas.forEach(function (c) {
+            obj[c] = linha[indices[c]] || "";
           });
 
           dados.push(obj);
         });
 
-        const titulo =
-          document.getElementById("tituloLista").value || "Lista Gerada";
-
         fetch("/gerar_lista", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dados, colunas: colunasFixas, titulo }),
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            dados: dados,
+
+            colunas: colunas,
+
+            titulo: document.getElementById("tituloLista").value,
+          }),
         })
-          .then((response) => response.blob())
+          .then((r) => r.blob())
+
           .then((blob) => {
-            const url = window.URL.createObjectURL(blob);
-            const win = window.open(url);
-            win.focus();
+            const url = URL.createObjectURL(blob);
+
+            window.open(url);
+
             cancelarLista();
           });
       }

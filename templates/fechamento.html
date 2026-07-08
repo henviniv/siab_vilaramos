@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -64,7 +64,7 @@
 
     <h1>
       📊 Fechamento {% if dados|length == 1 %} - {{ dados[0].aba }} {% elif
-      current_user.role != 'admin' %} - {{ current_user.aba }} {% else %} de
+      current_user.role != 'admin' %} - {{ current_user.micro }} {% else %} de
       todas as Micros {% endif %}
     </h1>
 

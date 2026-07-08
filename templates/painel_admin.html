@@ -147,8 +147,8 @@
       <thead>
         <tr>
           <th>Usuário</th>
-          <th>Micro (Aba)</th>
-          <th>Planilha</th>
+          <th>Micro</th>
+          <th>Equipe</th>
           <th>Ação</th>
         </tr>
       </thead>
@@ -156,8 +156,8 @@
         {% for username, info in lista_usuarios.items() %}
         <tr>
           <td>{{ username }}</td>
-          <td>{{ info.aba }}</td>
-          <td>{{ info.planilha }}</td>
+          <td>{{ info.micro }}</td>
+          <td>{{ info.equipe }}</td>
           <td>
             <a
               href="{{ url_for('main.visualizar_micro', micro_id=username) }}"

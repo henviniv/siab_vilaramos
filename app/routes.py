@@ -48,67 +48,151 @@ def num_to_col(n):
 @login_required
 def index():
 
-    if current_user.is_authenticated and current_user.role == "admin" and not request.args.get("query"):
-        return redirect(url_for("main.painel_admin"))
+    if (
+        current_user.is_authenticated
+        and current_user.role == "admin"
+        and not request.args.get("query")
+    ):
+        return redirect(
+            url_for("main.painel_admin")
+        )
+
 
     try:
-        print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
+
+        print(
+            f"[DEBUG] Usuário: {current_user.username}, "
+            f"micro: {current_user.micro}, "
+            f"equipe: {current_user.equipe}"
+        )
+
 
         # Busca diretamente do Supabase
         dados_crus = buscar_micro(
-            current_user.planilha,
-            current_user.aba
+            current_user.equipe,
+            current_user.micro
         )
 
-        # Converte todos os valores para string
+        print("TOTAL ENCONTRADO:", len(dados_crus))
+        print("PRIMEIRO:", dados_crus[:1])
+
+
+        # Converte valores para string
         dados = []
+
         for linha in dados_crus:
+
             dados.append({
                 chave: "" if valor is None else str(valor)
                 for chave, valor in linha.items()
             })
 
-        # Ordenação
-        dados.sort(key=lambda x: x.get("familia", ""))
+
+
+        # Ordenação por família
+
+        dados.sort(
+            key=lambda x: x.get("familia", "")
+        )
+
+
 
         # Colunas dinâmicas
+
         mostrar_todas = True
+
         todas_colunas = []
 
+
         for linha in dados:
+
             for col in linha:
+
                 if col not in todas_colunas:
                     todas_colunas.append(col)
 
+
+
         campos = todas_colunas
+
         colunas_extras = []
 
+
+
         # Busca
-        query = request.args.get("query", "").strip().lower()
+
+        query = request.args.get(
+            "query",
+            ""
+        ).strip().lower()
+
+
 
         if query:
+
             dados = [
-                linha for linha in dados
-                if query in linha.get("nome", "").lower()
-                or query in linha.get("endereco", "").lower()
+
+                linha
+
+                for linha in dados
+
+                if (
+                    query in linha.get(
+                        "nome",
+                        ""
+                    ).lower()
+
+                    or
+
+                    query in linha.get(
+                        "endereco",
+                        ""
+                    ).lower()
+                )
+
             ]
 
+
+
         # Famílias vagas
-        micro_numero = obter_numero_micro(current_user.aba)
+
+        micro_numero = obter_numero_micro(
+            current_user.micro
+        )
+
+
 
         familias_existentes = []
 
+
         for linha in dados_crus:
-            familia = linha.get("familia")
+
+            familia = linha.get(
+                "familia"
+            )
+
             if familia:
-                familias_existentes.append(str(familia))
+
+                familias_existentes.append(
+                    str(familia)
+                )
+
+
 
         vagas = encontrar_familias_vagas(
             familias_existentes,
             micro_numero
         )
 
-        proxima_familia = vagas[0] if vagas else None
+
+
+        proxima_familia = (
+            vagas[0]
+            if vagas
+            else None
+        )
+
+
 
         return render_template(
             "index.html",
@@ -121,8 +205,14 @@ def index():
             proxima_familia=proxima_familia
         )
 
+
+
     except Exception as e:
-        print(f"[ERRO] Falha ao acessar Supabase: {e}")
+
+        print(
+            f"[ERRO] Falha ao acessar Supabase: {e}"
+        )
+
 
         return render_template(
             "index.html",
@@ -146,7 +236,12 @@ def create_or_update_person():
             valor = request.form.get(campo, "")
             return str(valor).strip().upper()
 
-        data_nascimento = request.form.get("DATA DE NASCIMENTO", "").strip()
+
+        data_nascimento = request.form.get(
+            "DATA DE NASCIMENTO",
+            ""
+        ).strip()
+
 
         if data_nascimento:
             try:
@@ -154,19 +249,28 @@ def create_or_update_person():
                     data_nascimento,
                     "%Y-%m-%d"
                 ).strftime("%d/%m/%Y")
+
             except:
                 data_nascimento = ""
 
+
         pessoa = {
-            "equipe": current_user.planilha,
-            "micro": current_user.aba,
+
+            # NOVO PADRÃO SUPABASE
+            "equipe": current_user.equipe,
+            "micro": current_user.micro,
+
 
             "cor_etnia": texto("COR/ETNIA"),
             "nome": texto("NOME"),
             "sus": limpar_cpf(request.form.get("SUS", "")),
             "familia": texto("FAMILIA"),
+
             "data_nascimento": data_nascimento,
+
+            # idade será calculada depois
             "idade": "",
+
             "genero": texto("GENERO"),
             "gestante": texto("GESTANTE"),
             "dia": texto("DIA"),
@@ -174,24 +278,40 @@ def create_or_update_person():
             "hiperdia": texto("HIPERDIA"),
             "insulino": texto("INSULINO"),
             "sm": texto("SM"),
-            "cpf": limpar_cpf(request.form.get("CPF", "")),
+
+            "cpf": limpar_cpf(
+                request.form.get("CPF", "")
+            ),
+
             "tb": texto("TB"),
             "han": texto("HAN"),
             "obesa": texto("OBESA"),
             "tabagista": texto("TABAGISTA"),
+
             "uso_de_drogas": texto("USO DE DROGAS"),
             "uso_de_alcool": texto("USO DE ALCOOL"),
+
             "acamado": texto("ACAMADO"),
             "restrito": texto("RESTRITO"),
+
             "asmatico_dpoc": texto("ASMÁTICO DPOC"),
+
             "bolsa_familia": texto("BOLSA FAMÍLIA"),
+
             "ampi": texto("AMPI"),
             "fralda": texto("FRALDA"),
+
             "sifilis": texto("SIFILIS"),
+
             "endereco": texto("ENDEREÇO"),
         }
 
-        # Procura pelo CPF
+
+
+        # ==========================
+        # PROCURA PELO CPF
+        # ==========================
+
         if pessoa["cpf"]:
 
             resultado = (
@@ -199,31 +319,49 @@ def create_or_update_person():
                 .table("pessoas")
                 .select("id")
                 .eq("cpf", pessoa["cpf"])
-                .eq("micro", current_user.aba)
+                .eq("micro", current_user.micro)
                 .execute()
             )
 
+
             if resultado.data:
+
                 (
                     supabase
                     .table("pessoas")
                     .update(pessoa)
-                    .eq("id", resultado.data[0]["id"])
+                    .eq(
+                        "id",
+                        resultado.data[0]["id"]
+                    )
                     .execute()
                 )
 
-                flash("Pessoa atualizada com sucesso.", "success")
-                return redirect(url_for("main.index"))
 
-        # Procura pelo nome
+                flash(
+                    "Pessoa atualizada com sucesso.",
+                    "success"
+                )
+
+                return redirect(
+                    url_for("main.index")
+                )
+
+
+
+        # ==========================
+        # PROCURA PELO NOME
+        # ==========================
+
         resultado = (
             supabase
             .table("pessoas")
             .select("id")
             .eq("nome", pessoa["nome"])
-            .eq("micro", current_user.aba)
+            .eq("micro", current_user.micro)
             .execute()
         )
+
 
         if resultado.data:
 
@@ -231,11 +369,19 @@ def create_or_update_person():
                 supabase
                 .table("pessoas")
                 .update(pessoa)
-                .eq("id", resultado.data[0]["id"])
+                .eq(
+                    "id",
+                    resultado.data[0]["id"]
+                )
                 .execute()
             )
 
-            flash("Pessoa atualizada com sucesso.", "success")
+
+            flash(
+                "Pessoa atualizada com sucesso.",
+                "success"
+            )
+
 
         else:
 
@@ -246,14 +392,33 @@ def create_or_update_person():
                 .execute()
             )
 
-            flash("Pessoa cadastrada com sucesso.", "success")
 
-        return redirect(url_for("main.index"))
+            flash(
+                "Pessoa cadastrada com sucesso.",
+                "success"
+            )
+
+
+
+        return redirect(
+            url_for("main.index")
+        )
+
 
     except Exception as e:
-        print(e)
-        flash("Erro ao salvar.", "danger")
-        return redirect(url_for("main.index"))
+
+        print(
+            f"[ERRO CREATE PERSON] {e}"
+        )
+
+        flash(
+            "Erro ao salvar.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("main.index")
+        )
 
 
 
@@ -261,29 +426,45 @@ def create_or_update_person():
 @bp.route('/update_person', methods=['POST'])
 @login_required
 def update_person():
+
     try:
 
         nome_original = request.args.get("nome", "").strip().upper()
 
+
         if not nome_original:
             return jsonify({"erro": "Nome inválido"}), 400
 
+
         def texto(campo):
+
             valor = request.form.get(campo, "")
+
             return str(valor).strip().upper()
 
-        data_nascimento = request.form.get("DATA DE NASCIMENTO", "").strip()
+
+        data_nascimento = request.form.get(
+            "DATA DE NASCIMENTO",
+            ""
+        ).strip()
+
 
         if data_nascimento:
+
             try:
+
                 data_nascimento = datetime.strptime(
                     data_nascimento,
                     "%Y-%m-%d"
                 ).strftime("%d/%m/%Y")
+
             except:
+
                 data_nascimento = ""
 
+
         pessoa = {
+
             "cor_etnia": texto("COR/ETNIA"),
             "nome": texto("NOME"),
             "sus": limpar_cpf(request.form.get("SUS", "")),
@@ -312,19 +493,27 @@ def update_person():
             "fralda": texto("FRALDA"),
             "sifilis": texto("SIFILIS"),
             "endereco": texto("ENDEREÇO"),
+
         }
+
 
         resultado = (
             supabase
             .table("pessoas")
             .select("id")
             .eq("nome", nome_original)
-            .eq("micro", current_user.aba)
+            .eq("micro", current_user.micro)
             .execute()
         )
 
+
         if not resultado.data:
-            return jsonify({"erro": "Pessoa não encontrada"}), 404
+
+            return jsonify({
+                "erro": "Pessoa não encontrada"
+            }), 404
+
+
 
         (
             supabase
@@ -334,41 +523,71 @@ def update_person():
             .execute()
         )
 
-        return redirect(url_for("main.index"))
+
+        return redirect(
+            url_for("main.index")
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] {e}")
-        return jsonify({"erro": "Erro interno"}), 500
 
+        print(
+            f"[ERRO] {e}"
+        )
+
+        return jsonify({
+            "erro": "Erro interno"
+        }), 500
 
 
 
 @bp.route('/delete', methods=['POST'])
 @login_required
 def delete_person():
+
     try:
 
         nome = request.form.get("nome", "").strip().upper()
 
+
         if not nome:
-            flash("Nome inválido para exclusão.", "warning")
-            return redirect(url_for('main.index'))
+
+            flash(
+                "Nome inválido para exclusão.",
+                "warning"
+            )
+
+            return redirect(
+                url_for('main.index')
+            )
+
 
         # Procura a pessoa no Supabase pelo nome e micro
+
         resultado = (
             supabase
             .table("pessoas")
             .select("id")
             .eq("nome", nome)
-            .eq("micro", current_user.aba)
+            .eq("micro", current_user.micro)
             .execute()
         )
 
-        if not resultado.data:
-            flash("Pessoa não encontrada para exclusão.", "warning")
-            return redirect(url_for('main.index'))
 
-        # Exclui usando o id encontrado
+        if not resultado.data:
+
+            flash(
+                "Pessoa não encontrada para exclusão.",
+                "warning"
+            )
+
+            return redirect(
+                url_for('main.index')
+            )
+
+
+        # Exclui usando o id do Supabase
+
         (
             supabase
             .table("pessoas")
@@ -377,69 +596,135 @@ def delete_person():
             .execute()
         )
 
-        print(f"[INFO] Pessoa com NOME {nome} excluída.")
 
-        flash("Pessoa excluída com sucesso.", "success")
+        print(
+            f"[INFO] Pessoa com NOME {nome} excluída."
+        )
 
-        return redirect(url_for('main.index'))
+
+        flash(
+            "Pessoa excluída com sucesso.",
+            "success"
+        )
+
+
+        return redirect(
+            url_for('main.index')
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] Falha ao excluir pessoa: {e}")
-        flash("Erro ao excluir pessoa.", "danger")
-        return redirect(url_for('main.index'))
+
+        print(
+            f"[ERRO] Falha ao excluir pessoa: {e}"
+        )
+
+        flash(
+            "Erro ao excluir pessoa.",
+            "danger"
+        )
+
+        return redirect(
+            url_for('main.index')
+        )
 
 
 
 @bp.route('/edit', methods=['GET'])
 @login_required
 def get_person_data():
+
     try:
 
         nome = request.args.get("nome", "").strip().upper()
 
+
         if not nome:
-            return jsonify({"erro": "Nome inválido"}), 400
+            return jsonify({
+                "erro": "Nome inválido"
+            }), 400
+
 
         resultado = (
             supabase
             .table("pessoas")
             .select("*")
             .eq("nome", nome)
-            .eq("micro", current_user.aba)
+            .eq("micro", current_user.micro)
             .execute()
         )
 
-        if not resultado.data:
-            return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        return jsonify(resultado.data[0])
+        if not resultado.data:
+
+            return jsonify({
+                "erro": "Pessoa não encontrada"
+            }), 404
+
+
+        return jsonify(
+            resultado.data[0]
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
-        return jsonify({"erro": "Erro interno"}), 500
+
+        print(
+            f"[ERRO] Falha ao buscar dados da pessoa: {e}"
+        )
+
+        return jsonify({
+            "erro": "Erro interno"
+        }), 500
 
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
+
         username = request.form.get('username')
         password = request.form.get('password')
 
+
         user_data = USERS.get(username)
+
+
         if user_data and user_data['password'] == password:
+
+
             user = User(
                 id=username,
                 username=username,
                 role=user_data['role'],
-                aba=user_data['aba'],
-                planilha=user_data['planilha']
+                micro=user_data.get('micro'),
+                equipe=user_data.get('equipe')
             )
+
+
             login_user(user)
-            session["micro"] = user_data["aba"]
-            return redirect(url_for('main.index'))
+
+
+            session["micro"] = user_data.get("micro")
+            session["equipe"] = user_data.get("equipe")
+
+
+            return redirect(
+                url_for('main.index')
+            )
+
+
         else:
-            flash("Usuário ou senha incorretos", "danger")
-            return redirect(url_for('main.login'))
+
+            flash(
+                "Usuário ou senha incorretos",
+                "danger"
+            )
+
+            return redirect(
+                url_for('main.login')
+            )
+
 
     return render_template("login.html")
 
@@ -456,7 +741,7 @@ def logout():
 @login_required
 def fechamento():
 
-    if current_user.role != "admin" and not current_user.fechamento:
+    if current_user.role != "admin" and not current_user.micro:
         flash("Acesso não autorizado", "danger")
         return redirect(url_for("main.index"))
 
@@ -464,40 +749,59 @@ def fechamento():
 
         dados = []
 
+
+        # ==============================
         # ADMIN VÊ TODOS OS FECHAMENTOS
+        # ==============================
+
         if current_user.role == "admin":
 
             from app.auth import USERS
+
 
             for usuario, info in USERS.items():
 
                 if info["role"] != "micro":
                     continue
 
+
                 valores = gerar_fechamento_micro(
-                    info["planilha"],
-                    info["aba"]
+                    info["equipe"],
+                    info["micro"]
                 )
 
+
                 dados.append({
-                    "aba": f"FECHAMENTO {info['aba']}",
-                    "equipe": info["planilha"],
+
+                    "aba": f"FECHAMENTO {info['micro']}",
+
+                    "equipe": info["equipe"],
+
                     "valores": valores
+
                 })
 
 
+        # ==============================
         # MICRO VÊ SOMENTE O SEU
+        # ==============================
+
         else:
 
             valores = gerar_fechamento_micro(
-                current_user.planilha,
-                current_user.aba
+                current_user.equipe,
+                current_user.micro
             )
 
+
             dados.append({
-                "aba": f"FECHAMENTO {current_user.aba}",
-                "equipe": current_user.planilha,
+
+                "aba": f"FECHAMENTO {current_user.micro}",
+
+                "equipe": current_user.equipe,
+
                 "valores": valores
+
             })
 
 
@@ -509,12 +813,16 @@ def fechamento():
 
     except Exception as e:
 
-        print(f"[ERRO] Falha ao gerar fechamento: {e}")
+        print(
+            f"[ERRO] Falha ao gerar fechamento: {e}"
+        )
+
 
         flash(
             "Erro ao gerar fechamento.",
             "danger"
         )
+
 
         return redirect(
             url_for("main.index")
@@ -553,14 +861,14 @@ def fechamento_admin(micro_id):
     try:
 
         valores = gerar_fechamento_micro(
-            user_info["planilha"],
-            user_info["aba"]
+            user_info["equipe"],
+            user_info["micro"]
         )
 
 
         dados = [{
-            "aba": f"FECHAMENTO {user_info['aba']}",
-            "equipe": user_info["planilha"],
+            "aba": f"FECHAMENTO {user_info['micro']}",
+            "equipe": user_info["equipe"],
             "valores": valores
         }]
 

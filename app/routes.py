@@ -10,6 +10,9 @@ from fpdf import FPDF
 from datetime import datetime
 from flask import send_file, request
 from io import BytesIO
+from app.database import buscar_micro
+from app.supabase_db import supabase
+from app.fechamentos import gerar_fechamento_micro
 from app.familias_vagas import (
     encontrar_familias_vagas,
     obter_numero_micro
@@ -44,21 +47,31 @@ def num_to_col(n):
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
-    
+
     if current_user.is_authenticated and current_user.role == "admin" and not request.args.get("query"):
         return redirect(url_for("main.painel_admin"))
 
     try:
         print(f"[DEBUG] Usuário: {current_user.username}, aba: {current_user.aba}")
 
-        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-        dados_crus = sheet.get_all_records()
-        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
+        # Busca diretamente do Supabase
+        dados_crus = buscar_micro(
+            current_user.planilha,
+            current_user.aba
+        )
 
-        # 🔹 ORDENAÇÃO
-        dados.sort(key=lambda x: x.get("FAMILIA", ""))
+        # Converte todos os valores para string
+        dados = []
+        for linha in dados_crus:
+            dados.append({
+                chave: "" if valor is None else str(valor)
+                for chave, valor in linha.items()
+            })
 
-        # 🔹 COLUNAS DINÂMICAS
+        # Ordenação
+        dados.sort(key=lambda x: x.get("familia", ""))
+
+        # Colunas dinâmicas
         mostrar_todas = True
         todas_colunas = []
 
@@ -70,32 +83,32 @@ def index():
         campos = todas_colunas
         colunas_extras = []
 
-        # 🔹 FILTRO DE BUSCA
+        # Busca
         query = request.args.get("query", "").strip().lower()
+
         if query:
             dados = [
                 linha for linha in dados
-                if query in linha.get("NOME", "").lower()
-                or query in linha.get("ENDEREÇO", "").lower()
+                if query in linha.get("nome", "").lower()
+                or query in linha.get("endereco", "").lower()
             ]
 
-        # =========================
-        # 🔥 NOVA PARTE (FAMÍLIAS VAGAS)
-        # =========================
-
+        # Famílias vagas
         micro_numero = obter_numero_micro(current_user.aba)
 
         familias_existentes = []
+
         for linha in dados_crus:
-            familia = linha.get("FAMÍLIA") or linha.get("FAMILIA")
+            familia = linha.get("familia")
             if familia:
                 familias_existentes.append(str(familia))
 
-        vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
+        vagas = encontrar_familias_vagas(
+            familias_existentes,
+            micro_numero
+        )
 
         proxima_familia = vagas[0] if vagas else None
-
-        # =========================
 
         return render_template(
             "index.html",
@@ -109,7 +122,8 @@ def index():
         )
 
     except Exception as e:
-        print(f"[ERRO] Falha ao acessar Google Sheets: {e}")
+        print(f"[ERRO] Falha ao acessar Supabase: {e}")
+
         return render_template(
             "index.html",
             dados=[],
@@ -127,119 +141,119 @@ def index():
 @login_required
 def create_or_update_person():
     try:
-        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-        dados = sheet.get_all_records()
 
-        
-        campos = []
-        for linha in dados:
-            for col in linha:
-                if col not in campos:
-                    campos.append(col)
+        def texto(campo):
+            valor = request.form.get(campo, "")
+            return str(valor).strip().upper()
 
-        nova_pessoa = {}
-        for campo in campos:
+        data_nascimento = request.form.get("DATA DE NASCIMENTO", "").strip()
+
+        if data_nascimento:
             try:
-                raw_valor = request.form.get(campo, "")
-                print(f"[DEBUG] Campo: {campo} | Valor bruto: {raw_valor} | Tipo: {type(raw_valor)}")
+                data_nascimento = datetime.strptime(
+                    data_nascimento,
+                    "%Y-%m-%d"
+                ).strftime("%d/%m/%Y")
+            except:
+                data_nascimento = ""
 
-                if raw_valor is None:
-                   valor = ""
-                else:
-                    valor = str(raw_valor).strip()
+        pessoa = {
+            "equipe": current_user.planilha,
+            "micro": current_user.aba,
 
-        
-                if campo.upper() == "IDADE":
-                    nova_pessoa[campo] = None
-                    continue
+            "cor_etnia": texto("COR/ETNIA"),
+            "nome": texto("NOME"),
+            "sus": limpar_cpf(request.form.get("SUS", "")),
+            "familia": texto("FAMILIA"),
+            "data_nascimento": data_nascimento,
+            "idade": "",
+            "genero": texto("GENERO"),
+            "gestante": texto("GESTANTE"),
+            "dia": texto("DIA"),
+            "has": texto("HAS"),
+            "hiperdia": texto("HIPERDIA"),
+            "insulino": texto("INSULINO"),
+            "sm": texto("SM"),
+            "cpf": limpar_cpf(request.form.get("CPF", "")),
+            "tb": texto("TB"),
+            "han": texto("HAN"),
+            "obesa": texto("OBESA"),
+            "tabagista": texto("TABAGISTA"),
+            "uso_de_drogas": texto("USO DE DROGAS"),
+            "uso_de_alcool": texto("USO DE ALCOOL"),
+            "acamado": texto("ACAMADO"),
+            "restrito": texto("RESTRITO"),
+            "asmatico_dpoc": texto("ASMÁTICO DPOC"),
+            "bolsa_familia": texto("BOLSA FAMÍLIA"),
+            "ampi": texto("AMPI"),
+            "fralda": texto("FRALDA"),
+            "sifilis": texto("SIFILIS"),
+            "endereco": texto("ENDEREÇO"),
+        }
 
-        
-                if "DATA DE NASCIMENTO" in campo.upper():
-                    try:
-                        valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
-                    except Exception as e:
-                        print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
-                        valor = ""
+        # Procura pelo CPF
+        if pessoa["cpf"]:
 
-        
-                elif campo.upper() in ["IDADE", "SUS", "CPF"]:
-                    valor = re.sub(r"\D", "", valor)
-                    valor = int(valor) if valor else None
+            resultado = (
+                supabase
+                .table("pessoas")
+                .select("id")
+                .eq("cpf", pessoa["cpf"])
+                .eq("micro", current_user.aba)
+                .execute()
+            )
 
-                else:
-                    valor = valor.upper() if isinstance(valor, str) else valor
+            if resultado.data:
+                (
+                    supabase
+                    .table("pessoas")
+                    .update(pessoa)
+                    .eq("id", resultado.data[0]["id"])
+                    .execute()
+                )
 
-                nova_pessoa[campo] = valor
+                flash("Pessoa atualizada com sucesso.", "success")
+                return redirect(url_for("main.index"))
 
-            except Exception as e:
-                print(f"[ERRO] Erro ao processar campo '{campo}' com valor '{raw_valor}': {e}")
-                nova_pessoa[campo] = ""
+        # Procura pelo nome
+        resultado = (
+            supabase
+            .table("pessoas")
+            .select("id")
+            .eq("nome", pessoa["nome"])
+            .eq("micro", current_user.aba)
+            .execute()
+        )
 
-        
-        try:
-            nome_pessoa = str(nova_pessoa.get("NOME", "") or "").strip().upper()
-            familia_alvo = str(nova_pessoa.get("FAMILIA", "") or "").strip()
-            cpf_limpo = limpar_cpf(str(nova_pessoa.get("CPF", "") or ""))
-        except Exception as e:
-            print(f"[ERRO] Falha ao extrair campos-chave (CPF, NOME, FAMÍLIA): {e}")
-            raise
+        if resultado.data:
 
-        
-        cpfs = {limpar_cpf(str(linha.get("CPF", "") or "")): i + 2 for i, linha in enumerate(dados) if linha.get("CPF")}
-        nomes = {str(linha.get("NOME", "") or "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
+            (
+                supabase
+                .table("pessoas")
+                .update(pessoa)
+                .eq("id", resultado.data[0]["id"])
+                .execute()
+            )
 
-        familias = {}
-        for i, linha in enumerate(dados):
-            familia = str(linha.get("FAMILIA", "") or "").strip()
-            if familia:
-                familias.setdefault(familia, []).append(i + 2)
+            flash("Pessoa atualizada com sucesso.", "success")
 
-        ultima_col = num_to_col(len(campos))
-
-        
-        if cpf_limpo and cpf_limpo in cpfs:
-            linha_atualizar = cpfs[cpf_limpo]
-            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
-                         [[nova_pessoa.get(col, "") for col in campos]])
-            print(f"[INFO] Pessoa com CPF {cpf_limpo} atualizada.")
-
-        
-        elif nome_pessoa and nome_pessoa in nomes:
-            linha_atualizar = nomes[nome_pessoa]
-            sheet.update(f"A{linha_atualizar}:{ultima_col}{linha_atualizar}",
-                         [[nova_pessoa.get(col, "") for col in campos]])
-            print(f"[INFO] Pessoa com NOME {nome_pessoa} atualizada.")
-
-        
         else:
-            if familia_alvo in familias:
-                linha_inserir = max(3, max(familias[familia_alvo]) + 1)
-            else:
-                familias_ordenadas = sorted(familias.keys())
-                posicao = 3
-                inserida = False
 
-                for fam in familias_ordenadas:
-                    if familia_alvo < fam:
-                        linhas_da_familia = familias[fam]
-                        posicao = min(linhas_da_familia)
-                        inserida = True
-                        break
+            (
+                supabase
+                .table("pessoas")
+                .insert(pessoa)
+                .execute()
+            )
 
-                if not inserida:
-                    posicao = max(max(linhas) for linhas in familias.values()) + 1
+            flash("Pessoa cadastrada com sucesso.", "success")
 
-                linha_inserir = posicao
-
-            sheet.insert_row([nova_pessoa.get(col, "") for col in campos], index=linha_inserir)
-            print(f"[INFO] Nova pessoa inserida na linha {linha_inserir} (Família: {familia_alvo}).")
-
-        return redirect(url_for('main.index'))
+        return redirect(url_for("main.index"))
 
     except Exception as e:
-        print(f"[ERRO] Falha ao criar/atualizar pessoa: {e}")
-        flash("Erro ao salvar os dados.", "danger")
-        return redirect(url_for('main.index'))
+        print(e)
+        flash("Erro ao salvar.", "danger")
+        return redirect(url_for("main.index"))
 
 
 
@@ -248,71 +262,82 @@ def create_or_update_person():
 @login_required
 def update_person():
     try:
-        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-        dados = sheet.get_all_records()
 
-        
-        campos = []
-        for linha in dados:
-            for col in linha:
-                if col not in campos:
-                    campos.append(col)
+        nome_original = request.args.get("nome", "").strip().upper()
 
-        nome_original = request.args.get("nome", "").strip()
         if not nome_original:
             return jsonify({"erro": "Nome inválido"}), 400
 
-        nova_pessoa = {}
-        for campo in campos:
-            raw_valor = request.form.get(campo, "")
+        def texto(campo):
+            valor = request.form.get(campo, "")
+            return str(valor).strip().upper()
 
-            if raw_valor is None:
-                valor = ""
-            else:
-                valor = str(raw_valor).strip()
+        data_nascimento = request.form.get("DATA DE NASCIMENTO", "").strip()
 
-            
-            if campo.upper() == "IDADE":
-                nova_pessoa[campo] = None
-                continue  
+        if data_nascimento:
+            try:
+                data_nascimento = datetime.strptime(
+                    data_nascimento,
+                    "%Y-%m-%d"
+                ).strftime("%d/%m/%Y")
+            except:
+                data_nascimento = ""
 
-            
-            if "DATA DE NASCIMENTO" in campo.upper():
-                try:
-                    valor = datetime.strptime(valor, "%Y-%m-%d").strftime("%d/%m/%Y")
-                except Exception as e:
-                    print(f"[DEBUG] Erro ao formatar data no campo '{campo}': {e}")
-                    valor = ""
+        pessoa = {
+            "cor_etnia": texto("COR/ETNIA"),
+            "nome": texto("NOME"),
+            "sus": limpar_cpf(request.form.get("SUS", "")),
+            "familia": texto("FAMILIA"),
+            "data_nascimento": data_nascimento,
+            "idade": "",
+            "genero": texto("GENERO"),
+            "gestante": texto("GESTANTE"),
+            "dia": texto("DIA"),
+            "has": texto("HAS"),
+            "hiperdia": texto("HIPERDIA"),
+            "insulino": texto("INSULINO"),
+            "sm": texto("SM"),
+            "cpf": limpar_cpf(request.form.get("CPF", "")),
+            "tb": texto("TB"),
+            "han": texto("HAN"),
+            "obesa": texto("OBESA"),
+            "tabagista": texto("TABAGISTA"),
+            "uso_de_drogas": texto("USO DE DROGAS"),
+            "uso_de_alcool": texto("USO DE ALCOOL"),
+            "acamado": texto("ACAMADO"),
+            "restrito": texto("RESTRITO"),
+            "asmatico_dpoc": texto("ASMÁTICO DPOC"),
+            "bolsa_familia": texto("BOLSA FAMÍLIA"),
+            "ampi": texto("AMPI"),
+            "fralda": texto("FRALDA"),
+            "sifilis": texto("SIFILIS"),
+            "endereco": texto("ENDEREÇO"),
+        }
 
-            
-            elif campo.upper() in ["IDADE", "SUS", "CPF"]:
-                valor = re.sub(r"\D", "", valor)
-                valor = int(valor) if valor else None
+        resultado = (
+            supabase
+            .table("pessoas")
+            .select("id")
+            .eq("nome", nome_original)
+            .eq("micro", current_user.aba)
+            .execute()
+        )
 
-            else:
-                valor = valor.upper() if isinstance(valor, str) else valor
-
-            nova_pessoa[campo] = valor
-
-        
-        linha_atual = None
-        for i, linha in enumerate(dados):
-            nome_existente = str(linha.get("NOME", "") or "").strip().upper()
-            if nome_existente == nome_original.upper():
-                linha_atual = i + 2
-
-        if not linha_atual:
+        if not resultado.data:
             return jsonify({"erro": "Pessoa não encontrada"}), 404
 
-        ultima_col = num_to_col(len(campos))
-        sheet.update(f"A{linha_atual}:{ultima_col}{linha_atual}",
-                     [[nova_pessoa.get(col, "") for col in campos]])
-        print(f"[INFO] Pessoa com NOME {nome_original} atualizada na linha {linha_atual}.")
+        (
+            supabase
+            .table("pessoas")
+            .update(pessoa)
+            .eq("id", resultado.data[0]["id"])
+            .execute()
+        )
 
-        return redirect(url_for('main.index'))
+        return redirect(url_for("main.index"))
 
     except Exception as e:
-        print(f"[ERRO] Falha ao atualizar pessoa: {e}")
+        print(f"[ERRO] {e}")
         return jsonify({"erro": "Erro interno"}), 500
 
 
@@ -322,21 +347,39 @@ def update_person():
 @login_required
 def delete_person():
     try:
-        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-        dados = sheet.get_all_records()
 
-        nome = request.form.get("nome", "").strip()
+        nome = request.form.get("nome", "").strip().upper()
+
         if not nome:
             flash("Nome inválido para exclusão.", "warning")
             return redirect(url_for('main.index'))
 
-        nomes = {linha.get("NOME", "").strip().upper(): i + 2 for i, linha in enumerate(dados) if linha.get("NOME")}
+        # Procura a pessoa no Supabase pelo nome e micro
+        resultado = (
+            supabase
+            .table("pessoas")
+            .select("id")
+            .eq("nome", nome)
+            .eq("micro", current_user.aba)
+            .execute()
+        )
 
-        if nome.upper() in nomes:
-            sheet.delete_rows(nomes[nome.upper()])
-            print(f"[INFO] Pessoa com NOME {nome} excluída.")
-        else:
+        if not resultado.data:
             flash("Pessoa não encontrada para exclusão.", "warning")
+            return redirect(url_for('main.index'))
+
+        # Exclui usando o id encontrado
+        (
+            supabase
+            .table("pessoas")
+            .delete()
+            .eq("id", resultado.data[0]["id"])
+            .execute()
+        )
+
+        print(f"[INFO] Pessoa com NOME {nome} excluída.")
+
+        flash("Pessoa excluída com sucesso.", "success")
 
         return redirect(url_for('main.index'))
 
@@ -351,18 +394,25 @@ def delete_person():
 @login_required
 def get_person_data():
     try:
-        sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-        dados = sheet.get_all_records()
 
-        nome = request.args.get("nome", "").strip()
+        nome = request.args.get("nome", "").strip().upper()
+
         if not nome:
             return jsonify({"erro": "Nome inválido"}), 400
 
-        for linha in dados:
-            if linha.get("NOME", "").strip().upper() == nome.upper():
-                return jsonify(linha)
+        resultado = (
+            supabase
+            .table("pessoas")
+            .select("*")
+            .eq("nome", nome)
+            .eq("micro", current_user.aba)
+            .execute()
+        )
 
-        return jsonify({"erro": "Pessoa não encontrada"}), 404
+        if not resultado.data:
+            return jsonify({"erro": "Pessoa não encontrada"}), 404
+
+        return jsonify(resultado.data[0])
 
     except Exception as e:
         print(f"[ERRO] Falha ao buscar dados da pessoa: {e}")
@@ -405,84 +455,141 @@ def logout():
 @bp.route('/fechamento')
 @login_required
 def fechamento():
+
     if current_user.role != "admin" and not current_user.fechamento:
         flash("Acesso não autorizado", "danger")
         return redirect(url_for("main.index"))
 
     try:
+
         dados = []
 
+        # ADMIN VÊ TODOS OS FECHAMENTOS
         if current_user.role == "admin":
-            for equipe in ["EQUIPE 1", "EQUIPE 2", "EQUIPE 3", "EQUIPE 4", "EQUIPE 5"]:
-                for i in range(1, 31):
-                    aba = f"FECHAMENTO MICRO {i}"
-                    try:
-                        sheet = get_sheet(equipe, aba)
-                        valores = sheet.get_all_values()
-                        if valores:
-                            dados.append({
-                                "aba": aba,
-                                "equipe": equipe,
-                                "valores": valores
-                            })
-                    except Exception as e:
-                        print(f"[ERRO] {aba} ({equipe}): {e}")
-                        continue
+
+            from app.auth import USERS
+
+            for usuario, info in USERS.items():
+
+                if info["role"] != "micro":
+                    continue
+
+                valores = gerar_fechamento_micro(
+                    info["planilha"],
+                    info["aba"]
+                )
+
+                dados.append({
+                    "aba": f"FECHAMENTO {info['aba']}",
+                    "equipe": info["planilha"],
+                    "valores": valores
+                })
+
+
+        # MICRO VÊ SOMENTE O SEU
         else:
-            aba_fechamento = current_user.fechamento
-            sheet = get_sheet(current_user.planilha, aba_fechamento)
-            valores = sheet.get_all_values()
+
+            valores = gerar_fechamento_micro(
+                current_user.planilha,
+                current_user.aba
+            )
+
             dados.append({
-                "aba": aba_fechamento,
+                "aba": f"FECHAMENTO {current_user.aba}",
                 "equipe": current_user.planilha,
                 "valores": valores
             })
 
-        return render_template("fechamento.html", dados=dados)
+
+        return render_template(
+            "fechamento.html",
+            dados=dados
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] Falha ao carregar dados: {e}")
-        flash("Erro ao carregar dados da planilha.", "danger")
-        return redirect(url_for("main.index"))
+
+        print(f"[ERRO] Falha ao gerar fechamento: {e}")
+
+        flash(
+            "Erro ao gerar fechamento.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("main.index")
+        )
 
 @bp.route('/admin/fechamento/<micro_id>')
 @login_required
 def fechamento_admin(micro_id):
+
     if current_user.role != "admin":
-        flash("Acesso restrito ao administrador.", "danger")
+        flash(
+            "Acesso restrito ao administrador.",
+            "danger"
+        )
         return redirect(url_for("main.index"))
+
 
     from app.auth import USERS
 
+
     user_info = USERS.get(micro_id)
+
+
     if not user_info:
-        flash("Micro não encontrada.", "warning")
-        return redirect(url_for("main.painel_admin"))
 
-    nome_aba = user_info["aba"]
+        flash(
+            "Micro não encontrada.",
+            "warning"
+        )
 
-    
-    if nome_aba.startswith("MI"):
-        aba_fechamento = f"FECHAMENTO {nome_aba}"
-    else:
-        aba_fechamento = f"FECHAMENTO {nome_aba.upper()}"
+        return redirect(
+            url_for("main.painel_admin")
+        )
+
 
     try:
-        sheet = get_sheet(user_info["planilha"], aba_fechamento)
-        valores = sheet.get_all_values()
+
+        valores = gerar_fechamento_micro(
+            user_info["planilha"],
+            user_info["aba"]
+        )
+
 
         dados = [{
-            "aba": aba_fechamento,
+            "aba": f"FECHAMENTO {user_info['aba']}",
             "equipe": user_info["planilha"],
             "valores": valores
         }]
 
-        return render_template("fechamento.html", dados=dados)
+
+        return render_template(
+            "fechamento.html",
+            dados=dados
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] Falha ao acessar aba de fechamento: {e}")
-        flash("Erro ao acessar os dados de fechamento.", "danger")
-        return redirect(url_for("main.visualizar_micro", micro_id=micro_id))
+
+        print(
+            f"[ERRO] Falha ao gerar fechamento admin: {e}"
+        )
+
+
+        flash(
+            "Erro ao gerar fechamento.",
+            "danger"
+        )
+
+
+        return redirect(
+            url_for(
+                "main.visualizar_micro",
+                micro_id=micro_id
+            )
+        )
 
 @bp.route('/admin')
 @login_required
@@ -511,6 +618,7 @@ def painel_admin():
 @bp.route('/admin/pesquisar_usuarios', methods=['GET'])
 @login_required
 def pesquisar_usuarios_admin():
+
     if current_user.role != "admin":
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
@@ -521,41 +629,80 @@ def pesquisar_usuarios_admin():
     resultados = []
 
     if termo_normalizado:
+
         try:
-            sheet = get_sheet(
-                planilha="Geral",
-                aba="Página1"
+
+            resposta = (
+                supabase
+                .table("pessoas")
+                .select("*")
+                .execute()
             )
 
-            dados = sheet.get_all_records()
+            dados = resposta.data
 
             for linha in dados:
-                nome = str(linha.get("NOME", "")).strip()
-                familia = str(linha.get("FAMILIA", "")).strip()
+
+                nome = str(linha.get("nome", "")).strip()
+                familia = str(linha.get("familia", "")).strip()
 
                 nome_normalizado = normalizar_texto_busca(nome)
                 familia_normalizada = normalizar_texto_busca(familia)
 
-                if (termo_normalizado in nome_normalizado or termo_normalizado in familia_normalizada):
+                if (
+                    termo_normalizado in nome_normalizado
+                    or termo_normalizado in familia_normalizada
+                ):
+
                     resultados.append({
+
                         "nome": nome,
-                        "familia": linha.get("FAMILIA", ""),
-                        "data_nascimento": linha.get("DATA DE NASCIMENTO", ""),
-                        "idade": linha.get("IDADE", ""),
-                        "sus": linha.get("SUS", ""),
-                        "endereco": linha.get("ENDEREÇO", "")
+
+                        "familia": linha.get(
+                            "familia",
+                            ""
+                        ),
+
+                        "data_nascimento": linha.get(
+                            "data_nascimento",
+                            ""
+                        ),
+
+                        "idade": linha.get(
+                            "idade",
+                            ""
+                        ),
+
+                        "sus": linha.get(
+                            "sus",
+                            ""
+                        ),
+
+                        "endereco": linha.get(
+                            "endereco",
+                            ""
+                        )
                     })
 
-        except Exception as e:
-            print(f"[ERRO PESQUISA GERAL] {e}")
 
-    resultados.sort(key=lambda x: x["nome"])
+        except Exception as e:
+
+            print(
+                f"[ERRO PESQUISA SUPABASE] {e}"
+            )
+
+
+    resultados.sort(
+        key=lambda x: x["nome"]
+    )
+
 
     lista_usuarios = {
         username: info
         for username, info in USERS.items()
         if info["role"] == "micro"
     }
+
 
     return render_template(
         "painel_admin.html",
@@ -568,32 +715,91 @@ def pesquisar_usuarios_admin():
 @bp.route('/admin/micro/<micro_id>')
 @login_required
 def visualizar_micro(micro_id):
+
     if current_user.role != "admin":
-        flash("Acesso restrito ao administrador.", "danger")
+        flash(
+            "Acesso restrito ao administrador.",
+            "danger"
+        )
         return redirect(url_for("main.index"))
 
-    from app.auth import USERS
 
     user_info = USERS.get(micro_id)
-    if not user_info:
-        flash("Micro não encontrada.", "warning")
-        return redirect(url_for("main.painel_admin"))
 
-    session["micro"] = micro_id  
+    if not user_info:
+        flash(
+            "Micro não encontrada.",
+            "warning"
+        )
+        return redirect(
+            url_for("main.painel_admin")
+        )
+
+
+    session["micro"] = micro_id
+
 
     try:
-        sheet = get_sheet(user_info["planilha"], user_info["aba"])
-        dados_crus = sheet.get_all_records()
-        dados = [{chave: str(valor) for chave, valor in linha.items()} for linha in dados_crus]
 
-        campos = list(dados[0].keys()) if dados else []
-        return render_template("index.html", dados=dados, campos=campos,
-                               colunas_extras=[], limpar_cpf=limpar_cpf, mostrar_todas=True)
+        resultado = (
+            supabase
+            .table("pessoas")
+            .select("*")
+            .eq(
+                "equipe",
+                user_info["planilha"]
+            )
+            .eq(
+                "micro",
+                user_info["aba"]
+            )
+            .execute()
+        )
+
+
+        dados_crus = resultado.data
+
+
+        dados = [
+            {
+                chave: "" if valor is None else str(valor)
+                for chave, valor in linha.items()
+            }
+            for linha in dados_crus
+        ]
+
+
+        campos = (
+            list(dados[0].keys())
+            if dados
+            else []
+        )
+
+
+        return render_template(
+            "index.html",
+            dados=dados,
+            campos=campos,
+            colunas_extras=[],
+            limpar_cpf=limpar_cpf,
+            mostrar_todas=True
+        )
+
 
     except Exception as e:
-        print(f"[ERRO] Falha ao acessar dados da micro {micro_id}: {e}")
-        flash("Erro ao carregar dados da micro.", "danger")
-        return redirect(url_for("main.painel_admin"))
+
+        print(
+            f"[ERRO] Falha ao acessar micro {micro_id}: {e}"
+        )
+
+        flash(
+            "Erro ao carregar dados da micro.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("main.painel_admin")
+        )
     
 
 @bp.route("/gerar_filipetas", methods=["POST"])

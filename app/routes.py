@@ -164,6 +164,33 @@ def somente_digitos(valor):
     return re.sub(r"\D", "", builtins.str(valor or ""))
 
 
+def buscar_pessoas_paginado_para_pesquisa(tamanho_pagina=1000):
+    """Busca todos os cadastros no Supabase, contornando o limite por página da API."""
+    todos_os_dados = []
+    inicio = 0
+
+    while True:
+        fim = inicio + tamanho_pagina - 1
+
+        resposta = (
+            supabase
+            .table("pessoas")
+            .select("nome, familia, data_nascimento, idade, sus, endereco")
+            .range(inicio, fim)
+            .execute()
+        )
+
+        pagina = resposta.data or []
+        todos_os_dados.extend(pagina)
+
+        if len(pagina) < tamanho_pagina:
+            break
+
+        inicio += tamanho_pagina
+
+    return todos_os_dados
+
+
 def num_to_col(n):
     result = ""
     while n > 0:
@@ -777,14 +804,7 @@ def pesquisar_usuarios_admin():
 
         try:
 
-            resposta = (
-                supabase
-                .table("pessoas")
-                .select("*")
-                .execute()
-            )
-
-            dados = resposta.data
+            dados = buscar_pessoas_paginado_para_pesquisa()
 
             for linha in dados:
 

@@ -325,6 +325,20 @@
           },
         });
 
+        // Ao pesquisar usuários
+        $(".pesquisa-form").on("submit", function () {
+          $(".loading-text").text("PESQUISANDO USUÁRIOS...");
+          $(".loading-subtext").text(
+            "Aguarde, a pesquisa está sendo realizada.",
+          );
+
+          $("#loadingOverlay").addClass("show");
+
+          // Bloqueia qualquer interação
+          $("a, button, input").prop("disabled", true);
+          $("body").css("cursor", "wait");
+        });
+
         // Apenas para os links de fechamento
         $("a[href*='fechamento_geral']").on("click", function (e) {
           // Evita vários cliques

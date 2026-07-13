@@ -1121,27 +1121,52 @@ def gerar_lista():
 @bp.route('/fechamento_geral')
 @login_required
 def fechamento_geral():
+
     if current_user.role != "admin":
         flash("Acesso restrito ao administrador.", "danger")
         return redirect(url_for("main.index"))
 
-    aba = request.args.get('aba', 'GERAL')
-    dados = []
+    aba = request.args.get("aba", "GERAL")
 
-    for usuario, info in USERS.items():
-        if info["role"] != "micro":
-            continue
+    try:
 
-        if aba != "GERAL" and info["equipe"] != aba:
-            continue
+        # ==========================
+        # FECHAMENTO GERAL
+        # ==========================
+        if aba == "GERAL":
 
-        dados.append({
-            "aba": f"FECHAMENTO {info['micro']}",
-            "equipe": info["equipe"],
-            "valores": gerar_fechamento_micro(info["equipe"], info["micro"]),
-        })
+            valores = gerar_fechamento()
 
-    return render_template("fechamento.html", dados=dados)
+        # ==========================
+        # FECHAMENTO DA EQUIPE
+        # ==========================
+        else:
+
+            valores = gerar_fechamento(
+                equipe=aba
+            )
+
+        dados = [{
+            "aba": f"FECHAMENTO {aba}",
+            "equipe": aba,
+            "valores": valores
+        }]
+
+        return render_template(
+            "fechamento.html",
+            dados=dados
+        )
+
+    except Exception as e:
+
+        print(f"[ERRO] {e}")
+
+        flash(
+            "Erro ao gerar fechamento.",
+            "danger"
+        )
+
+        return redirect(url_for("main.painel_admin"))
 
 app = Flask(__name__)
 

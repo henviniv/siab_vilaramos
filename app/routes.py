@@ -12,7 +12,7 @@ from flask import send_file, request
 from io import BytesIO
 from app.database import buscar_micro
 from app.supabase_db import supabase
-from app.fechamentos import gerar_fechamento_micro
+from app.fechamentos import gerar_fechamento
 from app.familias_vagas import (
     encontrar_familias_vagas,
     obter_numero_micro

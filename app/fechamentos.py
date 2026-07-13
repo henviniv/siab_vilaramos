@@ -1,23 +1,47 @@
 from app.supabase_db import supabase
 
 
-def buscar_pessoas(equipe=None, micro=None):
+def buscar_pessoas(equipe=None, micro=None, tamanho_pagina=1000):
+    """
+    Busca pessoas no Supabase, contornando o limite de registros por página.
+    Se informar equipe e/ou micro, aplica os filtros.
+    """
 
-    consulta = (
-        supabase
-        .table("pessoas")
-        .select("*")
-    )
+    todos_os_dados = []
+    inicio = 0
 
-    if equipe:
-        consulta = consulta.eq("equipe", equipe)
+    while True:
 
-    if micro:
-        consulta = consulta.eq("micro", micro)
+        fim = inicio + tamanho_pagina - 1
 
-    resultado = consulta.execute()
+        consulta = (
+            supabase
+            .table("pessoas")
+            .select("*")
+        )
 
-    return resultado.data or []
+        if equipe:
+            consulta = consulta.eq("equipe", equipe)
+
+        if micro:
+            consulta = consulta.eq("micro", micro)
+
+        resposta = (
+            consulta
+            .range(inicio, fim)
+            .execute()
+        )
+
+        pagina = resposta.data or []
+
+        todos_os_dados.extend(pagina)
+
+        if len(pagina) < tamanho_pagina:
+            break
+
+        inicio += tamanho_pagina
+
+    return todos_os_dados
 
 
 def idade_valida(pessoa):

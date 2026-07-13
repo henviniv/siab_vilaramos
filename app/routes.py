@@ -613,31 +613,45 @@ def fechamento():
 
         dados = []
 
-
         # ==============================
         # ADMIN VÊ TODOS OS FECHAMENTOS
         # ==============================
-
         if current_user.role == "admin":
 
             from app.auth import USERS
-
 
             for usuario, info in USERS.items():
 
                 if info["role"] != "micro":
                     continue
 
+                micro = info["micro"]
 
-                valores = gerar_fechamento_micro(
-                    info["equipe"],
-                    info["micro"]
-                )
+                # FECHAMENTO GERAL
+                if micro.upper() == "GERAL":
 
+                    valores = gerar_fechamento()
+
+                # FECHAMENTO POR EQUIPE
+                elif micro.upper().startswith("FECHAMENTO EQUIPE"):
+
+                    numero = micro.split()[-1]
+
+                    valores = gerar_fechamento(
+                        equipe=f"EQUIPE {numero}"
+                    )
+
+                # FECHAMENTO DA MICRO
+                else:
+
+                    valores = gerar_fechamento(
+                        info["equipe"],
+                        micro
+                    )
 
                 dados.append({
 
-                    "aba": f"FECHAMENTO {info['micro']}",
+                    "aba": f"FECHAMENTO {micro}",
 
                     "equipe": info["equipe"],
 
@@ -645,18 +659,15 @@ def fechamento():
 
                 })
 
-
         # ==============================
         # MICRO VÊ SOMENTE O SEU
         # ==============================
-
         else:
 
-            valores = gerar_fechamento_micro(
+            valores = gerar_fechamento(
                 current_user.equipe,
                 current_user.micro
             )
-
 
             dados.append({
 
@@ -668,25 +679,19 @@ def fechamento():
 
             })
 
-
         return render_template(
             "fechamento.html",
             dados=dados
         )
 
-
     except Exception as e:
 
-        print(
-            f"[ERRO] Falha ao gerar fechamento: {e}"
-        )
-
+        print(f"[ERRO] Falha ao gerar fechamento: {e}")
 
         flash(
             "Erro ao gerar fechamento.",
             "danger"
         )
-
 
         return redirect(
             url_for("main.index")
@@ -703,17 +708,14 @@ def fechamento_admin(micro_id):
         )
         return redirect(url_for("main.index"))
 
-
     from app.auth import USERS
 
-
     user_info = USERS.get(micro_id)
-
 
     if not user_info:
 
         flash(
-            "Micro não encontrada.",
+            "Registro não encontrado.",
             "warning"
         )
 
@@ -721,46 +723,64 @@ def fechamento_admin(micro_id):
             url_for("main.painel_admin")
         )
 
-
     try:
 
-        valores = gerar_fechamento_micro(
-            user_info["equipe"],
-            user_info["micro"]
-        )
+        micro = user_info["micro"]
 
+        # ==============================
+        # FECHAMENTO GERAL
+        # ==============================
+        if micro.upper() == "GERAL":
+
+            valores = gerar_fechamento()
+
+        # ==============================
+        # FECHAMENTO DA EQUIPE
+        # ==============================
+        elif micro.upper().startswith("FECHAMENTO EQUIPE"):
+
+            numero = micro.split()[-1]
+
+            valores = gerar_fechamento(
+                equipe=f"EQUIPE {numero}"
+            )
+
+        # ==============================
+        # FECHAMENTO DA MICRO
+        # ==============================
+        else:
+
+            valores = gerar_fechamento(
+                user_info["equipe"],
+                micro
+            )
 
         dados = [{
-            "aba": f"FECHAMENTO {user_info['micro']}",
-            "equipe": user_info["equipe"],
-            "valores": valores
-        }]
 
+            "aba": f"FECHAMENTO {micro}",
+
+            "equipe": user_info["equipe"],
+
+            "valores": valores
+
+        }]
 
         return render_template(
             "fechamento.html",
             dados=dados
         )
 
-
     except Exception as e:
 
-        print(
-            f"[ERRO] Falha ao gerar fechamento admin: {e}"
-        )
-
+        print(f"[ERRO] Falha ao gerar fechamento admin: {e}")
 
         flash(
             "Erro ao gerar fechamento.",
             "danger"
         )
 
-
         return redirect(
-            url_for(
-                "main.visualizar_micro",
-                micro_id=micro_id
-            )
+            url_for("main.painel_admin")
         )
 
 @bp.route('/admin')

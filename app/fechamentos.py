@@ -1,15 +1,21 @@
 from app.supabase_db import supabase
 
 
-def buscar_pessoas(equipe, micro):
-    resultado = (
+def buscar_pessoas(equipe=None, micro=None):
+
+    consulta = (
         supabase
         .table("pessoas")
         .select("*")
-        .eq("equipe", equipe)
-        .eq("micro", micro)
-        .execute()
     )
+
+    if equipe:
+        consulta = consulta.eq("equipe", equipe)
+
+    if micro:
+        consulta = consulta.eq("micro", micro)
+
+    resultado = consulta.execute()
 
     return resultado.data or []
 
@@ -69,7 +75,7 @@ def contar_condicao(pessoas, campo, minimo, maximo=None):
     return total
 
 
-def gerar_fechamento_micro(equipe, micro):
+def gerar_fechamento(equipe=None, micro=None):
 
     pessoas = buscar_pessoas(equipe, micro)
 

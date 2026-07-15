@@ -394,9 +394,21 @@ def create_or_update_person():
     try:
         pessoa = montar_pessoa_formulario(current_user.equipe, current_user.micro)
 
-        if not pessoa["nome"]:
-            flash("Informe o nome da pessoa.", "warning")
-            return redirect(url_for("main.index"))
+        campos_obrigatorios = {
+            "nome": "Nome",
+            "cor_etnia": "Cor/Etnia",
+            "sus": "SUS",
+            "familia": "Família",
+            "data_nascimento": "Data de nascimento",
+            "genero": "Gênero",
+            "cpf": "CPF",
+            "endereco": "Endereço"
+        }
+
+        for chave, descricao in campos_obrigatorios.items():
+            if not str(pessoa.get(chave, "")).strip():
+                flash(f"O campo '{descricao}' é obrigatório.", "warning")
+                return redirect(url_for("main.index"))
 
         pessoa_id = pessoa_id_requisicao()
 

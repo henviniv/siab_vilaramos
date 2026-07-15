@@ -146,17 +146,31 @@ micro_id=session.get('micro')
       class="data-form"
     >
       <input type="hidden" name="id" />
+
       {% set campos_somente_s = [ 'gestante', 'dia', 'has', 'hiperdia',
       'insulino', 'sm', 'tb', 'han', 'obesa', 'tabagista', 'uso_de_drogas',
       'acamado', 'uso_de_alcool', 'restrito', 'asmatico_dpoc', 'bolsa_familia',
-      'ampi', 'fralda', 'sifilis' ] %} {% for chave in campos %}
-      {% if chave not in campos_sistema and chave not in ['equipe', 'micro'] %}
+      'ampi', 'fralda', 'sifilis' ] %} {% set campos_obrigatorios = [
+      'cor_etnia', 'nome', 'sus', 'familia', 'data_nascimento', 'genero', 'cpf',
+      'endereco' ] %} {% for chave in campos %} {% if chave not in
+      campos_sistema and chave not in ['equipe', 'micro'] %}
 
       <label for="{{ chave }}"> {{ chave.replace("_"," ").upper() }}: </label>
 
       {% if chave == "data_nascimento" %}
 
-      <input type="date" name="{{ chave }}" />
+      <input
+        type="date"
+        name="{{ chave }}"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      />
 
       {% elif chave == "idade" %}
 
@@ -174,37 +188,61 @@ micro_id=session.get('micro')
 
       {% elif chave == "genero" %}
 
-      <select name="{{ chave }}" class="input-campo">
+      <select
+        name="{{ chave }}"
+        class="input-campo"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      >
         <option value="">Selecione</option>
-
         <option value="MASCULINO">MASCULINO</option>
-
         <option value="FEMININO">FEMININO</option>
       </select>
 
       {% elif chave == "cor_etnia" %}
 
-      <select name="{{ chave }}" class="input-campo">
+      <select
+        name="{{ chave }}"
+        class="input-campo"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      >
         <option value="">Selecione</option>
-
         <option value="BRANCA">BRANCA</option>
-
         <option value="PRETA">PRETA</option>
-
         <option value="PARDA">PARDA</option>
-
         <option value="AMARELA">AMARELA</option>
-
         <option value="INDIGENA">INDIGENA</option>
       </select>
 
       {% else %}
 
-      <input type="text" name="{{ chave }}" />
+      <input
+        type="text"
+        name="{{ chave }}"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      />
 
-      {% endif %}
-      {% endif %}
-      {% endfor %}
+      {% endif %} {% endif %} {% endfor %}
 
       <button type="submit" id="salvarBtn">Salvar</button>
 
@@ -246,8 +284,8 @@ micro_id=session.get('micro')
             {% endif %} {% endfor %}
             <td>
               {% if current_user.is_authenticated and current_user.role ==
-              'micro' %} {% set nome = linha.get("nome", "") %}
-              {% set pessoa_id = linha.get("id", "") %}
+              'micro' %} {% set nome = linha.get("nome", "") %} {% set pessoa_id
+              = linha.get("id", "") %}
               <div>
                 <button
                   type="button"

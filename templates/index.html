@@ -790,19 +790,12 @@ micro_id=session.get('micro')
       function gerarPdfLista() {
         const tabela = $("#tabelaPessoas").DataTable();
 
-        const indices = obterIndicesColunas();
-
         const colunas = [
           "nome",
-
           "sus",
-
           "familia",
-
           "data_nascimento",
-
           "idade",
-
           "endereco",
         ];
 
@@ -810,11 +803,10 @@ micro_id=session.get('micro')
 
         tabela.rows({ filter: "applied" }).every(function () {
           const linha = this.data();
-
           const obj = {};
 
           colunas.forEach(function (c) {
-            obj[c] = linha[indices[c]] || "";
+            obj[c] = linha[indiceColuna(c)] || "";
           });
 
           dados.push(obj);
@@ -822,26 +814,19 @@ micro_id=session.get('micro')
 
         fetch("/gerar_lista", {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
-            dados: dados,
-
-            colunas: colunas,
-
+            dados,
+            colunas,
             titulo: document.getElementById("tituloLista").value,
           }),
         })
           .then((r) => r.blob())
-
           .then((blob) => {
             const url = URL.createObjectURL(blob);
-
             window.open(url);
-
             cancelarLista();
           });
       }

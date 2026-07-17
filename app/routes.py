@@ -563,7 +563,7 @@ def login():
         password = request.form.get('password')
 
 
-        user_data = (
+        resposta = (
             supabase
             .table("usuarios")
             .select("*")
@@ -571,10 +571,11 @@ def login():
             .execute()
         )
 
-if user_data.data:
-    user_data = user_data.data[0]
-else:
-    user_data = None
+
+        if resposta.data:
+            user_data = resposta.data[0]
+        else:
+            user_data = None
 
 
         if user_data and user_data['password'] == password:

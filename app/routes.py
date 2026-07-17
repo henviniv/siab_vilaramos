@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash, request, send_file, Flask
 from flask_login import login_user, logout_user, login_required, current_user
 from app.google_sheets import get_sheet
-from app.auth import USERS, User
+from app.auth import User
 import re
 import builtins
 import unicodedata
@@ -563,7 +563,18 @@ def login():
         password = request.form.get('password')
 
 
-        user_data = USERS.get(username)
+        user_data = (
+            supabase
+            .table("usuarios")
+            .select("*")
+            .eq("username", username)
+            .execute()
+        )
+
+if user_data.data:
+    user_data = user_data.data[0]
+else:
+    user_data = None
 
 
         if user_data and user_data['password'] == password:
@@ -630,19 +641,28 @@ def fechamento():
         # ==============================
         if current_user.role == "admin":
 
-            from app.auth import USERS
+            usuarios = (
+                supabase
+                .table("usuarios")
+                .select("*")
+                .eq("role", "micro")
+                .execute()
+            ).data
 
-            for usuario, info in USERS.items():
 
-                if info["role"] != "micro":
-                    continue
+            for info in usuarios:
 
                 micro = info["micro"]
+
+                if not micro:
+                    continue
+
 
                 # FECHAMENTO GERAL
                 if micro.upper() == "GERAL":
 
                     valores = gerar_fechamento()
+
 
                 # FECHAMENTO POR EQUIPE
                 elif micro.upper().startswith("FECHAMENTO EQUIPE"):
@@ -653,13 +673,15 @@ def fechamento():
                         equipe=f"EQUIPE {numero}"
                     )
 
-                # FECHAMENTO DA MICRO
+
+                # FECHAMENTO MICRO
                 else:
 
                     valores = gerar_fechamento(
                         info["equipe"],
                         micro
                     )
+
 
                 dados.append({
 
@@ -671,6 +693,7 @@ def fechamento():
 
                 })
 
+
         # ==============================
         # MICRO VÊ SOMENTE O SEU
         # ==============================
@@ -680,6 +703,7 @@ def fechamento():
                 current_user.equipe,
                 current_user.micro
             )
+
 
             dados.append({
 
@@ -691,10 +715,12 @@ def fechamento():
 
             })
 
+
         return render_template(
             "fechamento.html",
             dados=dados
         )
+
 
     except Exception as e:
 
@@ -720,11 +746,19 @@ def fechamento_admin(micro_id):
         )
         return redirect(url_for("main.index"))
 
-    from app.auth import USERS
+    resultado_usuario = (
+        supabase
+        .table("usuarios")
+        .select("username, role, micro, equipe")
+        .eq("username", micro_id)
+        .execute()
+    )
 
-    user_info = USERS.get(micro_id)
 
-    if not user_info:
+    if (
+        not resultado_usuario.data
+        or resultado_usuario.data[0]["role"] != "micro"
+    ):
 
         flash(
             "Registro não encontrado.",
@@ -734,6 +768,9 @@ def fechamento_admin(micro_id):
         return redirect(
             url_for("main.painel_admin")
         )
+
+
+    user_info = resultado_usuario.data[0]
 
     try:
 
@@ -798,17 +835,36 @@ def fechamento_admin(micro_id):
 @bp.route('/admin')
 @login_required
 def painel_admin():
-    if current_user.role != "admin":
-        flash("Acesso restrito ao administrador.", "danger")
-        return redirect(url_for("main.index"))
 
-    from app.auth import USERS
+    if current_user.role != "admin":
+
+        flash(
+            "Acesso restrito ao administrador.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("main.index")
+        )
+
+
+    usuarios = (
+        supabase
+        .table("usuarios")
+        .select("*")
+        .eq("role", "micro")
+        .execute()
+    ).data
+
 
     lista_usuarios = {
-        username: info
-        for username, info in USERS.items()
-        if info["role"] == "micro"
+
+        usuario["username"]: usuario
+
+        for usuario in usuarios
+
     }
+
 
     return render_template(
         "painel_admin.html",
@@ -894,10 +950,21 @@ def pesquisar_usuarios_admin():
     )
 
 
+    usuarios = (
+        supabase
+        .table("usuarios")
+        .select("*")
+        .eq("role", "micro")
+        .execute()
+    ).data
+
+
     lista_usuarios = {
-        username: info
-        for username, info in USERS.items()
-        if info["role"] == "micro"
+
+        usuario["username"]: usuario
+
+        for usuario in usuarios
+
     }
 
 
@@ -921,16 +988,28 @@ def visualizar_micro(micro_id):
         return redirect(url_for("main.index"))
 
 
-    user_info = USERS.get(micro_id)
+    resultado_usuario = (
+        supabase
+        .table("usuarios")
+        .select("username, role, micro, equipe")
+        .eq("username", micro_id)
+        .execute()
+    )
 
-    if not user_info:
+
+    if not resultado_usuario.data:
+
         flash(
             "Micro não encontrada.",
             "warning"
         )
+
         return redirect(
             url_for("main.painel_admin")
         )
+
+
+    user_info = resultado_usuario.data[0]
 
 
     session["micro"] = micro_id

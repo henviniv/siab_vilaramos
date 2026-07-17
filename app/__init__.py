@@ -1,8 +1,7 @@
 from flask import Flask
 from flask_login import LoginManager
 from app.routes import bp
-from app.auth import User, USERS
-import re
+from app.auth import User
 
 login_manager = LoginManager()
 
@@ -38,7 +37,13 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
 
-        info = USERS.get(user_id)
+        info = (
+            supabase
+            .table("usuarios")
+            .select("*")
+            .eq("username", user_id)
+            .execute()
+        )
 
         if info:
 

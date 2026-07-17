@@ -38,25 +38,29 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
 
-        info = (
+        resposta = (
             supabase
             .table("usuarios")
-            .select("*")
+            .select("username, role, micro, equipe")
             .eq("username", user_id)
             .execute()
         )
 
-        if info:
 
-            return User(
-                id=user_id,
-                username=user_id,
-                role=info["role"],
-                micro=info.get("micro"),
-                equipe=info.get("equipe")
-            )
+        if not resposta.data:
+            return None
 
-        return None
+
+        info = resposta.data[0]
+
+
+        return User(
+            id=info["username"],
+            username=info["username"],
+            role=info["role"],
+            micro=info.get("micro"),
+            equipe=info.get("equipe")
+        )
 
 
     return app

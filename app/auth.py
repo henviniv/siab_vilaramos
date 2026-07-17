@@ -107,10 +107,10 @@ def login():
 
                 return redirect(url_for("main.index"))
 
-    flash(
-        "Usuário ou senha inválidos",
-        "danger"
-    )
+        flash(
+           "Usuário ou senha inválidos",
+           "danger"
+        )
 
             print("[LOGIN]", user.username, "MICRO:", user.micro, "EQUIPE:", user.equipe)
 

@@ -57,20 +57,31 @@ USERS = {
 
 @login_manager.user_loader
 def load_user(user_id):
+    try:
+        resposta = (
+            supabase
+            .table("usuarios")
+            .select("*")
+            .eq("username", user_id)
+            .execute()
+        )
 
-    user_data = USERS.get(user_id)
+        if not resposta.data:
+            return None
 
-    if user_data:
+        user_data = resposta.data[0]
 
         return User(
-            id=user_id,
-            username=user_id,
+            id=user_data["username"],
+            username=user_data["username"],
             role=user_data["role"],
             micro=user_data.get("micro"),
             equipe=user_data.get("equipe")
         )
 
-    return None
+    except Exception as e:
+        print(f"Erro ao carregar usuário: {e}")
+        return None
 
 @auth_bp.route('/login', methods=['GET','POST'])
 def login():

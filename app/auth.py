@@ -112,17 +112,6 @@ def login():
            "danger"
         )
 
-            print("[LOGIN]", user.username, "MICRO:", user.micro, "EQUIPE:", user.equipe)
-
-            return redirect(
-                url_for("main.index")
-            )
-
-
-        flash(
-            "Usuário ou senha inválidos",
-            "danger"
-        )
 
     return render_template("login.html")
 

@@ -77,23 +77,40 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form['username']
-        senha = request.form['password']
+        username = request.form["username"].strip()
+        senha = request.form["password"]
 
-        user_data = USERS.get(username)
+        resposta = (
+            supabase
+            .table("usuarios")
+            .select("*")
+            .eq("username", username)
+            .execute()
+        )
 
+        if resposta.data:
+            user_data = resposta.data[0]
 
-        if user_data and senha == user_data["password"]:
+            if check_password_hash(user_data["password_hash"], senha):
 
-            user = User(
-                id=username,
-                username=username,
-                role=user_data["role"],
-                micro=user_data.get("micro"),
-                equipe=user_data.get("equipe")
-            )
+                user = User(
+                    id=user_data["username"],
+                    username=user_data["username"],
+                    role=user_data["role"],
+                    micro=user_data.get("micro"),
+                    equipe=user_data.get("equipe")
+                )
 
-            login_user(user)
+                login_user(user)
+
+                print("[LOGIN]", user.username, "MICRO:", user.micro, "EQUIPE:", user.equipe)
+
+                return redirect(url_for("main.index"))
+
+    flash(
+        "Usuário ou senha inválidos",
+        "danger"
+    )
 
             print("[LOGIN]", user.username, "MICRO:", user.micro, "EQUIPE:", user.equipe)
 

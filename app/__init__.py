@@ -2,6 +2,7 @@ from flask import Flask
 from flask_login import LoginManager
 from app.routes import bp
 from app.auth import User
+from app.supabase_db import supabase
 
 login_manager = LoginManager()
 

@@ -139,6 +139,7 @@ def gerar_fechamento(equipe=None, micro=None):
     ])
 
     totais_sexo = {}
+    faixa_etaria_dashboard = {}
 
     for sexo in ["MASCULINO", "FEMININO"]:
 
@@ -153,6 +154,13 @@ def gerar_fechamento(equipe=None, micro=None):
                     maximo
                 )
             )
+
+        if sexo == "MASCULINO":
+            for indice, (rotulo, _, _) in enumerate(faixas, start=1):
+                faixa_etaria_dashboard[rotulo] = linha[indice]
+        else:
+            for indice, (rotulo, _, _) in enumerate(faixas, start=1):
+                faixa_etaria_dashboard[rotulo] += linha[indice]
 
         total_sexo = sum(linha[1:])
         linha.append(total_sexo)
@@ -349,9 +357,25 @@ def gerar_fechamento(equipe=None, micro=None):
         "Total": gestante_10_19 + gestante_20
     }
 
+    dashboard["faixa_etaria"] = faixa_etaria_dashboard
+    dashboard["max_faixa_etaria"] = (
+        max(faixa_etaria_dashboard.values() or [0]) or 1
+    )
+
     dashboard["cor_etnia"] = cores_dashboard
+    dashboard["max_cor_etnia"] = max(cores_dashboard.values() or [0]) or 1
 
     dashboard["condicoes"] = condicoes_dashboard
+    dashboard["totais_condicoes"] = {
+        campo.upper(): sum(
+            faixa.get(campo.upper(), 0)
+            for faixa in condicoes_dashboard.values()
+        )
+        for campo in condicoes
+    }
+    dashboard["max_condicoes"] = (
+        max(dashboard["totais_condicoes"].values() or [0]) or 1
+    )
 
     return {
         "tabela": tabela,

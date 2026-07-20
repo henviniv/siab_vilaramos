@@ -11,22 +11,36 @@
     />
 
     <style>
+      :root {
+        --primary: #0d6efd;
+        --primary-dark: #084298;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #0dcaf0;
+        --muted: #6c757d;
+        --surface: #ffffff;
+        --border: #e5e7eb;
+      }
+
       body {
         font-family: Arial, sans-serif;
         background: #f4f6f9;
+        color: #1f2937;
         padding: 20px;
       }
 
       h1,
-      h2 {
-        color: #333;
+      h2,
+      h3 {
+        color: #111827;
       }
 
       .back-button {
         margin-bottom: 20px;
         display: inline-block;
         padding: 10px 15px;
-        background: #0d6efd;
+        background: var(--primary);
         color: #fff;
         text-decoration: none;
         border-radius: 6px;
@@ -36,32 +50,123 @@
         background: #0b5ed7;
       }
 
+      .fechamento-section {
+        margin-bottom: 42px;
+      }
+
       .dashboard {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
         margin: 25px 0;
       }
 
+      .card,
+      .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      }
+
       .card {
-        background: #fff;
-        border-radius: 10px;
         padding: 18px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         text-align: center;
       }
 
       .card h3 {
         margin: 0;
-        font-size: 15px;
-        color: #666;
+        font-size: 14px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
       .card .valor {
         margin-top: 10px;
         font-size: 34px;
         font-weight: bold;
-        color: #0d6efd;
+        color: var(--primary);
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+        margin: 0 0 28px;
+      }
+
+      .chart-card {
+        padding: 20px;
+      }
+
+      .chart-card h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 120px 1fr 48px;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+
+      .bar-label {
+        color: #374151;
+        font-weight: 600;
+      }
+
+      .bar-track {
+        height: 16px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf2f7;
+      }
+
+      .bar-fill {
+        display: block;
+        height: 100%;
+        width: var(--bar-width, 0%);
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+      }
+
+      .bar-value {
+        color: #111827;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .split-chart {
+        display: grid;
+        gap: 14px;
+      }
+
+      .split-item {
+        display: grid;
+        grid-template-columns: 100px 1fr 52px;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .split-fill {
+        height: 28px;
+        width: var(--bar-width, 0%);
+        border-radius: 8px;
+      }
+
+      .masculino { background: #0d6efd; }
+      .feminino { background: #d63384; }
+      .gestantes { background: #6f42c1; }
+      .familias { background: #198754; }
+
+      .empty-chart {
+        color: var(--muted);
+        padding: 22px 0;
+        text-align: center;
       }
 
       .tabela-scroll {
@@ -89,6 +194,12 @@
       tr:nth-child(even) {
         background: #f8f8f8;
       }
+
+      @media (max-width: 640px) {
+        body { padding: 12px; }
+        .bar-row { grid-template-columns: 82px 1fr 38px; }
+        .split-item { grid-template-columns: 82px 1fr 42px; }
+      }
     </style>
   </head>
 
@@ -103,107 +214,123 @@
       todas as Micros {% endif %}
     </h1>
 
-    {% if dados %} {% if current_user.role == 'admin' and dados|length > 1 %} {%
-    for tabela in dados %}
-
-    <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
-
+    {% macro cards(tabela) %}
     <div class="dashboard">
       <div class="card">
         <h3>Total de Pessoas</h3>
         <div class="valor">{{ tabela.dashboard.total_pessoas }}</div>
       </div>
-
       <div class="card">
         <h3>Total de Famílias</h3>
         <div class="valor">{{ tabela.dashboard.total_familias }}</div>
       </div>
-
       <div class="card">
         <h3>Masculino</h3>
         <div class="valor">{{ tabela.dashboard.sexo.Masculino }}</div>
       </div>
-
       <div class="card">
         <h3>Feminino</h3>
         <div class="valor">{{ tabela.dashboard.sexo.Feminino }}</div>
       </div>
-
       <div class="card">
         <h3>Gestantes</h3>
         <div class="valor">{{ tabela.dashboard.gestantes.Total }}</div>
       </div>
     </div>
+    {% endmacro %}
 
+    {% macro graficos(tabela) %}
+    {% set total_pessoas = tabela.dashboard.total_pessoas or 0 %}
+    {% set max_faixa = tabela.dashboard.max_faixa_etaria or 1 %}
+    {% set max_cor = tabela.dashboard.max_cor_etnia or 1 %}
+    {% set max_condicao = tabela.dashboard.max_condicoes or 1 %}
+    <div class="charts-grid">
+      <section class="chart-card">
+        <h3>Distribuição por sexo</h3>
+        {% if total_pessoas > 0 %}
+        <div class="split-chart">
+          <div class="split-item">
+            <span class="bar-label">Masculino</span>
+            <div class="bar-track"><span class="split-fill masculino" style="--bar-width: {{ (tabela.dashboard.sexo.Masculino / total_pessoas * 100)|round(1) }}%"></span></div>
+            <span class="bar-value">{{ tabela.dashboard.sexo.Masculino }}</span>
+          </div>
+          <div class="split-item">
+            <span class="bar-label">Feminino</span>
+            <div class="bar-track"><span class="split-fill feminino" style="--bar-width: {{ (tabela.dashboard.sexo.Feminino / total_pessoas * 100)|round(1) }}%"></span></div>
+            <span class="bar-value">{{ tabela.dashboard.sexo.Feminino }}</span>
+          </div>
+        </div>
+        {% else %}<div class="empty-chart">Sem pessoas cadastradas.</div>{% endif %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Pessoas por faixa etária</h3>
+        {% for faixa, total in tabela.dashboard.faixa_etaria.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ faixa }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_faixa * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Cor / etnia</h3>
+        {% for cor, total in tabela.dashboard.cor_etnia.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ cor }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_cor * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Condições referidas</h3>
+        {% for condicao, total in tabela.dashboard.totais_condicoes.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ condicao }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_condicao * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+    </div>
+    {% endmacro %}
+
+    {% macro tabela_fechamento(tabela) %}
     <div class="tabela-scroll">
       <table>
         <tbody>
           {% for linha in tabela.valores %}
-
           <tr>
             {% for celula in linha %}
-
             <td>{{ celula }}</td>
-
             {% endfor %}
           </tr>
-
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {% endmacro %}
 
-    {% endfor %} {% else %}
-
-    <div class="dashboard">
-      <div class="card">
-        <h3>Total de Pessoas</h3>
-        <div class="valor">{{ dados[0].dashboard.total_pessoas }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Total de Famílias</h3>
-        <div class="valor">{{ dados[0].dashboard.total_familias }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Masculino</h3>
-        <div class="valor">{{ dados[0].dashboard.sexo.Masculino }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Feminino</h3>
-        <div class="valor">{{ dados[0].dashboard.sexo.Feminino }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Gestantes</h3>
-        <div class="valor">{{ dados[0].dashboard.gestantes.Total }}</div>
-      </div>
-    </div>
-
-    <div class="tabela-scroll">
-      <table>
-        <tbody>
-          {% for linha in dados[0].valores %}
-
-          <tr>
-            {% for celula in linha %}
-
-            <td>{{ celula }}</td>
-
-            {% endfor %}
-          </tr>
-
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    {% endif %} {% else %}
-
-    <p>Nenhum dado de fechamento encontrado.</p>
-
+    {% if dados %}
+      {% if current_user.role == 'admin' and dados|length > 1 %}
+        {% for tabela in dados %}
+        <section class="fechamento-section">
+          <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
+          {{ cards(tabela) }}
+          {{ graficos(tabela) }}
+          {{ tabela_fechamento(tabela) }}
+        </section>
+        {% endfor %}
+      {% else %}
+        {{ cards(dados[0]) }}
+        {{ graficos(dados[0]) }}
+        {{ tabela_fechamento(dados[0]) }}
+      {% endif %}
+    {% else %}
+      <p>Nenhum dado de fechamento encontrado.</p>
     {% endif %}
   </body>
 </html>

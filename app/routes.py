@@ -1231,21 +1231,25 @@ def fechamento_geral():
         # ==========================
         if aba == "GERAL":
 
-            valores = gerar_fechamento()
+            resultado = gerar_fechamento()
 
         # ==========================
         # FECHAMENTO DA EQUIPE
         # ==========================
         else:
 
-            valores = gerar_fechamento(
+            resultado = gerar_fechamento(
                 equipe=aba
             )
+
+        valores = resultado["tabela"]
+        dashboard = resultado["dashboard"]
 
         dados = [{
             "aba": f"FECHAMENTO {aba}",
             "equipe": aba,
-            "valores": valores
+            "valores": valores,
+            "dashboard": dashboard
         }]
 
         return render_template(

@@ -104,7 +104,7 @@ def gerar_fechamento(equipe=None, micro=None):
     pessoas = buscar_pessoas(equipe, micro)
 
     tabela = []
-
+    dashboard = {}
 
     # ==================================================
     # POPULAÇÃO POR SEXO E FAIXA ETÁRIA
@@ -123,7 +123,6 @@ def gerar_fechamento(equipe=None, micro=None):
         (">60", 60, None)
     ]
 
-
     tabela.append([
         "SEXO",
         "<1",
@@ -139,6 +138,7 @@ def gerar_fechamento(equipe=None, micro=None):
         "TOTAL"
     ])
 
+    totais_sexo = {}
 
     for sexo in ["MASCULINO", "FEMININO"]:
 
@@ -154,10 +154,12 @@ def gerar_fechamento(equipe=None, micro=None):
                 )
             )
 
-        linha.append(sum(linha[1:]))
+        total_sexo = sum(linha[1:])
+        linha.append(total_sexo)
+
+        totais_sexo[sexo] = total_sexo
 
         tabela.append(linha)
-
 
     linha_total = ["Nº DE PESSOAS"]
 
@@ -171,8 +173,6 @@ def gerar_fechamento(equipe=None, micro=None):
 
     tabela.append(linha_total)
 
-
-
     # ==================================================
     # COR / ETNIA
     # ==================================================
@@ -184,6 +184,7 @@ def gerar_fechamento(equipe=None, micro=None):
         "TOTAL"
     ])
 
+    cores_dashboard = {}
 
     for cor in [
         "BRANCA",
@@ -199,12 +200,12 @@ def gerar_fechamento(equipe=None, micro=None):
             if pessoa.get("cor_etnia") == cor
         )
 
+        cores_dashboard[cor] = total_cor
+
         tabela.append([
             cor,
             total_cor
         ])
-
-
 
     # ==================================================
     # CONDIÇÕES REFERIDAS
@@ -225,7 +226,6 @@ def gerar_fechamento(equipe=None, micro=None):
         "TOTAL"
     ])
 
-
     condicoes = [
         "dia",
         "has",
@@ -237,6 +237,7 @@ def gerar_fechamento(equipe=None, micro=None):
         "acamado"
     ]
 
+    condicoes_dashboard = {}
 
     for descricao, minimo, maximo in [
         ("0 a 14 anos", 0, 14),
@@ -245,6 +246,8 @@ def gerar_fechamento(equipe=None, micro=None):
 
         linha = [descricao]
         total = 0
+
+        condicoes_dashboard[descricao] = {}
 
         for campo in condicoes:
 
@@ -258,11 +261,11 @@ def gerar_fechamento(equipe=None, micro=None):
             linha.append(valor)
             total += valor
 
+            condicoes_dashboard[descricao][campo.upper()] = valor
+
         linha.append(total)
 
         tabela.append(linha)
-
-
 
     # ==================================================
     # GESTANTES
@@ -275,14 +278,12 @@ def gerar_fechamento(equipe=None, micro=None):
         "GESTANTES"
     ])
 
-
     gestante_10_19 = contar_condicao(
         pessoas,
         "gestante",
         10,
         19
     )
-
 
     gestante_20 = contar_condicao(
         pessoas,
@@ -291,25 +292,20 @@ def gerar_fechamento(equipe=None, micro=None):
         None
     )
 
-
     tabela.append([
         "10 a 19 anos",
         gestante_10_19
     ])
-
 
     tabela.append([
         "20 anos e mais",
         gestante_20
     ])
 
-
     tabela.append([
         "TOTAL",
         gestante_10_19 + gestante_20
     ])
-
-
 
     # ==================================================
     # TOTAIS
@@ -323,7 +319,6 @@ def gerar_fechamento(equipe=None, micro=None):
         )
     )
 
-
     tabela.append([])
 
     tabela.append([
@@ -331,11 +326,34 @@ def gerar_fechamento(equipe=None, micro=None):
         familias
     ])
 
-
     tabela.append([
         "NUMERO DE PESSOAS",
         len(pessoas)
     ])
 
+    # ==================================================
+    # DASHBOARD
+    # ==================================================
 
-    return tabela
+    dashboard["total_pessoas"] = len(pessoas)
+    dashboard["total_familias"] = familias
+
+    dashboard["sexo"] = {
+        "Masculino": totais_sexo["MASCULINO"],
+        "Feminino": totais_sexo["FEMININO"]
+    }
+
+    dashboard["gestantes"] = {
+        "10 a 19": gestante_10_19,
+        "20+": gestante_20,
+        "Total": gestante_10_19 + gestante_20
+    }
+
+    dashboard["cor_etnia"] = cores_dashboard
+
+    dashboard["condicoes"] = condicoes_dashboard
+
+    return {
+        "tabela": tabela,
+        "dashboard": dashboard
+    }

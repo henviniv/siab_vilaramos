@@ -4,63 +4,98 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fechamento</title>
+
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+
     <style>
       body {
         font-family: Arial, sans-serif;
-        background-color: #f8f9fa;
+        background: #f4f6f9;
         padding: 20px;
       }
+
       h1,
       h2 {
         color: #333;
-        margin-bottom: 15px;
       }
+
+      .back-button {
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 10px 15px;
+        background: #0d6efd;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+      }
+
+      .back-button:hover {
+        background: #0b5ed7;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 25px 0;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        text-align: center;
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 15px;
+        color: #666;
+      }
+
+      .card .valor {
+        margin-top: 10px;
+        font-size: 34px;
+        font-weight: bold;
+        color: #0d6efd;
+      }
+
       .tabela-scroll {
         overflow-x: auto;
-        background-color: #fff;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 30px;
+        background: #fff;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 35px;
       }
+
       table {
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
-        margin-top: 10px;
       }
+
       td,
       th {
-        border: 1px solid #ccc;
-        padding: 6px;
+        border: 1px solid #ddd;
+        padding: 7px;
         text-align: center;
-        min-width: 50px;
       }
+
       tr:nth-child(even) {
-        background-color: #f1f1f1;
-      }
-      .back-button {
-        margin-bottom: 20px;
-        display: inline-block;
-        padding: 8px 12px;
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-      }
-      .back-button:hover {
-        background-color: #0056b3;
+        background: #f8f8f8;
       }
     </style>
   </head>
+
   <body>
-    <a href="{{ url_for('main.index') }}" class="back-button"
-      >← Voltar para o início</a
-    >
+    <a href="{{ url_for('main.index') }}" class="back-button">
+      ← Voltar para o início
+    </a>
 
     <h1>
       📊 Fechamento {% if dados|length == 1 %} - {{ dados[0].aba }} {% elif
@@ -68,39 +103,107 @@
       todas as Micros {% endif %}
     </h1>
 
-    {% if dados %} {% if current_user.role == 'admin' and dados|length > 1 %} {#
-    Admin visualizando todos os fechamentos #} {% for tabela in dados %}
+    {% if dados %} {% if current_user.role == 'admin' and dados|length > 1 %} {%
+    for tabela in dados %}
+
     <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
+
+    <div class="dashboard">
+      <div class="card">
+        <h3>Total de Pessoas</h3>
+        <div class="valor">{{ tabela.dashboard.total_pessoas }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Total de Famílias</h3>
+        <div class="valor">{{ tabela.dashboard.total_familias }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Masculino</h3>
+        <div class="valor">{{ tabela.dashboard.sexo.Masculino }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Feminino</h3>
+        <div class="valor">{{ tabela.dashboard.sexo.Feminino }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Gestantes</h3>
+        <div class="valor">{{ tabela.dashboard.gestantes.Total }}</div>
+      </div>
+    </div>
+
     <div class="tabela-scroll">
       <table>
         <tbody>
           {% for linha in tabela.valores %}
+
           <tr>
             {% for celula in linha %}
+
             <td>{{ celula }}</td>
+
             {% endfor %}
           </tr>
+
           {% endfor %}
         </tbody>
       </table>
     </div>
-    {% endfor %} {% else %} {# Micro OU admin visualizando uma micro específica
-    #}
+
+    {% endfor %} {% else %}
+
+    <div class="dashboard">
+      <div class="card">
+        <h3>Total de Pessoas</h3>
+        <div class="valor">{{ dados[0].dashboard.total_pessoas }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Total de Famílias</h3>
+        <div class="valor">{{ dados[0].dashboard.total_familias }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Masculino</h3>
+        <div class="valor">{{ dados[0].dashboard.sexo.Masculino }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Feminino</h3>
+        <div class="valor">{{ dados[0].dashboard.sexo.Feminino }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Gestantes</h3>
+        <div class="valor">{{ dados[0].dashboard.gestantes.Total }}</div>
+      </div>
+    </div>
+
     <div class="tabela-scroll">
       <table>
         <tbody>
           {% for linha in dados[0].valores %}
+
           <tr>
             {% for celula in linha %}
+
             <td>{{ celula }}</td>
+
             {% endfor %}
           </tr>
+
           {% endfor %}
         </tbody>
       </table>
     </div>
+
     {% endif %} {% else %}
+
     <p>Nenhum dado de fechamento encontrado.</p>
+
     {% endif %}
   </body>
 </html>

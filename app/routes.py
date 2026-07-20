@@ -650,7 +650,6 @@ def fechamento():
                 .execute()
             ).data
 
-
             for info in usuarios:
 
                 micro = info["micro"]
@@ -658,31 +657,30 @@ def fechamento():
                 if not micro:
                     continue
 
-
                 # FECHAMENTO GERAL
                 if micro.upper() == "GERAL":
 
-                    valores = gerar_fechamento()
-
+                    resultado = gerar_fechamento()
 
                 # FECHAMENTO POR EQUIPE
                 elif micro.upper().startswith("FECHAMENTO EQUIPE"):
 
                     numero = micro.split()[-1]
 
-                    valores = gerar_fechamento(
+                    resultado = gerar_fechamento(
                         equipe=f"EQUIPE {numero}"
                     )
-
 
                 # FECHAMENTO MICRO
                 else:
 
-                    valores = gerar_fechamento(
+                    resultado = gerar_fechamento(
                         info["equipe"],
                         micro
                     )
 
+                valores = resultado["tabela"]
+                dashboard = resultado["dashboard"]
 
                 dados.append({
 
@@ -690,21 +688,24 @@ def fechamento():
 
                     "equipe": info["equipe"],
 
-                    "valores": valores
+                    "valores": valores,
+
+                    "dashboard": dashboard
 
                 })
-
 
         # ==============================
         # MICRO VÊ SOMENTE O SEU
         # ==============================
         else:
 
-            valores = gerar_fechamento(
+            resultado = gerar_fechamento(
                 current_user.equipe,
                 current_user.micro
             )
 
+            valores = resultado["tabela"]
+            dashboard = resultado["dashboard"]
 
             dados.append({
 
@@ -712,16 +713,16 @@ def fechamento():
 
                 "equipe": current_user.equipe,
 
-                "valores": valores
+                "valores": valores,
+
+                "dashboard": dashboard
 
             })
-
 
         return render_template(
             "fechamento.html",
             dados=dados
         )
-
 
     except Exception as e:
 
@@ -755,7 +756,6 @@ def fechamento_admin(micro_id):
         .execute()
     )
 
-
     if (
         not resultado_usuario.data
         or resultado_usuario.data[0]["role"] != "micro"
@@ -770,7 +770,6 @@ def fechamento_admin(micro_id):
             url_for("main.painel_admin")
         )
 
-
     user_info = resultado_usuario.data[0]
 
     try:
@@ -782,7 +781,7 @@ def fechamento_admin(micro_id):
         # ==============================
         if micro.upper() == "GERAL":
 
-            valores = gerar_fechamento()
+            resultado = gerar_fechamento()
 
         # ==============================
         # FECHAMENTO DA EQUIPE
@@ -791,7 +790,7 @@ def fechamento_admin(micro_id):
 
             numero = micro.split()[-1]
 
-            valores = gerar_fechamento(
+            resultado = gerar_fechamento(
                 equipe=f"EQUIPE {numero}"
             )
 
@@ -800,10 +799,13 @@ def fechamento_admin(micro_id):
         # ==============================
         else:
 
-            valores = gerar_fechamento(
+            resultado = gerar_fechamento(
                 user_info["equipe"],
                 micro
             )
+
+        valores = resultado["tabela"]
+        dashboard = resultado["dashboard"]
 
         dados = [{
 
@@ -811,7 +813,9 @@ def fechamento_admin(micro_id):
 
             "equipe": user_info["equipe"],
 
-            "valores": valores
+            "valores": valores,
+
+            "dashboard": dashboard
 
         }]
 

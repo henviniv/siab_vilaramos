@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel do Administrador</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        background-color: #f8f9fa;
+      }
+
+      h1 {
+        margin-bottom: 1rem;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 1rem;
+      }
+
+      a {
+        text-decoration: none;
+        color: #007bff;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .micro-table th,
+      .micro-table td {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+      }
+
+      .micro-table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      .logout-container {
+        position: absolute;
+        top: 0px;
+        left: 20px;
+        background-color: #f9f9f9;
+        padding: 8px 14px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: sans-serif;
+      }
+
+      .logout-link {
+        color: #e74c3c;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .logout-link:hover {
+        text-decoration: underline;
+      }
+
+      /* Estilo para os fechamentos gerais */
+      .linha-geral {
+        background-color: #e9f5ff;
+        font-weight: bold;
+      }
+
+      .linha-geral td:first-child::before {
+        content: "🏁 ";
+      }
+
+      .pesquisa-admin {
+        margin-top: 2rem;
+        padding: 1.25rem;
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      .pesquisa-admin h2 {
+        margin-top: 0;
+      }
+
+      .pesquisa-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .pesquisa-form label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        flex: 1 1 320px;
+        font-weight: bold;
+      }
+
+      .pesquisa-form input {
+        padding: 0.65rem;
+        border: 1px solid #bbb;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .pesquisa-form button {
+        padding: 0.7rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        background: #007bff;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .pesquisa-form button:hover {
+        background: #0056b3;
+      }
+
+      .resultado-vazio {
+        margin-top: 1rem;
+        padding: 0.9rem;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 4px;
+      }
+
+      /* Overlay de carregamento */
+      #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 99999;
+      }
+
+      #loadingOverlay.show {
+        display: flex;
+      }
+
+      .loading-spinner {
+        width: 70px;
+        height: 70px;
+        border: 8px solid #ddd;
+        border-top: 8px solid #007bff;
+        border-radius: 50%;
+        animation: girar 1s linear infinite;
+        margin-bottom: 20px;
+      }
+
+      .loading-text {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+      }
+
+      .loading-subtext {
+        margin-top: 10px;
+        color: #666;
+        font-size: 16px;
+      }
+
+      @keyframes girar {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">CARREGANDO FECHAMENTO...</div>
+      <div class="loading-subtext">
+        Aguarde, os dados estão sendo processados.
+      </div>
+    </div>
+
+    <div class="logout-container">
+      <a href="{{ url_for('main.logout') }}" class="logout-link">Sair</a>
+    </div>
+    <h1>Painel do Administrador</h1>
+
+    <table class="display micro-table">
+      <thead>
+        <tr>
+          <th>Usuário</th>
+          <th>Micro</th>
+          <th>Equipe</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for username, info in lista_usuarios.items() %}
+        <tr>
+          <td>{{ username }}</td>
+          <td>{{ info.micro }}</td>
+          <td>{{ info.equipe }}</td>
+          <td>
+            <a
+              href="{{ url_for('main.visualizar_micro', micro_id=username) }}"
+              aria-label="Ver dados de {{ username }}"
+            >
+              Ver Dados
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+
+        <!-- Fechamento GERAL -->
+        <tr class="linha-geral">
+          <td>Admin</td>
+          <td>GERAL</td>
+          <td>CONSOLIDADO GERAL</td>
+          <td>
+            <a href="{{ url_for('main.fechamento_geral', aba='GERAL') }}"
+              >Ver Dados</a
+            >
+          </td>
+        </tr>
+
+        <!-- Fechamentos por equipe -->
+        {% for i in range(1, 6) %}
+        <tr class="linha-geral">
+          <td>Admin</td>
+          <td>Fechamento Equipe {{ i }}</td>
+          <td>CONSOLIDADO GERAL</td>
+          <td>
+            <a href="{{ url_for('main.fechamento_geral', aba='EQUIPE ' ~ i) }}"
+              >Ver Dados</a
+            >
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <section class="pesquisa-admin">
+      <h2>Pesquisar usuários cadastrados</h2>
+
+      <p>Busque pelo nome na aba Geral.</p>
+
+      <form
+        class="pesquisa-form"
+        action="{{ url_for('main.pesquisar_usuarios_admin') }}"
+        method="get"
+      >
+        <label for="q">
+          Nome
+          <input
+            id="q"
+            name="q"
+            type="search"
+            value="{{ termo_pesquisa }}"
+            placeholder="Digite o nome do usuário ou familia"
+            autocomplete="off"
+            required
+          />
+        </label>
+
+        <button type="submit">Pesquisar</button>
+      </form>
+
+      {% if pesquisa_realizada %} {% if resultados_pesquisa %}
+      <table class="display micro-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Família</th>
+            <th>Data de Nascimento</th>
+            <th>Idade</th>
+            <th>SUS</th>
+            <th>Endereço</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for resultado in resultados_pesquisa %}
+          <tr>
+            <td>{{ resultado.nome }}</td>
+            <td>{{ resultado.familia }}</td>
+            <td>{{ resultado.data_nascimento }}</td>
+            <td>{{ resultado.idade }}</td>
+            <td>{{ resultado.sus }}</td>
+            <td>{{ resultado.endereco }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="resultado-vazio">
+        Nenhum usuário encontrado para "{{ termo_pesquisa }}".
+      </div>
+      {% endif %} {% endif %}
+    </section>
+
+    <script>
+      $(document).ready(function () {
+        $("table.display").DataTable({
+          order: [],
+          pageLength: 10,
+          language: {
+            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
+          },
+        });
+
+        // Ao pesquisar usuários
+        $(".pesquisa-form").on("submit", function () {
+          $(".loading-text").text("PESQUISANDO USUÁRIOS...");
+          $(".loading-subtext").text(
+            "Aguarde, a pesquisa está sendo realizada.",
+          );
+
+          $("#loadingOverlay").addClass("show");
+
+          // Bloqueia qualquer interação
+          $("body").css("cursor", "wait");
+        });
+
+        // Apenas para os links de fechamento
+        $("a[href*='fechamento_geral']").on("click", function (e) {
+          // Evita vários cliques
+          if ($("#loadingOverlay").hasClass("show")) {
+            e.preventDefault();
+            return;
+          }
+
+          $("#loadingOverlay").addClass("show");
+
+          // Desabilita todos os links da página
+          $("a").css({
+            "pointer-events": "none",
+            cursor: "wait",
+          });
+
+          // Mostra cursor de espera
+          $("body").css("cursor", "wait");
+        });
+      });
+    </script>
+  </body>
+</html>

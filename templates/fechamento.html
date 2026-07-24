@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fechamento</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <style>
+      :root {
+        --primary: #0d6efd;
+        --primary-dark: #084298;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #0dcaf0;
+        --muted: #6c757d;
+        --surface: #ffffff;
+        --border: #e5e7eb;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        color: #1f2937;
+        padding: 20px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #111827;
+      }
+
+      .back-button {
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 10px 15px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+      }
+
+      .back-button:hover {
+        background: #0b5ed7;
+      }
+
+      .fechamento-section {
+        margin-bottom: 42px;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin: 25px 0;
+      }
+
+      .card,
+      .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      .card {
+        padding: 18px;
+        text-align: center;
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .card .valor {
+        margin-top: 10px;
+        font-size: 34px;
+        font-weight: bold;
+        color: var(--primary);
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+        margin: 0 0 28px;
+      }
+
+      .chart-card {
+        padding: 20px;
+      }
+
+      .chart-card h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 120px 1fr 48px;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+
+      .bar-label {
+        color: #374151;
+        font-weight: 600;
+      }
+
+      .bar-track {
+        height: 16px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf2f7;
+      }
+
+      .bar-fill {
+        display: block;
+        height: 100%;
+        width: var(--bar-width, 0%);
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+      }
+
+      .bar-value {
+        color: #111827;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .pie-chart-wrap {
+        display: grid;
+        grid-template-columns: minmax(150px, 190px) 1fr;
+        align-items: center;
+        gap: 22px;
+      }
+
+      .pie-chart {
+        width: min(190px, 100%);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: conic-gradient(
+          #0d6efd 0 var(--masculino-percent),
+          #d63384 var(--masculino-percent) 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+      }
+
+      .pie-legend {
+        display: grid;
+        gap: 12px;
+      }
+
+      .pie-legend-item {
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+      }
+
+      .masculino { background: #0d6efd; }
+      .feminino { background: #d63384; }
+      .gestantes { background: #6f42c1; }
+      .familias { background: #198754; }
+
+      .empty-chart {
+        color: var(--muted);
+        padding: 22px 0;
+        text-align: center;
+      }
+
+      .tabela-scroll {
+        overflow-x: auto;
+        background: #fff;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 35px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      td,
+      th {
+        border: 1px solid #ddd;
+        padding: 7px;
+        text-align: center;
+      }
+
+      tr:nth-child(even) {
+        background: #f8f8f8;
+      }
+
+      @media (max-width: 640px) {
+        body { padding: 12px; }
+        .bar-row { grid-template-columns: 82px 1fr 38px; }
+        .pie-chart-wrap { grid-template-columns: 1fr; justify-items: center; }
+        .pie-legend { width: 100%; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <a href="{{ url_for('main.index') }}" class="back-button">
+      ← Voltar para o início
+    </a>
+
+    <h1>
+      📊 Fechamento {% if dados|length == 1 %} - {{ dados[0].aba }} {% elif
+      current_user.role != 'admin' %} - {{ current_user.micro }} {% else %} de
+      todas as Micros {% endif %}
+    </h1>
+
+    {% macro cards(tabela) %}
+    <div class="dashboard">
+      <div class="card">
+        <h3>Total de Pessoas</h3>
+        <div class="valor">{{ tabela.dashboard.total_pessoas }}</div>
+      </div>
+      <div class="card">
+        <h3>Total de Famílias</h3>
+        <div class="valor">{{ tabela.dashboard.total_familias }}</div>
+      </div>
+      <div class="card">
+        <h3>Masculino</h3>
+        <div class="valor">{{ tabela.dashboard.sexo.Masculino }}</div>
+      </div>
+      <div class="card">
+        <h3>Feminino</h3>
+        <div class="valor">{{ tabela.dashboard.sexo.Feminino }}</div>
+      </div>
+      <div class="card">
+        <h3>Gestantes</h3>
+        <div class="valor">{{ tabela.dashboard.gestantes.Total }}</div>
+      </div>
+    </div>
+    {% endmacro %}
+
+    {% macro graficos(tabela) %}
+    {% set total_pessoas = tabela.dashboard.total_pessoas or 0 %}
+    {% set max_faixa = tabela.dashboard.max_faixa_etaria or 1 %}
+    {% set max_cor = tabela.dashboard.max_cor_etnia or 1 %}
+    {% set max_condicao = tabela.dashboard.max_condicoes or 1 %}
+    <div class="charts-grid">
+      <section class="chart-card">
+        <h3>Distribuição por sexo</h3>
+        {% if total_pessoas > 0 %}
+        {% set masculino_percent = (tabela.dashboard.sexo.Masculino / total_pessoas * 100)|round(1) %}
+        {% set feminino_percent = (tabela.dashboard.sexo.Feminino / total_pessoas * 100)|round(1) %}
+        <div class="pie-chart-wrap">
+          <div
+            class="pie-chart"
+            style="--masculino-percent: {{ masculino_percent }}%"
+            role="img"
+            aria-label="Distribuição por sexo: {{ masculino_percent }}% masculino e {{ feminino_percent }}% feminino"
+          ></div>
+          <div class="pie-legend">
+            <div class="pie-legend-item">
+              <span class="legend-dot masculino" aria-hidden="true"></span>
+              <span class="bar-label">Masculino ({{ masculino_percent }}%)</span>
+              <span class="bar-value">{{ tabela.dashboard.sexo.Masculino }}</span>
+            </div>
+            <div class="pie-legend-item">
+              <span class="legend-dot feminino" aria-hidden="true"></span>
+              <span class="bar-label">Feminino ({{ feminino_percent }}%)</span>
+              <span class="bar-value">{{ tabela.dashboard.sexo.Feminino }}</span>
+            </div>
+          </div>
+        </div>
+        {% else %}<div class="empty-chart">Sem pessoas cadastradas.</div>{% endif %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Pessoas por faixa etária</h3>
+        {% for faixa, total in tabela.dashboard.faixa_etaria.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ faixa }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_faixa * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Cor / etnia</h3>
+        {% for cor, total in tabela.dashboard.cor_etnia.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ cor }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_cor * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="chart-card">
+        <h3>Condições referidas</h3>
+        {% for condicao, total in tabela.dashboard.totais_condicoes.items() %}
+        <div class="bar-row">
+          <span class="bar-label">{{ condicao }}</span>
+          <div class="bar-track"><span class="bar-fill" style="--bar-width: {{ (total / max_condicao * 100)|round(1) }}%"></span></div>
+          <span class="bar-value">{{ total }}</span>
+        </div>
+        {% endfor %}
+      </section>
+    </div>
+    {% endmacro %}
+
+    {% macro tabela_fechamento(tabela) %}
+    <div class="tabela-scroll">
+      <table>
+        <tbody>
+          {% for linha in tabela.valores %}
+          <tr>
+            {% for celula in linha %}
+            <td>{{ celula }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endmacro %}
+
+    {% if dados %}
+      {% if current_user.role == 'admin' and dados|length > 1 %}
+        {% for tabela in dados %}
+        <section class="fechamento-section">
+          <h2>{{ tabela.aba }} - {{ tabela.equipe }}</h2>
+          {{ cards(tabela) }}
+          {{ graficos(tabela) }}
+          {{ tabela_fechamento(tabela) }}
+        </section>
+        {% endfor %}
+      {% else %}
+        {{ cards(dados[0]) }}
+        {{ graficos(dados[0]) }}
+        {{ tabela_fechamento(dados[0]) }}
+      {% endif %}
+    {% else %}
+      <p>Nenhum dado de fechamento encontrado.</p>
+    {% endif %}
+  </body>
+</html>

@@ -1,0 +1,903 @@
+<!doctype html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>SIAB</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    {% if current_user.is_authenticated %}
+
+    <div class="logout-container">
+      <span> Olá, {{ current_user.username }}! </span>
+
+      <a href="{{ url_for('main.logout') }}" class="logout-link"> Sair </a>
+    </div>
+
+    {% endif %} {% if current_user.is_authenticated and current_user.role ==
+    'admin' %}
+
+    <div class="back-container">
+      <a href="{{ url_for('main.painel_admin') }}" class="back-link">
+        Voltar
+      </a>
+    </div>
+
+    {% endif %} {% if current_user.is_authenticated %} {% if current_user.role
+    == 'admin' and session.get('micro') %}
+
+    <a
+      href="{{ url_for(
+'main.fechamento_admin',
+micro_id=session.get('micro')
+) }}"
+    >
+      Fechamento {{ session.get('micro') }}
+    </a>
+
+    {% elif current_user.role == 'micro' %}
+
+    <a href="{{ url_for('main.fechamento') }}">
+      Fechamento {{ current_user.micro }}
+    </a>
+
+    {% endif %} {% endif %}
+
+    <div style="display: flex; align-items: flex-start; gap: 20px">
+      <div style="flex: 1">
+        <h1>Gerenciar Pessoas</h1>
+
+        <form
+          action="{{ url_for('main.index') }}"
+          method="GET"
+          class="search-form"
+        >
+          <label> Buscar por Nome ou Endereço: </label>
+
+          <input
+            type="text"
+            name="query"
+            value="{{ request.args.get('query','') }}"
+          />
+
+          <button type="submit">Pesquisar</button>
+        </form>
+      </div>
+
+      <div
+        style="
+          width: 260px;
+          background: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 10px;
+          max-height: 230px;
+          overflow-y: auto;
+        "
+      >
+        <h4>Famílias Vagas ({{ vagas|length }})</h4>
+
+        {% if vagas %}
+
+        <ul style="list-style: none; padding: 0; margin: 0">
+          {% for familia in vagas %}
+
+          <li
+            style="padding: 6px; border-bottom: 1px solid #eee; font-size: 14px"
+          >
+            {{ familia }}
+          </li>
+
+          {% endfor %}
+        </ul>
+
+        {% else %}
+
+        <p>Nenhuma vaga disponível</p>
+
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="text-center my-2">
+      <button type="button" onclick="ocultarColunas()">
+        Ocultar colunas extras
+      </button>
+      <button type="button" onclick="mostrarColunas()">
+        Mostrar todas as colunas
+      </button>
+    </div>
+    {% if current_user.is_authenticated and current_user.role == 'micro' %}
+
+    <button id="mostrarCadastro" type="button" onclick="mostrarFormulario()">
+      Cadastrar nova pessoa
+    </button>
+
+    {% endif %}
+
+    <form
+      id="formCadastro"
+      action="{{ url_for('main.create_or_update_person') }}"
+      method="POST"
+      class="data-form"
+    >
+      <input type="hidden" name="id" />
+
+      {% set campos_somente_s = [ 'gestante', 'dia', 'has', 'hiperdia',
+      'insulino', 'sm', 'tb', 'han', 'obesa', 'tabagista', 'uso_de_drogas',
+      'acamado', 'uso_de_alcool', 'restrito', 'asmatico_dpoc', 'bolsa_familia',
+      'ampi', 'fralda', 'sifilis' ] %} {% set campos_obrigatorios = [
+      'cor_etnia', 'nome', 'sus', 'familia', 'data_nascimento', 'genero', 'cpf',
+      'endereco' ] %} {% for chave in campos %} {% if chave not in
+      campos_sistema and chave not in ['equipe', 'micro'] %}
+
+      <label for="{{ chave }}"> {{ chave.replace("_"," ").upper() }}: </label>
+
+      {% if chave == "data_nascimento" %}
+
+      <input
+        type="date"
+        name="{{ chave }}"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      />
+
+      {% elif chave == "idade" %}
+
+      <input type="text" name="{{ chave }}" readonly />
+
+      {% elif chave in campos_somente_s %}
+
+      <input
+        type="text"
+        name="{{ chave }}"
+        pattern="[Ss]"
+        maxlength="1"
+        title="Somente a letra S"
+      />
+
+      {% elif chave == "genero" %}
+
+      <select
+        name="{{ chave }}"
+        class="input-campo"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      >
+        <option value="">Selecione</option>
+        <option value="MASCULINO">MASCULINO</option>
+        <option value="FEMININO">FEMININO</option>
+      </select>
+
+      {% elif chave == "cor_etnia" %}
+
+      <select
+        name="{{ chave }}"
+        class="input-campo"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      >
+        <option value="">Selecione</option>
+        <option value="BRANCA">BRANCA</option>
+        <option value="PRETA">PRETA</option>
+        <option value="PARDA">PARDA</option>
+        <option value="AMARELA">AMARELA</option>
+        <option value="INDIGENA">INDIGENA</option>
+      </select>
+
+      {% else %}
+
+      <input
+        type="text"
+        name="{{ chave }}"
+        {%
+        if
+        chave
+        in
+        campos_obrigatorios
+        %}required{%
+        endif
+        %}
+      />
+
+      {% endif %} {% endif %} {% endfor %}
+
+      <button type="submit" id="salvarBtn">Salvar</button>
+
+      <button type="submit" id="atualizarBtn" class="hidden">Atualizar</button>
+
+      <button
+        type="button"
+        onclick="cancelarFormulario()"
+        class="cancel-button"
+      >
+        Cancelar
+      </button>
+    </form>
+
+    <!-- Tabela -->
+    <div class="scroll-top-wrapper">
+      <div id="scrollTop" class="scroll-simulada"></div>
+    </div>
+    <div id="tabela-wrapper" class="tabela-container">
+      {% if dados and dados|length > 0 %}
+      <table id="tabelaPessoas" class="display">
+        <thead>
+          <tr>
+            {% for chave in campos %} {% if chave in campos_somente_s %}
+            <th class="col-extra">{{ chave }}</th>
+            {% else %}
+            <th>{{ chave }}</th>
+            {% endif %} {% endfor %}
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in dados %}
+          <tr>
+            {% for chave in campos %} {% if chave in campos_somente_s %}
+            <td class="col-extra">{{ linha.get(chave, '') }}</td>
+            {% else %}
+            <td>{{ linha.get(chave, '') }}</td>
+            {% endif %} {% endfor %}
+            <td>
+              {% if current_user.is_authenticated and current_user.role ==
+              'micro' %} {% set nome = linha.get("nome", "") %} {% set pessoa_id
+              = linha.get("id", "") %}
+              <div>
+                <button
+                  type="button"
+                  onclick="mostrarFormularioEdicao('{{ pessoa_id }}')"
+                >
+                  ✏️ Editar
+                </button>
+                <button type="button" onclick="deletePerson('{{ pessoa_id }}')">
+                  🗑️ Excluir
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-center" style="margin-top: 20px">
+      <button id="gerarFilipetas" class="btn btn-primary">
+        Gerar Filipetas
+      </button>
+    </div>
+    <div class="text-center" style="margin-top: 20px">
+      <button
+        id="gerarLista"
+        class="btn btn-success"
+        onclick="abrirModalLista()"
+      >
+        Gerar Lista
+      </button>
+    </div>
+
+    {% else %}
+    <p>Nenhum dado encontrado na planilha.</p>
+    {% endif %}
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#tabelaPessoas thead th").each(function () {
+          var title = $(this).text();
+          if (title !== "AÇÕES") {
+            $(this).append(
+              '<br><select class="filtro-multiplo" multiple="multiple" style="min-width: auto; width: 100%;"></select>',
+            );
+          }
+        });
+
+        let colunasVisiveis = true;
+
+        $("#tabelaPessoas").on("draw.dt", function () {
+          if (colunasVisiveis) {
+            mostrarColunas();
+          } else {
+            ocultarColunas();
+          }
+        });
+
+        var table = $("#tabelaPessoas").DataTable({
+          responsive: true,
+          order: [],
+          language: {
+            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
+          },
+          initComplete: function () {
+            this.api()
+              .columns()
+              .every(function () {
+                var column = this;
+                var title = $(column.header()).text();
+                if (title !== "AÇÕES") {
+                  var select = $(column.header()).find("select");
+
+                  column
+                    .data()
+                    .unique()
+                    .sort()
+                    .each(function (d) {
+                      if (d) {
+                        select.append(
+                          '<option value="' + d + '">' + d + "</option>",
+                        );
+                      }
+                    });
+
+                  select
+                    .select2({
+                      placeholder: "Filtrar " + title,
+                      closeOnSelect: false,
+                      allowClear: true,
+                      width: "resolve",
+                      minimumResultsForSearch: 0,
+                    })
+                    .on("change", function () {
+                      const selected = $(this).val();
+                      const label =
+                        selected?.length > 0
+                          ? `${selected.length} selecionado(s)`
+                          : "";
+                      $(this)
+                        .next(".select2-container")
+                        .find(".select2-selection__rendered")
+                        .attr("title", label);
+                    });
+
+                  select.on("change", function () {
+                    var selected = $(this).val();
+                    if (selected && selected.length > 0) {
+                      var regex = selected
+                        .map(
+                          (val) =>
+                            "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
+                        )
+                        .join("|");
+                      column.search(regex, true, false).draw();
+                      $(column.header()).find(".contador-filtro").remove();
+                      $(column.header()).append(
+                        `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`,
+                      );
+                    } else {
+                      column.search("", true, false).draw();
+                      $(column.header()).find(".contador-filtro").remove();
+                    }
+                  });
+                }
+              });
+          },
+        });
+        var todasColunas = [];
+        var seletorColunas = $("#seletorColunas");
+
+        table.columns().every(function (index) {
+          var title = $(this.header()).text();
+          if (title !== "AÇÕES") {
+            todasColunas.push({ index: index, title: title });
+            seletorColunas.append(
+              '<option value="' + index + '" selected>' + title + "</option>",
+            );
+          }
+        });
+
+        seletorColunas.select2({
+          placeholder: "Selecione as colunas que deseja ver",
+          width: "resolve",
+        });
+
+        seletorColunas.on("change", function () {
+          var selecionadas = $(this).val().map(Number);
+
+          todasColunas.forEach(function (coluna) {
+            var visivel = selecionadas.includes(coluna.index);
+            table.column(coluna.index).visible(visivel);
+          });
+        });
+      });
+
+      function preencherFormulario(pessoa) {
+        const form = document.getElementById("formCadastro");
+
+        for (const key in pessoa) {
+          const input = form.querySelector(`[name="${key}"]`);
+
+          if (!input) continue;
+
+          if (input.type === "date" && pessoa[key]) {
+            const partes = pessoa[key].split("/");
+
+            if (partes.length === 3) {
+              input.value = `${partes[2]}-${partes[1]}-${partes[0]}`;
+            }
+          } else {
+            input.value = pessoa[key] ?? "";
+          }
+        }
+      }
+
+      function mostrarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.add("show");
+        form.classList.remove("editando");
+        form.action = "{{ url_for('main.create_or_update_person') }}";
+        document.getElementById("salvarBtn").classList.remove("hidden");
+        document.getElementById("atualizarBtn").classList.add("hidden");
+        document.getElementById("mostrarCadastro").style.display = "none";
+        form.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function mostrarFormularioEdicao(id) {
+        fetch(`/edit?id=${encodeURIComponent(id)}`)
+          .then((res) => res.json())
+          .then((pessoa) => {
+            preencherFormulario(pessoa);
+            const form = document.getElementById("formCadastro");
+            form.classList.add("show", "editando");
+            form.action = `/update_person?id=${encodeURIComponent(id)}`;
+            document.getElementById("salvarBtn").classList.add("hidden");
+            document.getElementById("atualizarBtn").classList.remove("hidden");
+            document.getElementById("mostrarCadastro").style.display = "none";
+            form.scrollIntoView({ behavior: "smooth" });
+          })
+          .catch(() => alert("Erro ao buscar dados"));
+      }
+
+      function cancelarFormulario() {
+        const form = document.getElementById("formCadastro");
+        form.reset();
+        form.classList.remove("show", "editando");
+        form.action = "{{ url_for('main.create_or_update_person') }}";
+        document.getElementById("salvarBtn").classList.remove("hidden");
+        document.getElementById("atualizarBtn").classList.add("hidden");
+        document.getElementById("mostrarCadastro").style.display =
+          "inline-block";
+      }
+
+      function ocultarColunas() {
+        colunasVisiveis = false;
+
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.add("hidden"));
+
+        document.querySelector(".scroll-top-wrapper").style.display = "none";
+      }
+
+      function mostrarColunas() {
+        colunasVisiveis = true;
+
+        document
+          .querySelectorAll("th.col-extra, td.col-extra")
+          .forEach((el) => el.classList.remove("hidden"));
+
+        document.querySelector(".scroll-top-wrapper").style.display = "block";
+      }
+
+      function deletePerson(id) {
+        if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "/delete";
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "id";
+          input.value = id;
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("formCadastro");
+        const campoNascimento = form.querySelector(
+          'input[name="data_nascimento"]',
+        );
+
+        const campoIdade = form.querySelector('input[name="idade"]');
+
+        if (campoNascimento && campoIdade) {
+          campoNascimento.addEventListener("change", function () {
+            const partes = this.value.split("-"); // YYYY-MM-DD
+            if (partes.length === 3) {
+              const hoje = new Date();
+              const nascimento = new Date(
+                +partes[0],
+                +partes[1] - 1,
+                +partes[2],
+              );
+              let idade = hoje.getFullYear() - nascimento.getFullYear();
+              const m = hoje.getMonth() - nascimento.getMonth();
+              if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+              }
+              campoIdade.value = String(idade).replace(/[^0-9]/g, "");
+            }
+          });
+        }
+      });
+
+      function indiceColuna(nome) {
+        const tabela = $("#tabelaPessoas").DataTable();
+
+        let indice = -1;
+
+        tabela.columns().every(function (i) {
+          const titulo = $(this.header())
+            .clone()
+            .children()
+            .remove()
+            .end()
+            .text()
+            .trim()
+            .toLowerCase();
+
+          if (titulo === nome) indice = i;
+        });
+
+        return indice;
+      }
+
+      function coletarNomesFiltrados() {
+        const nomes = [];
+
+        const tabela = $("#tabelaPessoas").DataTable();
+
+        const idx = indiceColuna("nome");
+
+        tabela.rows({ filter: "applied" }).every(function () {
+          nomes.push(this.data()[idx]);
+        });
+
+        return nomes;
+      }
+
+      function coletarFamiliasFiltradas() {
+        const familias = [];
+
+        const tabela = $("#tabelaPessoas").DataTable();
+
+        const idx = indiceColuna("familia");
+
+        tabela.rows({ filter: "applied" }).every(function () {
+          familias.push(this.data()[idx]);
+        });
+
+        return familias;
+      }
+
+      document
+        .getElementById("gerarFilipetas")
+        .addEventListener("click", function () {
+          document.getElementById("modalFilipeta").classList.remove("hidden");
+          document.getElementById("modalFilipeta").classList.add("show");
+        });
+
+      function cancelarFilipeta() {
+        document.getElementById("modalFilipeta").classList.add("hidden");
+        document.getElementById("modalFilipeta").classList.remove("show");
+
+        document.getElementById("grupo").value = "";
+        document.getElementById("dataGrupo").value = "";
+        document.getElementById("horaGrupo").value = "";
+        document.getElementById("localGrupo").value = "";
+        document.getElementById("opcao").value = "";
+        document.getElementById("trazer").value = "";
+      }
+
+      function gerarPdfFilipetas() {
+        const nomes = coletarNomesFiltrados();
+        const familias = coletarFamiliasFiltradas();
+        const grupo = document.getElementById("grupo").value;
+        const data = document.getElementById("dataGrupo").value;
+        const hora = document.getElementById("horaGrupo").value;
+        const local = document.getElementById("localGrupo").value;
+        const opcao = document.getElementById("opcao").value;
+        const trazer = document.getElementById("trazer").value;
+
+        fetch("/gerar_filipetas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nomes,
+            familias,
+            grupo,
+            data,
+            hora,
+            local,
+            opcao,
+            trazer,
+          }),
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const win = window.open(url);
+            win.focus();
+
+            document.getElementById("modalFilipeta").classList.add("hidden");
+            document.getElementById("modalFilipeta").classList.remove("show");
+
+            document.getElementById("grupo").value = "";
+            document.getElementById("dataGrupo").value = "";
+            document.getElementById("horaGrupo").value = "";
+            document.getElementById("localGrupo").value = "";
+            document.getElementById("opcao").value = "";
+            document.getElementById("trazer").value = "";
+          });
+      }
+
+      const hasInput = document.querySelector("input[name='has']");
+
+      const diaInput = document.querySelector("input[name='dia']");
+
+      const hiperdiaInput = document.querySelector("input[name='hiperdia']");
+
+      function limparInputs(...inputs) {
+        inputs.forEach((input) => (input.value = ""));
+      }
+
+      function atualizarCampos() {
+        const has = hasInput.value.trim().toUpperCase();
+        const dia = diaInput.value.trim().toUpperCase();
+        const hiperdia = hiperdiaInput.value.trim().toUpperCase();
+
+        if (hiperdia === "S") {
+          limparInputs(hasInput, diaInput);
+          return;
+        }
+
+        if (dia === "S" && has === "S") {
+          limparInputs(hasInput, diaInput);
+          hiperdiaInput.value = "S";
+          return;
+        }
+
+        if (has === "S" && dia === "S") {
+          limparInputs(hasInput, diaInput);
+          hiperdiaInput.value = "S";
+          return;
+        }
+      }
+
+      hasInput.addEventListener("input", atualizarCampos);
+      diaInput.addEventListener("input", atualizarCampos);
+      hiperdiaInput.addEventListener("input", atualizarCampos);
+
+      const scrollTop = document.getElementById("scrollTop");
+      const tabelaWrapper = document.getElementById("tabela-wrapper");
+
+      scrollTop.parentElement.addEventListener("scroll", function () {
+        tabelaWrapper.scrollLeft = this.scrollLeft;
+      });
+
+      tabelaWrapper.addEventListener("scroll", function () {
+        scrollTop.parentElement.scrollLeft = this.scrollLeft;
+      });
+
+      function coletarDadosFiltrados(colunasSelecionadas) {
+        const tabela = $("#tabelaPessoas").DataTable();
+        const dados = [];
+
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          const linhaObj = {};
+          colunasSelecionadas.forEach((colIdx) => {
+            linhaObj[colunasSelecionadasNomes[colIdx]] = linha[colIdx];
+          });
+          dados.push(linhaObj);
+        });
+
+        return dados;
+      }
+
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+      }
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          montarSeletorColunas();
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+      }
+
+      function montarSeletorColunas() {
+        let colunasDisponiveis = [];
+        $("#tabelaPessoas thead th").each(function () {
+          colunasDisponiveis.push($(this).text().trim());
+        });
+
+        let container = document.getElementById("colunasDisponiveis");
+        container.innerHTML = "";
+
+        colunasDisponiveis.forEach((c) => {
+          container.innerHTML += `
+      <label style="margin-right:10px;">
+        <input type="checkbox" class="coluna" value="${c}" checked> ${c}
+      </label>
+    `;
+        });
+      }
+
+      function gerarPdfLista() {
+        const tabela = $("#tabelaPessoas").DataTable();
+
+        const colunas = [
+          "nome",
+          "sus",
+          "familia",
+          "data_nascimento",
+          "idade",
+          "endereco",
+        ];
+
+        let dados = [];
+
+        tabela.rows({ filter: "applied" }).every(function () {
+          const linha = this.data();
+          const obj = {};
+
+          colunas.forEach(function (c) {
+            obj[c] = linha[indiceColuna(c)] || "";
+          });
+
+          dados.push(obj);
+        });
+
+        fetch("/gerar_lista", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dados,
+            colunas,
+            titulo: document.getElementById("tituloLista").value,
+          }),
+        })
+          .then((r) => r.blob())
+          .then((blob) => {
+            const url = URL.createObjectURL(blob);
+            window.open(url);
+            cancelarLista();
+          });
+      }
+
+      document
+        .getElementById("gerarLista")
+        .addEventListener("click", function () {
+          document.getElementById("modalLista").classList.remove("hidden");
+          document.getElementById("modalLista").classList.add("show");
+        });
+
+      function abrirModalLista() {
+        document.getElementById("modalLista").classList.remove("hidden");
+      }
+
+      function cancelarLista() {
+        document.getElementById("modalLista").classList.add("hidden");
+        document.getElementById("modalLista").classList.remove("show");
+        document.getElementById("tituloLista").value = "";
+      }
+    </script>
+    <div id="modalFilipeta" class="modal hidden">
+      <label>Tipo:</label>
+      <select id="opcao">
+        <option value="GRUPO DE">GRUPO DE</option>
+        <option value="CONSULTA COM">CONSULTA COM</option>
+      </select>
+      <label>Grupo/Profissional:</label>
+      <input
+        type="text"
+        id="grupo"
+        placeholder="Ex: Hipertensos ou Nome do Profissional"
+      />
+      <label>Data:</label>
+      <input type="date" id="dataGrupo" />
+      <label>Hora:</label>
+      <input type="time" id="horaGrupo" />
+      <label>Local:</label>
+      <input type="text" id="localGrupo" />
+      <label>Trazer:</label>
+      <input type="text" id="trazer" />
+      <button onclick="gerarPdfFilipetas()">Confirmar e Gerar PDF</button>
+      <button onclick="cancelarFilipeta()">Cancelar</button>
+    </div>
+    <div id="modalLista" class="modal hidden">
+      <div class="modal-content">
+        <h3>Gerar Lista</h3>
+
+        <label for="tituloLista">Título da Lista:</label>
+        <input
+          type="text"
+          id="tituloLista"
+          placeholder="Ex: Lista de Pessoas"
+          style="
+            margin-bottom: 12px;
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+        />
+
+        <div class="text-center" style="margin-top: 15px">
+          <button onclick="gerarPdfLista()" class="btn btn-primary">
+            Confirmar e Gerar PDF
+          </button>
+          <button onclick="cancelarLista()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -51,23 +51,29 @@
     == 'admin' and session.get('micro') %}
 
     <a
-      href="{{ url_for(
-'main.fechamento_admin',
-micro_id=session.get('micro')
-) }}"
+      href="{{ url_for('main.fechamento_admin', micro_id=session.get('micro')) }}"
     >
       Fechamento {{ session.get('micro') }}
     </a>
 
     {% elif current_user.role == 'micro' %}
 
-    <div style="display: flex; gap: 10px; align-items: center">
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin: 15px 0;
+      "
+    >
       <a href="{{ url_for('main.fechamento') }}">
         Fechamento {{ current_user.micro }}
       </a>
 
       <a href="{{ url_for('main.papanicolau') }}" class="btn-papanicolau">
-        🌸 Controle de Papanicolau
+        🌸 Controle de Papanicolau {{ current_user.micro }}
       </a>
     </div>
 

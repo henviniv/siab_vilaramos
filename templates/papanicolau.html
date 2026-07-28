@@ -43,7 +43,7 @@
 
         border-radius: 15px;
 
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 5px 15px rgb(241, 64, 188);
 
         transition: 0.25s;
       }
@@ -87,14 +87,31 @@
       }
 
       .btn-editar:hover {
-        background: #c2185b;
+        background: #e64d8a;
 
         color: white;
+      }
+
+      .back-button {
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 10px 15px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+      }
+
+      .back-button:hover {
+        background: #ee1ccb;
       }
     </style>
   </head>
 
   <body>
+    <a href="{{ url_for('main.index') }}" class="back-button">
+      ← Voltar para o início
+    </a>
     <div class="container-fluid">
       <div class="topo">
         <h2>🌸 Controle de Exames Preventivos</h2>

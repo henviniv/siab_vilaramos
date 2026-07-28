@@ -1297,3 +1297,37 @@ def familias_vagas():
     vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
 
     return render_template("familias_vagas.html", vagas=vagas)
+
+    @bp.route("/papanicolau")
+    @login_required
+    def papanicolau():
+
+        # Administrador vê todas as mulheres
+        if current_user.role == "admin":
+
+            resposta = (
+                supabase
+                .table("vw_papanicolau")
+                .select("*")
+                .order("nome")
+                .execute()
+            )
+
+        # Usuário comum vê somente sua micro
+        else:
+
+            resposta = (
+                supabase
+                .table("vw_papanicolau")
+                .select("*")
+                .eq("micro", current_user.micro)
+                .order("nome")
+                .execute()
+            )
+
+        dados = resposta.data if resposta.data else []
+
+        return render_template(
+            "papanicolau.html",
+            dados=dados
+        )

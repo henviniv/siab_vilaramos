@@ -383,3 +383,19 @@ select {
     width: 100% !important;
   }
 }
+
+.btn-papanicolau {
+  background: #ec4899;
+
+  color: white;
+
+  border: none;
+
+  font-weight: bold;
+}
+
+.btn-papanicolau:hover {
+  background: #db2777;
+
+  color: white;
+}

@@ -61,11 +61,17 @@ micro_id=session.get('micro')
 
     {% elif current_user.role == 'micro' %}
 
-    <a href="{{ url_for('main.fechamento') }}">
-      Fechamento {{ current_user.micro }}
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center">
+      <a href="{{ url_for('main.fechamento') }}">
+        Fechamento {{ current_user.micro }}
+      </a>
 
-    {% endif %} {% endif %}
+      <a href="{{ url_for('main.papanicolau') }}" class="btn-papanicolau">
+        🌸 Controle de Papanicolau
+      </a>
+    </div>
+
+    {% endif %}
 
     <div style="display: flex; align-items: flex-start; gap: 20px">
       <div style="flex: 1">

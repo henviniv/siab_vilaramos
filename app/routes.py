@@ -17,6 +17,7 @@ from app.familias_vagas import (
     encontrar_familias_vagas,
     obter_numero_micro
 )
+from app.papanicolau import buscar_papanicolau
 
 bp = Blueprint('main', __name__, template_folder='../templates')
 
@@ -1302,30 +1303,15 @@ def familias_vagas():
     @login_required
     def papanicolau():
 
-        # Administrador vê todas as mulheres
         if current_user.role == "admin":
 
-            resposta = (
-                supabase
-                .table("vw_papanicolau")
-                .select("*")
-                .order("nome")
-                .execute()
-            )
+            dados = buscar_papanicolau()
 
-        # Usuário comum vê somente sua micro
         else:
 
-            resposta = (
-                supabase
-                .table("vw_papanicolau")
-                .select("*")
-                .eq("micro", current_user.micro)
-                .order("nome")
-                .execute()
+            dados = buscar_papanicolau(
+                micro=current_user.micro
             )
-
-        dados = resposta.data if resposta.data else []
 
         return render_template(
             "papanicolau.html",

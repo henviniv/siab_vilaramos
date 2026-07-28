@@ -1299,21 +1299,22 @@ def familias_vagas():
 
     return render_template("familias_vagas.html", vagas=vagas)
 
-    @bp.route("/papanicolau")
-    @login_required
-    def papanicolau():
 
-        if current_user.role == "admin":
+@bp.route("/papanicolau")
+@login_required
+def papanicolau():
 
-            dados = buscar_papanicolau()
+    if current_user.role == "admin":
 
-        else:
+        dados = buscar_papanicolau()
 
-            dados = buscar_papanicolau(
-                micro=current_user.micro
-            )
+    else:
 
-        return render_template(
-            "papanicolau.html",
-            dados=dados
+        dados = buscar_papanicolau(
+            micro=current_user.micro
         )
+
+    return render_template(
+        "papanicolau.html",
+        dados=dados
+    )

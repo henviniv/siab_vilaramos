@@ -194,7 +194,15 @@
                 </td>
 
                 <td>
-                  <button class="btn btn-sm btn-editar">Editar</button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-editar"
+                    data-id="{{ pessoa.id }}"
+                    data-nome="{{ pessoa.nome }}"
+                    data-coleta="{{ pessoa.data_coleta or '' }}"
+                  >
+                    Editar
+                  </button>
                 </td>
               </tr>
 
@@ -211,6 +219,16 @@
 
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.js"></script>
 
+    <form
+      id="formEditarPapanicolau"
+      method="post"
+      action="{{ url_for('main.atualizar_papanicolau') }}"
+      class="d-none"
+    >
+      <input type="hidden" name="id" id="papanicolauId" />
+      <input type="hidden" name="data_coleta" id="papanicolauDataColeta" />
+    </form>
+
     <script>
       new DataTable("#tabela", {
         language: {
@@ -220,6 +238,51 @@
         pageLength: 25,
 
         order: [[0, "asc"]],
+      });
+
+      function normalizarDataParaInput(data) {
+        if (!data) {
+          return "";
+        }
+
+        const dataLimpa = data.trim();
+        const dataIso = dataLimpa.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (dataIso) {
+          return `${dataIso[1]}-${dataIso[2]}-${dataIso[3]}`;
+        }
+
+        const dataBr = dataLimpa.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (dataBr) {
+          return `${dataBr[3]}-${dataBr[2]}-${dataBr[1]}`;
+        }
+
+        return dataLimpa;
+      }
+
+      document.querySelectorAll(".btn-editar").forEach((botao) => {
+        botao.addEventListener("click", () => {
+          const pessoaId = botao.dataset.id;
+          const nome = botao.dataset.nome || "esta pessoa";
+          const dataAtual = normalizarDataParaInput(botao.dataset.coleta || "");
+          const novaData = window.prompt(
+            `Informe a data da coleta de ${nome} no formato AAAA-MM-DD:`,
+            dataAtual,
+          );
+
+          if (novaData === null) {
+            return;
+          }
+
+          const dataValida = novaData.trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dataValida)) {
+            window.alert("Informe uma data válida no formato AAAA-MM-DD.");
+            return;
+          }
+
+          document.getElementById("papanicolauId").value = pessoaId;
+          document.getElementById("papanicolauDataColeta").value = dataValida;
+          document.getElementById("formEditarPapanicolau").submit();
+        });
       });
     </script>
   </body>

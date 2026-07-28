@@ -1318,3 +1318,40 @@ def papanicolau():
         "papanicolau.html",
         dados=dados
     )
+
+
+@bp.route("/papanicolau/atualizar", methods=["POST"])
+@login_required
+def atualizar_papanicolau():
+    pessoa_id = pessoa_id_requisicao()
+    data_coleta = str(request.form.get("data_coleta", "")).strip()
+
+    if not pessoa_id:
+        flash("Identificador inválido para atualizar o Papanicolau.", "warning")
+        return redirect(url_for("main.papanicolau"))
+
+    try:
+        datetime.strptime(data_coleta, "%Y-%m-%d")
+    except ValueError:
+        flash("Data da coleta inválida. Use o formato AAAA-MM-DD.", "warning")
+        return redirect(url_for("main.papanicolau"))
+
+    try:
+        consulta = supabase.table("pessoas").select("id").eq("id", pessoa_id)
+
+        if current_user.role != "admin":
+            consulta = aplicar_escopo_micro(consulta)
+
+        resultado = consulta.execute()
+
+        if not resultado.data:
+            flash("Pessoa não encontrada para atualizar o Papanicolau.", "warning")
+            return redirect(url_for("main.papanicolau"))
+
+        supabase.table("pessoas").update({"data_coleta": data_coleta}).eq("id", pessoa_id).execute()
+        flash("Data da coleta atualizada com sucesso.", "success")
+    except Exception as e:
+        print(f"[ERRO PAPANICOLAU] {e}")
+        flash("Erro ao atualizar a data da coleta.", "danger")
+
+    return redirect(url_for("main.papanicolau"))

@@ -1331,9 +1331,9 @@ def atualizar_papanicolau():
         return redirect(url_for("main.papanicolau"))
 
     try:
-        datetime.strptime(data_coleta, "%Y-%m-%d")
+        data = datetime.strptime(data_coleta, "%d-%m-%Y")
     except ValueError:
-        flash("Data da coleta inválida. Use o formato AAAA-MM-DD.", "warning")
+        flash("Data da coleta inválida. Use o formato DD-MM-AAAA.", "warning")
         return redirect(url_for("main.papanicolau"))
 
     try:
@@ -1348,7 +1348,11 @@ def atualizar_papanicolau():
             flash("Pessoa não encontrada para atualizar o Papanicolau.", "warning")
             return redirect(url_for("main.papanicolau"))
 
-        supabase.table("pessoas").update({"data_coleta": data_coleta}).eq("id", pessoa_id).execute()
+        data_para_salvar = data.strftime("%Y-%m-%d")
+
+        supabase.table("pessoas").update({
+            "data_coleta": data_para_salvar
+        }).eq("id", pessoa_id).execute()
         flash("Data da coleta atualizada com sucesso.", "success")
     except Exception as e:
         print(f"[ERRO PAPANICOLAU] {e}")

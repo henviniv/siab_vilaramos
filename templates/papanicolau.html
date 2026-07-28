@@ -246,14 +246,17 @@
         }
 
         const dataLimpa = data.trim();
-        const dataIso = dataLimpa.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+        // Se vier do banco (AAAA-MM-DD), mostra DD-MM-AAAA
+        const dataIso = dataLimpa.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (dataIso) {
-          return `${dataIso[1]}-${dataIso[2]}-${dataIso[3]}`;
+          return `${dataIso[3]}-${dataIso[2]}-${dataIso[1]}`;
         }
 
+        // Se vier DD/MM/AAAA, troca apenas a barra por hífen
         const dataBr = dataLimpa.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
         if (dataBr) {
-          return `${dataBr[3]}-${dataBr[2]}-${dataBr[1]}`;
+          return `${dataBr[1]}-${dataBr[2]}-${dataBr[3]}`;
         }
 
         return dataLimpa;
@@ -265,7 +268,7 @@
           const nome = botao.dataset.nome || "esta pessoa";
           const dataAtual = normalizarDataParaInput(botao.dataset.coleta || "");
           const novaData = window.prompt(
-            `Informe a data da coleta de ${nome} no formato AAAA-MM-DD:`,
+            `Informe a data da coleta de ${nome} no formato DD-MM-AAAA:`,
             dataAtual,
           );
 
@@ -274,8 +277,8 @@
           }
 
           const dataValida = novaData.trim();
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(dataValida)) {
-            window.alert("Informe uma data válida no formato AAAA-MM-DD.");
+          if (!/^\d{2}-\d{2}-\d{4}$/.test(dataValida)) {
+            window.alert("Informe uma data válida no formato DD-MM-AAAA.");
             return;
           }
 

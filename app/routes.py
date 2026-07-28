@@ -1350,9 +1350,13 @@ def atualizar_papanicolau():
 
         data_para_salvar = data.strftime("%Y-%m-%d")
 
-        supabase.table("papanicolau").update({
-            "data_coleta": data_para_salvar
-        }).eq("pessoa_id", pessoa_id).execute()
+        supabase.table("papanicolau").upsert(
+            {
+                "pessoa_id": pessoa_id,
+                "data_coleta": data_para_salvar
+            },
+            on_conflict="pessoa_id"
+        ).execute()
         flash("Data da coleta atualizada com sucesso.", "success")
     except Exception as e:
         print(f"[ERRO PAPANICOLAU] {e}")

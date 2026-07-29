@@ -385,15 +385,16 @@ select {
 }
 
 .btn-papanicolau {
+  margin-top: 14px;
   margin-bottom: 20px;
   display: inline-block;
   padding: 10px 15px;
-  background: var(--primary);
+  background: #ee4ff3;
   color: #fff;
   text-decoration: none;
   border-radius: 6px;
 }
 
 .btn-papanicolau:hover {
-  background: #ed34f3;
+  background: #a610ac;
 }

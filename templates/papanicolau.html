@@ -198,7 +198,10 @@
 
                 <td>{{ pessoa.familia }}</td>
 
-                <td class="data-coleta" data-coleta="{{ pessoa.data_coleta or '' }}">
+                <td
+                  class="data-coleta"
+                  data-coleta="{{ pessoa.data_coleta or '' }}"
+                >
                   {% if pessoa.data_coleta %} {{ pessoa.data_coleta }} {% else
                   %} - {% endif %}
                 </td>
@@ -278,7 +281,6 @@
         return dataLimpa;
       }
 
-
       function criarDataLocal(ano, mes, dia) {
         return new Date(ano, mes - 1, dia);
       }
@@ -291,12 +293,20 @@
         const dataLimpa = data.trim();
         let partes = dataLimpa.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (partes) {
-          return criarDataLocal(Number(partes[1]), Number(partes[2]), Number(partes[3]));
+          return criarDataLocal(
+            Number(partes[1]),
+            Number(partes[2]),
+            Number(partes[3]),
+          );
         }
 
         partes = dataLimpa.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/);
         if (partes) {
-          return criarDataLocal(Number(partes[3]), Number(partes[2]), Number(partes[1]));
+          return criarDataLocal(
+            Number(partes[3]),
+            Number(partes[2]),
+            Number(partes[1]),
+          );
         }
 
         return null;
@@ -327,7 +337,9 @@
           const celulaColeta = linha.querySelector(".data-coleta");
           const celulaProxima = linha.querySelector(".proxima-coleta");
           const celulaStatus = linha.querySelector(".status-papanicolau");
-          const dataColeta = parseDataColeta(celulaColeta?.dataset.coleta || celulaColeta?.textContent || "");
+          const dataColeta = parseDataColeta(
+            celulaColeta?.dataset.coleta || celulaColeta?.textContent || "",
+          );
 
           if (!dataColeta) {
             totalNunca += 1;
@@ -335,12 +347,13 @@
               celulaProxima.textContent = "-";
             }
             if (celulaStatus) {
-              celulaStatus.innerHTML = '<span class="badge bg-secondary">Nunca realizado</span>';
+              celulaStatus.innerHTML =
+                '<span class="badge bg-secondary">Nunca realizado</span>';
             }
             return;
           }
 
-          const proximaColeta = adicionarAnos(dataColeta, 3);
+          const proximaColeta = adicionarAnos(dataColeta, 2);
           if (celulaColeta) {
             celulaColeta.textContent = formatarDataBR(dataColeta);
           }
@@ -351,12 +364,14 @@
           if (proximaColeta < hoje) {
             totalAtrasadas += 1;
             if (celulaStatus) {
-              celulaStatus.innerHTML = '<span class="badge bg-danger">Atrasada</span>';
+              celulaStatus.innerHTML =
+                '<span class="badge bg-danger">Atrasada</span>';
             }
           } else {
             totalPrazo += 1;
             if (celulaStatus) {
-              celulaStatus.innerHTML = '<span class="badge bg-success">Em dia</span>';
+              celulaStatus.innerHTML =
+                '<span class="badge bg-success">Em dia</span>';
             }
           }
         });

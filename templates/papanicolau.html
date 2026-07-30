@@ -249,7 +249,7 @@
     </form>
 
     <script>
-      new DataTable("#tabela", {
+      const tabelaPapanicolau = new DataTable("#tabela", {
         language: {
           url: "https://cdn.datatables.net/plug-ins/2.1.8/i18n/pt-BR.json",
         },
@@ -403,9 +403,55 @@
             return;
           }
 
-          document.getElementById("papanicolauId").value = pessoaId;
-          document.getElementById("papanicolauDataColeta").value = dataValida;
-          document.getElementById("formEditarPapanicolau").submit();
+          const linha = botao.closest("tr");
+          const celulaColeta = linha.querySelector(".data-coleta");
+          botao.disabled = true;
+          botao.textContent = "Salvando...";
+
+          fetch(document.getElementById("formEditarPapanicolau").action, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              id: pessoaId,
+              data_coleta: dataValida,
+            }),
+          })
+            .then(async (resposta) => {
+              const dados = await resposta.json().catch(() => ({}));
+
+              if (!resposta.ok || !dados.success) {
+                throw new Error(
+                  dados.message || "Não foi possível atualizar a coleta.",
+                );
+              }
+
+              return dados;
+            })
+            .then((dados) => {
+              const dataSalva = dados.data_coleta || dataValida;
+              const dataColeta = parseDataColeta(dataSalva);
+
+              botao.dataset.coleta = dataSalva;
+              if (celulaColeta) {
+                celulaColeta.dataset.coleta = dataSalva;
+                celulaColeta.textContent = dataColeta
+                  ? formatarDataBR(dataColeta)
+                  : "-";
+              }
+
+              atualizarResumoPapanicolau();
+              tabelaPapanicolau.row(linha).invalidate("dom").draw(false);
+            })
+            .catch((erro) => {
+              window.alert(erro.message);
+            })
+            .finally(() => {
+              botao.disabled = false;
+              botao.textContent = "Editar";
+            });
         });
       });
     </script>

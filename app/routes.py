@@ -145,8 +145,20 @@ def montar_pessoa_formulario(equipe, micro):
         "endereco": texto_formulario("endereco"),
     }
 
+def valor_requisicao(campo, padrao=""):
+    if request.is_json:
+        dados_json = request.get_json(silent=True) or {}
+        return dados_json.get(campo, padrao)
+
+    return request.values.get(campo, padrao)
+
+
+def requisicao_json():
+    return request.is_json or request.accept_mimetypes.best == "application/json"
+
+
 def pessoa_id_requisicao():
-    return str(request.values.get("id", "")).strip()
+    return str(valor_requisicao("id", "")).strip()
 
 def aplicar_escopo_micro(query):
     return query.eq("equipe", current_user.equipe).eq("micro", current_user.micro)
@@ -1324,16 +1336,24 @@ def papanicolau():
 @login_required
 def atualizar_papanicolau():
     pessoa_id = pessoa_id_requisicao()
-    data_coleta = str(request.form.get("data_coleta", "")).strip()
+    data_coleta = str(valor_requisicao("data_coleta", "")).strip()
 
     if not pessoa_id:
-        flash("Identificador inválido para atualizar o Papanicolau.", "warning")
+        mensagem = "Identificador inválido para atualizar o Papanicolau."
+        if requisicao_json():
+            return jsonify({"success": False, "message": mensagem}), 400
+
+        flash(mensagem, "warning")
         return redirect(url_for("main.papanicolau"))
 
     try:
         data = datetime.strptime(data_coleta, "%d-%m-%Y")
     except ValueError:
-        flash("Data da coleta inválida. Use o formato DD-MM-AAAA.", "warning")
+        mensagem = "Data da coleta inválida. Use o formato DD-MM-AAAA."
+        if requisicao_json():
+            return jsonify({"success": False, "message": mensagem}), 400
+
+        flash(mensagem, "warning")
         return redirect(url_for("main.papanicolau"))
 
     try:
@@ -1345,7 +1365,11 @@ def atualizar_papanicolau():
         resultado = consulta.execute()
 
         if not resultado.data:
-            flash("Pessoa não encontrada para atualizar o Papanicolau.", "warning")
+            mensagem = "Pessoa não encontrada para atualizar o Papanicolau."
+            if requisicao_json():
+                return jsonify({"success": False, "message": mensagem}), 404
+
+            flash(mensagem, "warning")
             return redirect(url_for("main.papanicolau"))
 
         data_para_salvar = data.strftime("%Y-%m-%d")
@@ -1357,9 +1381,22 @@ def atualizar_papanicolau():
             },
             on_conflict="pessoa_id"
         ).execute()
-        flash("Data da coleta atualizada com sucesso.", "success")
+
+        mensagem = "Data da coleta atualizada com sucesso."
+        if requisicao_json():
+            return jsonify({
+                "success": True,
+                "message": mensagem,
+                "data_coleta": data_para_salvar
+            })
+
+        flash(mensagem, "success")
     except Exception as e:
         print(f"[ERRO PAPANICOLAU] {e}")
-        flash("Erro ao atualizar a data da coleta.", "danger")
+        mensagem = "Erro ao atualizar a data da coleta."
+        if requisicao_json():
+            return jsonify({"success": False, "message": mensagem}), 500
+
+        flash(mensagem, "danger")
 
     return redirect(url_for("main.papanicolau"))

@@ -1288,28 +1288,6 @@ def force_https():
     if request.headers.get("X-Forwarded-Proto") == "http":
         return redirect(request.url.replace("http://", "https://"), code=301)
 
-@bp.route("/familias_vagas")
-@login_required
-def familias_vagas():
-
-    # 🔹 pega a planilha corretamente
-    sheet = get_sheet(planilha=current_user.planilha, aba=current_user.aba)
-    dados_crus = sheet.get_all_records()
-
-    # 🔹 extrai famílias (com e sem acento)
-    familias_existentes = []
-    for linha in dados_crus:
-        familia = linha.get("FAMÍLIA") or linha.get("FAMILIA")
-        if familia:
-            familias_existentes.append(str(familia))
-
-    # 🔹 pega número da micro
-    micro_numero = obter_numero_micro(current_user.aba)
-
-    # 🔹 calcula vagas
-    vagas = encontrar_familias_vagas(familias_existentes, micro_numero)
-
-    return render_template("familias_vagas.html", vagas=vagas)
 
 
 @bp.route("/papanicolau")

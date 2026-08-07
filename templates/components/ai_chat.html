@@ -1,20 +1,35 @@
 {% if current_user.is_authenticated %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_chat.css') }}" />
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/ai_chat.css') }}"
+/>
 
 <div class="siab-ai-chat" data-ai-endpoint="{{ url_for('ai.perguntar_json') }}">
-  <button class="siab-ai-toggle" type="button" aria-expanded="false" aria-controls="siabAiPanel">
+  <button
+    class="siab-ai-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="siabAiPanel"
+  >
     <span class="siab-ai-toggle__icon">🤖</span>
     <span class="siab-ai-toggle__text">IA SIAB</span>
   </button>
 
-  <section class="siab-ai-panel" id="siabAiPanel" aria-label="Assistente SIAB" hidden>
+  <section
+    class="siab-ai-panel"
+    id="siabAiPanel"
+    aria-label="Assistente SIAB"
+    hidden
+  >
     <header class="siab-ai-header">
       <div>
         <strong>🤖 Assistente SIAB</strong>
         <small>Consulte dados sem sair da tela</small>
       </div>
       <div class="siab-ai-actions">
-        <button class="siab-ai-minimize" type="button" title="Minimizar">—</button>
+        <button class="siab-ai-minimize" type="button" title="Minimizar">
+          —
+        </button>
         <button class="siab-ai-close" type="button" title="Fechar">✕</button>
       </div>
     </header>
@@ -23,13 +38,15 @@
       <div class="siab-ai-message siab-ai-message--bot">
         <div class="siab-ai-avatar">🤖</div>
         <div class="siab-ai-bubble">
-          <p>Olá! Posso consultar o banco de dados do SIAB para responder suas perguntas.</p>
+          <p>
+            Olá! Posso consultar o banco de dados do SIAB para responder suas
+            perguntas.
+          </p>
           <p class="siab-ai-context">
-            {% if current_user.role == 'micro' and current_user.micro %}
-              Seu acesso está configurado para {{ current_user.micro }}.
-            {% else %}
-              Seu acesso permite consultar todas as micros disponíveis.
-            {% endif %}
+            {% if current_user.role == 'micro' and current_user.micro %} Seu
+            acesso está configurado para {{ current_user.micro }}. {% else %}
+            Seu acesso permite consultar todas as micros disponíveis. {% endif
+            %}
           </p>
         </div>
       </div>
@@ -40,11 +57,18 @@
       <button type="button">🤰 Quantas gestantes?</button>
       <button type="button">🩺 Quantos hipertensos?</button>
       <button type="button">👶 Crianças até 6 meses</button>
-      <button type="button">📍 Famílias da Micro 22</button>
+      <button type="button">
+        {% if current_user.role == 'micro' and current_user.micro %}📍 Famílias
+        da Micro {{ current_user.micro }}. {% endif %}
+      </button>
     </div>
 
     <form class="siab-ai-form">
-      <textarea rows="2" placeholder="Digite sua pergunta..." aria-label="Digite sua pergunta"></textarea>
+      <textarea
+        rows="2"
+        placeholder="Digite sua pergunta..."
+        aria-label="Digite sua pergunta"
+      ></textarea>
       <button type="submit">Enviar</button>
     </form>
   </section>

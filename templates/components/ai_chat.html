@@ -59,7 +59,7 @@
       <button type="button">👶 Crianças até 6 meses</button>
       <button type="button">
         {% if current_user.role == 'micro' and current_user.micro %}📍 Famílias
-        da Micro {{ current_user.micro }}. {% endif %}
+        da {{ current_user.micro }}. {% endif %}
       </button>
     </div>
 

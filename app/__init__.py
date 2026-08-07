@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from app.routes import bp
 from app.auth import User
 from app.supabase_db import supabase
+from app.ai.routes import ai_bp
 
 login_manager = LoginManager()
 
@@ -29,6 +30,7 @@ def create_app():
 
     # Blueprint principal
     app.register_blueprint(bp)
+    app.register_blueprint(ai_bp)
 
 
     # Flask Login

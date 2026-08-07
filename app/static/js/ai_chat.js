@@ -1,6 +1,5 @@
 (() => {
   const STORAGE_KEY = "siab-ai-chat-history";
-  const OPEN_KEY = "siab-ai-chat-open";
   const root = document.querySelector(".siab-ai-chat");
 
   if (!root) return;
@@ -24,7 +23,6 @@
     panel.hidden = !open;
     toggle.hidden = open;
     toggle.setAttribute("aria-expanded", String(open));
-    sessionStorage.setItem(OPEN_KEY, open ? "1" : "0");
     if (open) setTimeout(() => textarea.focus(), 50);
   };
 
@@ -96,7 +94,7 @@
 
   const storedHistory = sessionStorage.getItem(STORAGE_KEY);
   if (storedHistory) messages.innerHTML = storedHistory;
-  setOpen(sessionStorage.getItem(OPEN_KEY) === "1");
+  setOpen(false);
   scrollToBottom();
 
   toggle.addEventListener("click", () => setOpen(true));

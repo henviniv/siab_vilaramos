@@ -21,6 +21,11 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.siab-ai-toggle[hidden],
+.siab-ai-panel[hidden] {
+  display: none !important;
+}
+
 .siab-ai-toggle:hover {
   box-shadow: 0 18px 40px rgba(15, 118, 110, 0.45);
   transform: translateY(-2px);

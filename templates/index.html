@@ -546,6 +546,17 @@
           .toLowerCase();
       }
 
+      function atualizarScrollSuperior() {
+        const scrollTop = document.getElementById("scrollTop");
+        const tabelaWrapper = document.getElementById("tabela-wrapper");
+
+        if (!scrollTop || !tabelaWrapper) return;
+
+        requestAnimationFrame(() => {
+          scrollTop.style.width = `${tabelaWrapper.scrollWidth}px`;
+        });
+      }
+
       function aplicarVisibilidadeColunas(visible) {
         const tabela = window.tabelaPessoasDataTable;
 
@@ -569,6 +580,8 @@
             )
             .forEach((el) => el.classList[acao]("hidden"));
         }
+
+        atualizarScrollSuperior();
       }
 
       function ocultarColunas() {
@@ -583,6 +596,7 @@
         aplicarVisibilidadeColunas(true);
 
         document.querySelector(".scroll-top-wrapper").style.display = "block";
+        atualizarScrollSuperior();
       }
 
       function deletePerson(id) {
@@ -779,12 +793,16 @@
       const scrollTop = document.getElementById("scrollTop");
       const tabelaWrapper = document.getElementById("tabela-wrapper");
 
+      atualizarScrollSuperior();
+      window.addEventListener("resize", atualizarScrollSuperior);
+
       scrollTop.parentElement.addEventListener("scroll", function () {
         tabelaWrapper.scrollLeft = this.scrollLeft;
       });
 
       tabelaWrapper.addEventListener("scroll", function () {
         scrollTop.parentElement.scrollLeft = this.scrollLeft;
+        atualizarScrollSuperior();
       });
 
       function coletarDadosFiltrados(colunasSelecionadas) {

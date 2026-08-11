@@ -278,22 +278,35 @@
       <table id="tabelaPessoas" class="display">
         <thead>
           <tr>
-            {% for chave in campos %} {% if chave in campos_somente_s %}
-            <th class="col-extra">{{ chave }}</th>
-            {% else %}
-            <th>{{ chave }}</th>
-            {% endif %} {% endfor %}
+            {% set colunas_ocultas_tabela = [
+              'id', 'equipe', 'micro', 'created_at', 'updated_at', 'google_row'
+            ] %}
+            {% for chave in campos %}
+            {% set classes_coluna = [] %}
+            {% if chave in campos_somente_s %}
+            {% set _ = classes_coluna.append('col-extra') %}
+            {% endif %}
+            {% if chave in colunas_ocultas_tabela %}
+            {% set _ = classes_coluna.append('col-oculta-padrao') %}
+            {% endif %}
+            <th{% if classes_coluna %} class="{{ classes_coluna|join(' ') }}"{% endif %}>{{ chave }}</th>
+            {% endfor %}
             <th>AÇÕES</th>
           </tr>
         </thead>
         <tbody>
           {% for linha in dados %}
           <tr>
-            {% for chave in campos %} {% if chave in campos_somente_s %}
-            <td class="col-extra">{{ linha.get(chave, '') }}</td>
-            {% else %}
-            <td>{{ linha.get(chave, '') }}</td>
-            {% endif %} {% endfor %}
+            {% for chave in campos %}
+            {% set classes_coluna = [] %}
+            {% if chave in campos_somente_s %}
+            {% set _ = classes_coluna.append('col-extra') %}
+            {% endif %}
+            {% if chave in colunas_ocultas_tabela %}
+            {% set _ = classes_coluna.append('col-oculta-padrao') %}
+            {% endif %}
+            <td{% if classes_coluna %} class="{{ classes_coluna|join(' ') }}"{% endif %}>{{ linha.get(chave, '') }}</td>
+            {% endfor %}
             <td>
               {% if current_user.is_authenticated and current_user.role ==
               'micro' %} {% set nome = linha.get("nome", "") %} {% set pessoa_id
@@ -342,6 +355,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+      const colunasOcultasPadrao = [
+        "id",
+        "equipe",
+        "micro",
+        "created_at",
+        "updated_at",
+        "google_row",
+      ];
+      window.colunasVisiveis = false;
+
       $(document).ready(function () {
         $("#tabelaPessoas thead th").each(function () {
           var title = $(this).text();
@@ -352,15 +375,6 @@
           }
         });
 
-        let colunasVisiveis = true;
-
-        $("#tabelaPessoas").on("draw.dt", function () {
-          if (colunasVisiveis) {
-            mostrarColunas();
-          } else {
-            ocultarColunas();
-          }
-        });
 
         var table = $("#tabelaPessoas").DataTable({
           responsive: true,
@@ -432,6 +446,8 @@
               });
           },
         });
+        window.tabelaPessoasDataTable = table;
+        ocultarColunas();
         var todasColunas = [];
         var seletorColunas = $("#seletorColunas");
 
@@ -519,24 +535,68 @@
           "inline-block";
       }
 
-      function ocultarColunas() {
-        colunasVisiveis = false;
+      function tituloColuna(coluna) {
+        return $(coluna.header())
+          .clone()
+          .children()
+          .remove()
+          .end()
+          .text()
+          .trim()
+          .toLowerCase();
+      }
 
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.add("hidden"));
+      function atualizarScrollSuperior() {
+        const scrollTop = document.getElementById("scrollTop");
+        const tabelaWrapper = document.getElementById("tabela-wrapper");
+
+        if (!scrollTop || !tabelaWrapper) return;
+
+        requestAnimationFrame(() => {
+          scrollTop.style.width = `${tabelaWrapper.scrollWidth}px`;
+        });
+      }
+
+      function aplicarVisibilidadeColunas(visible) {
+        const tabela = window.tabelaPessoasDataTable;
+
+        if (tabela) {
+          tabela.columns().every(function () {
+            const titulo = tituloColuna(this);
+
+            if (
+              this.header().classList.contains("col-extra") ||
+              colunasOcultasPadrao.includes(titulo)
+            ) {
+              this.visible(visible, false);
+            }
+          });
+          tabela.columns.adjust().draw(false);
+        } else {
+          const acao = visible ? "remove" : "add";
+          document
+            .querySelectorAll(
+              "th.col-extra, td.col-extra, th.col-oculta-padrao, td.col-oculta-padrao",
+            )
+            .forEach((el) => el.classList[acao]("hidden"));
+        }
+
+        atualizarScrollSuperior();
+      }
+
+      function ocultarColunas() {
+        window.colunasVisiveis = false;
+        aplicarVisibilidadeColunas(false);
 
         document.querySelector(".scroll-top-wrapper").style.display = "none";
       }
 
       function mostrarColunas() {
-        colunasVisiveis = true;
-
-        document
-          .querySelectorAll("th.col-extra, td.col-extra")
-          .forEach((el) => el.classList.remove("hidden"));
+        window.colunasVisiveis = true;
+        aplicarVisibilidadeColunas(true);
 
         document.querySelector(".scroll-top-wrapper").style.display = "block";
+        atualizarScrollSuperior();
       }
 
       function deletePerson(id) {
@@ -733,12 +793,16 @@
       const scrollTop = document.getElementById("scrollTop");
       const tabelaWrapper = document.getElementById("tabela-wrapper");
 
+      atualizarScrollSuperior();
+      window.addEventListener("resize", atualizarScrollSuperior);
+
       scrollTop.parentElement.addEventListener("scroll", function () {
         tabelaWrapper.scrollLeft = this.scrollLeft;
       });
 
       tabelaWrapper.addEventListener("scroll", function () {
         scrollTop.parentElement.scrollLeft = this.scrollLeft;
+        atualizarScrollSuperior();
       });
 
       function coletarDadosFiltrados(colunasSelecionadas) {

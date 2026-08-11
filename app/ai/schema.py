@@ -42,13 +42,15 @@ Colunas:
 - updated_at (timestamp)
 - google_row (integer)
 
+Nunca invente nomes de colunas.
+Nunca invente tabelas.
+Sempre utilize exatamente os nomes das colunas acima.
 
-=========================================
-REGRAS DOS CAMPOS
-=========================================
+============================================================
+MICRO
+============================================================
 
-
-A coluna "micro" é do tipo TEXT.
+A coluna "micro" é TEXT.
 
 Os valores armazenados são exatamente:
 
@@ -58,17 +60,21 @@ Os valores armazenados são exatamente:
 ...
 'MICRO 30'
 
-Sempre compare utilizando texto.
+Sempre compare como texto.
 
-Exemplo:
+Exemplo correto:
 
 WHERE micro = 'MICRO 22'
 
+Nunca faça:
 
------------------------------------------
+WHERE micro = 22
 
+============================================================
+EQUIPE
+============================================================
 
-A coluna "equipe" é do tipo TEXT.
+A coluna "equipe" é TEXT.
 
 Os valores armazenados são:
 
@@ -78,270 +84,480 @@ Os valores armazenados são:
 'EQUIPE 4'
 'EQUIPE 5'
 
-Sempre compare utilizando texto.
+Sempre compare como texto.
 
-Exemplo:
+Exemplo correto:
 
-WHERE equipe = 'EQUIPE 3'
+WHERE equipe = 'EQUIPE 4'
 
-
------------------------------------------
-
+============================================================
+FAMÍLIA
+============================================================
 
 A coluna "familia" identifica uma família.
 
 Uma família pode possuir várias pessoas.
 
-Para contar famílias utilize:
+Quando a pergunta solicitar quantidade de famílias,
+utilize:
 
 COUNT(DISTINCT familia)
 
-Ignore famílias nulas.
+Ignore famílias NULL.
 
+Exemplo:
 
------------------------------------------
+SELECT COUNT(DISTINCT familia)
+FROM pessoas
+WHERE micro = 'MICRO 22'
+AND familia IS NOT NULL
 
+============================================================
+IDADE EM ANOS
+============================================================
 
-A coluna "idade" é INTEGER e representa idade em ANOS completos.
+A coluna "idade" é INTEGER.
 
-Nunca utilize a coluna idade para calcular meses de vida.
+Ela representa a idade da pessoa em ANOS COMPLETOS.
 
-Para perguntas envolvendo:
+Quando a pergunta informar idade em ANOS,
+utilize a coluna "idade".
 
-- bebês menores de 1 ano;
-- crianças até X meses;
-- idade em meses;
+Exemplo:
 
-NÃO utilize a coluna idade.
+Pessoas menores de 18 anos:
 
-Utilize a coluna data_nascimento.
+WHERE idade < 18
 
-A coluna data_nascimento é TEXT no formato:
+Pessoas maiores de 18 anos:
+
+WHERE idade > 18
+
+Pessoas com 18 anos ou mais:
+
+WHERE idade >= 18
+
+Pessoas entre 18 e 59 anos, inclusive:
+
+WHERE idade BETWEEN 18 AND 59
+
+IMPORTANTE:
+
+Interprete cuidadosamente os operadores utilizados
+na pergunta.
+
+"menor que 18" significa:
+
+idade < 18
+
+"menor ou igual a 18" significa:
+
+idade <= 18
+
+"maior que 18" significa:
+
+idade > 18
+
+"maior ou igual a 18" significa:
+
+idade >= 18
+
+============================================================
+FAIXAS DE IDADE EM ANOS
+============================================================
+
+Quando o usuário informar uma faixa de idade,
+respeite exatamente os limites informados.
+
+Exemplo:
+
+"crianças de 2 até 10 anos"
+
+significa:
+
+idade >= 2 AND idade <= 10
+
+Exemplo:
+
+"maiores de 2 anos e menores de 10 anos"
+
+significa:
+
+idade > 2 AND idade < 10
+
+Exemplo:
+
+"maiores ou iguais a 2 e menores que 10"
+
+significa:
+
+idade >= 2 AND idade < 10
+
+Exemplo:
+
+"de 2 a menos de 10 anos"
+
+significa:
+
+idade >= 2 AND idade < 10
+
+Exemplo:
+
+"entre 2 e 10 anos, inclusive"
+
+significa:
+
+idade >= 2 AND idade <= 10
+
+NÃO confunda:
+
+"até 10 anos"
+
+com:
+
+"menores de 10 anos"
+
+"até 10 anos" normalmente significa:
+
+idade <= 10
+
+"menores de 10 anos" significa:
+
+idade < 10
+
+============================================================
+IDADE EM MESES OU DIAS
+============================================================
+
+NUNCA utilize a coluna "idade" para calcular meses ou dias
+de vida.
+
+A coluna "idade" representa somente ANOS COMPLETOS.
+
+A coluna "data_nascimento" é TEXT no formato:
 
 DD/MM/YYYY
 
-Para calcular idade por meses, faça conversão:
+Quando a pergunta mencionar:
+
+- meses
+- dias de vida
+- bebê
+- recém-nascido
+- menor de 1 ano
+- menores de X meses
+- crianças de X meses
+- idade em meses
+
+SEMPRE utilize "data_nascimento".
+
+Converta a data utilizando:
 
 TO_DATE(data_nascimento, 'DD/MM/YYYY')
 
 Exemplo:
 
-Crianças até 6 meses:
+Crianças com até 6 meses:
 
-WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY') >= CURRENT_DATE - INTERVAL '6 months'
+WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      >= CURRENT_DATE - INTERVAL '6 months'
 
-Crianças até 1 ano:
+Crianças menores de 1 ano:
 
-WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY') >= CURRENT_DATE - INTERVAL '1 year'
+WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      >= CURRENT_DATE - INTERVAL '1 year'
 
-Quando a pergunta mencionar:
+IMPORTANTE:
 
-- meses
-- dias
-- recém-nascido
-- bebê
-- menor de 1 ano
+Não utilize:
 
-sempre use data_nascimento.
+idade <= 6
 
-Quando mencionar idade em anos, utilize idade.
-=========================================
+para responder:
+
+"crianças até 6 meses".
+
+Isso estaria errado porque "idade" representa ANOS.
+
+============================================================
+FAIXAS DE IDADE EM MESES
+============================================================
+
+Quando o usuário informar limites em meses,
+utilize sempre data_nascimento.
+
+Exemplo:
+
+"crianças de 0 até 6 meses":
+
+WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      >= CURRENT_DATE - INTERVAL '6 months'
+
+Exemplo:
+
+"crianças menores de 6 meses":
+
+WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      > CURRENT_DATE - INTERVAL '6 months'
+
+Exemplo:
+
+"crianças entre 6 e 12 meses":
+
+WHERE TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      >= CURRENT_DATE - INTERVAL '12 months'
+AND TO_DATE(data_nascimento, 'DD/MM/YYYY')
+      < CURRENT_DATE - INTERVAL '6 months'
+
+Sempre interprete os limites de acordo com a pergunta.
+
+
+============================================================
 SIGNIFICADO DAS SIGLAS DO SIAB
-=========================================
+============================================================
 
-As colunas abaixo possuem nomes abreviados.
-Sempre utilize o significado correto ao interpretar
-perguntas dos usuários.
+As colunas possuem nomes abreviados.
 
-- dia
-  Significa DIABETES.
+NUNCA confunda o significado delas.
 
-  Use esta coluna para perguntas relacionadas a:
-  diabetes, diabéticos, pessoas com diabetes.
+- dia = DIABETES
+- has = HIPERTENSÃO ARTERIAL SISTÊMICA
+- hiperdia = HIPERTENSÃO E DIABETES
+- sm = SAÚDE MENTAL
+- tb = TUBERCULOSE
+- han = HANSENÍASE
+- insulino = USO DE INSULINA
+- asmatico_dpoc = ASMA OU DPOC
 
-  Exemplo:
+============================================================
+DIABETES
+============================================================
 
-  WHERE dia = 'S'
+A coluna "dia" significa DIABETES.
 
+"S" significa que existe registro de diabetes.
 
-- has
-  Significa Hipertensão Arterial Sistêmica.
+Exemplo:
 
-  Use esta coluna para perguntas relacionadas a:
-  hipertensão, hipertensos, pressão alta.
+WHERE dia = 'S'
 
-  Exemplo:
+IMPORTANTE:
 
-  WHERE has = 'S'
+Quando a pergunta solicitar:
 
+- quantos diabéticos existem;
+- quantas pessoas têm diabetes;
+- total de diabéticos;
+- pessoas diabéticas;
 
-- hiperdia
-  Significa acompanhamento de Hipertensão e Diabetes.
+DEVEM SER CONSIDERADAS:
 
-  Use esta coluna para perguntas relacionadas a:
-  pessoas acompanhadas pelo Hiperdia,
-  hipertensão e diabetes acompanhados no programa.
+1. pessoas com dia = 'S'
+2. pessoas com hiperdia = 'S'
 
-  Exemplo:
+Portanto, utilize:
 
-  WHERE hiperdia = 'S'
+WHERE dia = 'S'
+   OR hiperdia = 'S'
 
+Exemplo:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE dia = 'S'
+   OR hiperdia = 'S'
+
+Se houver filtro de equipe:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE equipe = 'EQUIPE 4'
+AND (
+    dia = 'S'
+    OR hiperdia = 'S'
+)
+
+Se houver filtro de micro:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE micro = 'MICRO 22'
+AND (
+    dia = 'S'
+    OR hiperdia = 'S'
+)
+
+NÃO conte a mesma pessoa duas vezes caso ela possua
+dia = 'S' E hiperdia = 'S'.
+
+NÃO utilize a coluna "sm" para diabetes.
+
+============================================================
+HIPERTENSÃO
+============================================================
+
+A coluna "has" significa:
+
+HIPERTENSÃO ARTERIAL SISTÊMICA.
+
+"S" significa que existe registro de hipertensão.
+
+Exemplo:
+
+WHERE has = 'S'
+
+IMPORTANTE:
+
+Quando a pergunta solicitar:
+
+- quantos hipertensos existem;
+- quantas pessoas têm hipertensão;
+- total de hipertensos;
+- pessoas com pressão alta;
+
+DEVEM SER CONSIDERADAS:
+
+1. pessoas com has = 'S'
+2. pessoas com hiperdia = 'S'
+
+Portanto:
+
+WHERE has = 'S'
+   OR hiperdia = 'S'
+
+Exemplo:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE has = 'S'
+   OR hiperdia = 'S'
+
+Com equipe:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE equipe = 'EQUIPE 4'
+AND (
+    has = 'S'
+    OR hiperdia = 'S'
+)
+
+NÃO conte a mesma pessoa duas vezes caso ela possua
+has = 'S' E hiperdia = 'S'.
+
+============================================================
+HIPERDIA
+============================================================
+
+A coluna "hiperdia" representa acompanhamento relacionado
+à HIPERTENSÃO E DIABETES.
+
+"S" significa que a pessoa possui registro no Hiperdia.
+
+Quando a pergunta for especificamente sobre:
+
+- pessoas no Hiperdia;
+- pacientes do Hiperdia;
+- acompanhamento Hiperdia;
+
+utilize somente:
+
+WHERE hiperdia = 'S'
+
+Exemplo:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE hiperdia = 'S'
+
+IMPORTANTE:
+
+Para calcular o TOTAL de diabéticos:
+
+dia = 'S' OR hiperdia = 'S'
+
+Para calcular o TOTAL de hipertensos:
+
+has = 'S' OR hiperdia = 'S'
+
+Não confunda essas três perguntas.
+
+============================================================
+OUTRAS SIGLAS
+============================================================
 
 - insulino
-  Significa uso de insulina.
-
-  Use esta coluna para perguntas relacionadas a:
-  pessoas que utilizam insulina.
-
-  Exemplo:
-
-  WHERE insulino = 'S'
-
+  = uso de insulina
 
 - sm
-  Significa Saúde Mental.
-
-  NÃO significa diabetes.
-
-  Use esta coluna para perguntas relacionadas a:
-  saúde mental, acompanhamento psicológico,
-  transtornos mentais.
-
-  Exemplo:
-
-  WHERE sm = 'S'
-
+  = Saúde Mental
 
 - tb
-  Significa Tuberculose.
-
-  Use esta coluna para perguntas relacionadas a:
-  tuberculose.
-
-  Exemplo:
-
-  WHERE tb = 'S'
-
+  = Tuberculose
 
 - han
-  Significa Hanseníase.
-
-  Use esta coluna para perguntas relacionadas a:
-  hanseníase.
-
-  Exemplo:
-
-  WHERE han = 'S'
-
-
-- dpoc
-  A coluna asmatico_dpoc representa:
-  asma e doença pulmonar obstrutiva crônica.
-
-  Use esta coluna para perguntas relacionadas a:
-  asma, DPOC, problemas respiratórios.
-
-
-- ampi
-  Campo específico de acompanhamento do sistema.
-
-- fralda
-  Indica utilização de fralda.
-
-- sifilis
-  Indica registro de sífilis.
-
-=========================================
-CAMPOS DE ACOMPANHAMENTO
-=========================================
-
-
-Os campos abaixo são do tipo TEXT.
-
-Quando uma condição está marcada no sistema,
-o valor armazenado é:
-
-'S' = Sim / condição presente
-
-
-Não existem valores 'N' nesses campos.
-
-Quando a condição não está marcada, o campo pode
-estar vazio ou NULL.
-
-
-Para buscar registros com determinada condição,
-sempre utilize:
-
-WHERE campo = 'S'
-
-
-Campos que utilizam 'S':
-
-- gestante
-  'S' = gestante
-
-- dia
-  'S' = possui a condição registrada
-
-- has
-  'S' = possui hipertensão arterial sistêmica
-
-- hiperdia
-  'S' = participa do acompanhamento Hiperdia
-
-- insulino
-  'S' = utiliza insulina
-
-- sm
-  'S' = possui registro
-
-- tb
-  'S' = possui tuberculose
-
-- han
-  'S' = possui hanseníase
-
-- obesa
-  'S' = pessoa obesa
-
-- tabagista
-  'S' = tabagista
-
-- uso_de_drogas
-  'S' = possui registro de uso de drogas
-
-- uso_de_alcool
-  'S' = possui registro de uso de álcool
-
-- acamado
-  'S' = acamado
-
-- restrito
-  'S' = restrito
+  = Hanseníase
 
 - asmatico_dpoc
-  'S' = possui asma ou DPOC
+  = Asma ou DPOC
+
+- gestante
+  = gestante
+
+- obesa
+  = pessoa obesa
+
+- tabagista
+  = tabagista
+
+- uso_de_drogas
+  = uso de drogas
+
+- uso_de_alcool
+  = uso de álcool
+
+- acamado
+  = pessoa acamada
+
+- restrito
+  = pessoa restrita
 
 - bolsa_familia
-  'S' = recebe Bolsa Família
+  = recebe Bolsa Família
 
 - ampi
-  'S' = possui registro
+  = acompanhamento AMPI
 
 - fralda
-  'S' = utiliza fralda
+  = utiliza fralda
 
 - sifilis
-  'S' = possui registro de sífilis
+  = registro de sífilis
 
+============================================================
+VALORES DOS CAMPOS DE CONDIÇÃO
+============================================================
 
-Nunca utilize TRUE ou FALSE nesses campos.
+Os campos de condição são TEXT.
+
+Quando uma condição está marcada:
+
+'S' = SIM / condição presente
+
+Não existem valores 'N'.
+
+Quando não está marcada,
+o campo pode estar vazio ou NULL.
+
+Sempre utilize:
+
+campo = 'S'
+
+Nunca utilize TRUE ou FALSE.
 
 Exemplo correto:
 
 WHERE gestante = 'S'
-
 
 Exemplos incorretos:
 
@@ -351,22 +567,11 @@ WHERE gestante = 'true'
 
 WHERE gestante = 'N'
 
+============================================================
+ENDEREÇOS
+============================================================
 
-=========================================
-REGRAS GERAIS
-=========================================
-
-Sempre utilize os nomes das colunas exatamente como estão acima.
-
-Nunca invente nomes de colunas.
-
-Nunca invente tabelas.
-
-=========================================
-PESQUISA DE ENDEREÇOS
-=========================================
-
-A coluna endereco contém o endereço completo da pessoa.
+A coluna "endereco" contém o endereço completo.
 
 Nunca utilize igualdade exata (=) para pesquisar endereços.
 
@@ -376,32 +581,85 @@ Exemplo correto:
 
 WHERE endereco ILIKE '%Reverendo Erodice Pontes de Queiroz%'
 
-
 Exemplo incorreto:
 
 WHERE endereco = 'Rua Reverendo Erodice Pontes de Queiroz'
 
-
-As pesquisas de endereço devem ignorar diferença entre
+As pesquisas de endereço devem ignorar diferenças entre
 letras maiúsculas e minúsculas.
 
-=========================================
-CAMPOS DE TEXTO
-=========================================
+============================================================
+PESQUISA POR NOME
+============================================================
 
-Para pesquisas por nome ou endereço,
-quando o usuário não informar o texto exatamente igual
-ao banco, utilize ILIKE.
+Quando o usuário pesquisar uma pessoa pelo nome,
+utilize ILIKE.
 
-Exemplos:
-
-Nome:
+Exemplo:
 
 WHERE nome ILIKE '%Maria%'
 
+Não exija que o nome seja exatamente igual ao texto
+informado pelo usuário.
 
-Endereço:
+============================================================
+REGRAS IMPORTANTES DE INTERPRETAÇÃO
+============================================================
 
-WHERE endereco ILIKE '%Rua das Flores%'
+1. "diabético" significa:
+
+dia = 'S' OR hiperdia = 'S'
+
+2. "hipertenso" significa:
+
+has = 'S' OR hiperdia = 'S'
+
+3. "Hiperdia" significa:
+
+hiperdia = 'S'
+
+4. "saúde mental" significa:
+
+sm = 'S'
+
+5. "tuberculose" significa:
+
+tb = 'S'
+
+6. "hanseníase" significa:
+
+han = 'S'
+
+7. Perguntas em MESES utilizam:
+
+data_nascimento
+
+8. Perguntas em ANOS utilizam:
+
+idade
+
+9. Endereço utiliza:
+
+ILIKE '%texto%'
+
+10. Nome utiliza:
+
+ILIKE '%texto%'
+
+11. Nunca invente colunas.
+
+12. Nunca invente tabelas.
+
+13. Nunca utilize TRUE ou FALSE nos campos de condição.
+
+14. Nunca confunda "sm" com diabetes.
+
+15. Nunca use "idade" para calcular idade em meses.
+
+16. Ao contar pessoas com diabetes ou hipertensão,
+não conte a mesma pessoa duas vezes.
+
+17. Sempre aplique os filtros de micro ou equipe
+solicitados pelo usuário.
 
 """

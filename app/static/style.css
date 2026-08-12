@@ -341,6 +341,10 @@ select {
   max-width: 100%;
 }
 
+.tabela-container:not(.colunas-expandidas) #tabelaPessoas {
+  width: 100% !important;
+}
+
 @media (max-width: 768px) {
   body {
     margin: 10px;

@@ -640,10 +640,37 @@
         });
       }
 
+      function ajustarLarguraTabelaCompacta(tabela) {
+        const tabelaWrapper = document.getElementById("tabela-wrapper");
+        const tabelaNode = tabela.table().node();
+
+        if (tabelaWrapper) {
+          tabelaWrapper.scrollLeft = 0;
+          tabelaWrapper.classList.remove("colunas-expandidas");
+        }
+
+        tabelaNode.style.removeProperty("min-width");
+        tabelaNode.style.width = "100%";
+      }
+
+      function alternarLayoutTabelaExpandida(tabela, expanded) {
+        const tabelaWrapper = document.getElementById("tabela-wrapper");
+
+        if (tabelaWrapper) {
+          tabelaWrapper.classList.toggle("colunas-expandidas", expanded);
+        }
+
+        if (!expanded) {
+          ajustarLarguraTabelaCompacta(tabela);
+        }
+      }
+
       function aplicarVisibilidadeColunas(visible) {
         const tabela = window.tabelaPessoasDataTable;
 
         if (!tabela) return;
+
+        alternarLayoutTabelaExpandida(tabela, visible);
 
         tabela.columns().every(function () {
           const titulo = tituloColuna(this);
@@ -669,6 +696,10 @@
           }
 
           tabela.draw(false);
+
+          if (!visible) {
+            ajustarLarguraTabelaCompacta(tabela);
+          }
 
     
           requestAnimationFrame(() => {

@@ -311,6 +311,188 @@ AND TO_DATE(data_nascimento, 'DD/MM/YYYY')
 
 Sempre interprete os limites de acordo com a pergunta.
 
+# ============================================================
+# GÊNERO / SEXO
+# ============================================================
+
+A coluna "genero" identifica o gênero da pessoa.
+
+Os valores armazenados no banco são exatamente:
+
+'FEMININO'
+'MASCULINO'
+
+NUNCA invente outros valores para a coluna genero.
+
+Sempre utilize esses valores exatamente como estão
+armazenados no banco.
+
+---
+
+INTERPRETAÇÃO DE TERMOS RELACIONADOS A GÊNERO:
+
+Quando o usuário utilizar qualquer um dos termos abaixo,
+interprete como gênero FEMININO:
+
+- mulher
+- mulheres
+- menina
+- meninas
+- garota
+- garotas
+- feminina
+- femininas
+- FEMININO
+- FEMININAS
+- ela
+- elas
+- dela
+- delas
+
+Utilize:
+
+genero = 'FEMININO'
+
+Exemplo:
+
+Pergunta:
+"Quantas mulheres existem na Micro 23?"
+
+SQL correto:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE micro = 'MICRO 23'
+AND genero = 'FEMININO'
+
+---
+
+Quando o usuário utilizar qualquer um dos termos abaixo,
+interprete como gênero MASCULINO:
+
+- homem
+- homens
+- menino
+- meninos
+- garoto
+- garotos
+- masculino
+- masculinos
+- MASCULINO
+- MASCULINOS
+- ele
+- eles
+- dele
+- deles
+
+Utilize:
+
+genero = 'MASCULINO'
+
+Exemplo:
+
+Pergunta:
+"Quantos homens existem na Micro 23?"
+
+SQL correto:
+
+SELECT COUNT(*)
+FROM pessoas
+WHERE micro = 'MICRO 23'
+AND genero = 'MASCULINO'
+
+---
+
+IMPORTANTE:
+
+Quando a pergunta mencionar gênero, SEMPRE aplique
+o filtro correspondente na coluna "genero".
+
+Não ignore a informação de gênero.
+
+Exemplo:
+
+"Quantas mulheres de 25 a 64 anos existem na Micro 23?"
+
+Deve utilizar obrigatoriamente:
+
+WHERE micro = 'MICRO 23'
+AND genero = 'FEMININO'
+AND idade >= 25
+AND idade <= 64
+
+Exemplo:
+
+"Quantos homens de 18 a 59 anos existem na Equipe 4?"
+
+Deve utilizar obrigatoriamente:
+
+WHERE equipe = 'EQUIPE 4'
+AND genero = 'MASCULINO'
+AND idade >= 18
+AND idade <= 59
+
+---
+
+Quando a pergunta utilizar "pessoas" sem especificar
+homens, mulheres, masculino ou feminino, NÃO aplique
+nenhum filtro de gênero.
+
+Exemplo:
+
+"Quantas pessoas de 25 a 64 anos existem na Micro 23?"
+
+Utilize:
+
+WHERE micro = 'MICRO 23'
+AND idade >= 25
+AND idade <= 64
+
+NÃO adicione:
+
+AND genero = 'FEMININO'
+
+nem:
+
+AND genero = 'MASCULINO'
+
+---
+
+Quando a pergunta combinar gênero com outras condições,
+TODAS as condições devem ser aplicadas simultaneamente.
+
+Exemplo:
+
+"Quantas mulheres menores de 18 anos têm diabetes?"
+
+Utilize:
+
+WHERE genero = 'FEMININO'
+AND idade < 18
+AND (
+    dia = 'S'
+    OR hiperdia = 'S'
+)
+
+Exemplo:
+
+"Quantos homens hipertensos existem na Equipe 4?"
+
+Utilize:
+
+WHERE equipe = 'EQUIPE 4'
+AND genero = 'MASCULINO'
+AND (
+    has = 'S'
+    OR hiperdia = 'S'
+)
+
+Nunca ignore o gênero informado na pergunta.
+
+Nunca substitua "mulheres" por "pessoas".
+
+Nunca substitua "homens" por "pessoas".
+
 
 ============================================================
 SIGNIFICADO DAS SIGLAS DO SIAB

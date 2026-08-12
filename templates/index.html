@@ -328,6 +328,7 @@
           {% endfor %}
         </tbody>
       </table>
+      
     </div>
     <div class="text-center" style="margin-top: 20px">
       <button id="gerarFilipetas" class="btn btn-primary">
@@ -363,118 +364,200 @@
         "updated_at",
         "google_row",
       ];
+
       window.colunasVisiveis = false;
 
       $(document).ready(function () {
+  
+
         $("#tabelaPessoas thead th").each(function () {
-          var title = $(this).text();
+          var title = $(this).text().trim();
+
           if (title !== "AÇÕES") {
             $(this).append(
-              '<br><select class="filtro-multiplo" multiple="multiple" style="min-width: auto; width: 100%;"></select>',
+              '<br><select class="filtro-multiplo" multiple="multiple" style="min-width: auto; width: 100%;"></select>'
             );
           }
         });
 
+  
 
-        var table = $("#tabelaPessoas").DataTable({
-          responsive: true,
-          order: [],
-          language: {
-            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
-          },
-          initComplete: function () {
-            this.api()
-              .columns()
-              .every(function () {
-                var column = this;
-                var title = $(column.header()).text();
-                if (title !== "AÇÕES") {
-                  var select = $(column.header()).find("select");
+      var table = $("#tabelaPessoas").DataTable({
+        responsive: true,
+        order: [],
 
-                  column
-                    .data()
-                    .unique()
-                    .sort()
-                    .each(function (d) {
-                      if (d) {
-                        select.append(
-                          '<option value="' + d + '">' + d + "</option>",
-                        );
-                      }
-                    });
+        language: {
+          url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json",
+        },
 
-                  select
-                    .select2({
-                      placeholder: "Filtrar " + title,
-                      closeOnSelect: false,
-                      allowClear: true,
-                      width: "resolve",
-                      minimumResultsForSearch: 0,
-                    })
-                    .on("change", function () {
-                      const selected = $(this).val();
-                      const label =
-                        selected?.length > 0
-                          ? `${selected.length} selecionado(s)`
-                          : "";
-                      $(this)
-                        .next(".select2-container")
-                        .find(".select2-selection__rendered")
-                        .attr("title", label);
-                    });
+        initComplete: function () {
+          this.api()
+            .columns()
+            .every(function () {
+              var column = this;
+              var title = $(column.header()).text().trim();
 
-                  select.on("change", function () {
-                    var selected = $(this).val();
-                    if (selected && selected.length > 0) {
-                      var regex = selected
-                        .map(
-                          (val) =>
-                            "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
-                        )
-                        .join("|");
-                      column.search(regex, true, false).draw();
-                      $(column.header()).find(".contador-filtro").remove();
-                      $(column.header()).append(
-                        `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`,
+              if (title !== "AÇÕES") {
+                var select = $(column.header()).find("select");
+
+                column
+                  .data()
+                  .unique()
+                  .sort()
+                  .each(function (d) {
+                    if (d) {
+                      select.append(
+                        '<option value="' +
+                          d +
+                          '">' +
+                          d +
+                        "</option>"
                       );
-                    } else {
-                      column.search("", true, false).draw();
-                      $(column.header()).find(".contador-filtro").remove();
                     }
                   });
-                }
-              });
-          },
-        });
-        window.tabelaPessoasDataTable = table;
-        ocultarColunas();
-        var todasColunas = [];
-        var seletorColunas = $("#seletorColunas");
 
-        table.columns().every(function (index) {
-          var title = $(this.header()).text();
-          if (title !== "AÇÕES") {
-            todasColunas.push({ index: index, title: title });
-            seletorColunas.append(
-              '<option value="' + index + '" selected>' + title + "</option>",
-            );
+                select
+                  .select2({
+                    placeholder: "Filtrar " + title,
+                    closeOnSelect: false,
+                    allowClear: true,
+                    width: "resolve",
+                    minimumResultsForSearch: 0,
+                  })
+
+                  .on("change", function () {
+                    const selected = $(this).val();
+
+                    const label =
+                      selected?.length > 0
+                        ? `${selected.length} selecionado(s)`
+                        : "";
+
+                    $(this)
+                      .next(".select2-container")
+                      .find(".select2-selection__rendered")
+                      .attr("title", label);
+                  });
+
+                select.on("change", function () {
+                  var selected = $(this).val();
+
+                  if (selected && selected.length > 0) {
+                    var regex = selected
+                      .map(
+                        (val) =>
+                          "^" +
+                          $.fn.dataTable.util.escapeRegex(val) +
+                          "$"
+                      )
+                      .join("|");
+
+                    column.search(regex, true, false).draw();
+
+                    $(column.header())
+                      .find(".contador-filtro")
+                      .remove();
+
+                    $(column.header()).append(
+                      `<span class="contador-filtro" style="font-size:10px;color:#007bff;">(${selected.length})</span>`
+                    );
+                  } else {
+                    column.search("", true, false).draw();
+
+                    $(column.header())
+                      .find(".contador-filtro")
+                      .remove();
+                  }
+                });
+              }
+            });
+        },
+      });
+
+ 
+
+      window.tabelaPessoasDataTable = table;
+
+  
+
+      function recalcularTabela() {
+        requestAnimationFrame(function () {
+          table.columns.adjust();
+
+      
+          if (table.responsive) {
+            table.responsive.recalc();
           }
-        });
 
-        seletorColunas.select2({
-          placeholder: "Selecione as colunas que deseja ver",
-          width: "resolve",
-        });
+          table.draw(false);
 
-        seletorColunas.on("change", function () {
-          var selecionadas = $(this).val().map(Number);
-
-          todasColunas.forEach(function (coluna) {
-            var visivel = selecionadas.includes(coluna.index);
-            table.column(coluna.index).visible(visivel);
+          requestAnimationFrame(function () {
+            atualizarScrollSuperior();
           });
         });
+      }
+
+  
+
+      var todasColunas = [];
+      var seletorColunas = $("#seletorColunas");
+
+      table.columns().every(function (index) {
+        var title = $(this.header())
+          .clone()
+          .children()
+          .remove()
+          .end()
+          .text()
+          .trim();
+
+        if (title !== "AÇÕES") {
+          todasColunas.push({
+            index: index,
+            title: title,
+          });
+
+          seletorColunas.append(
+            '<option value="' +
+              index +
+              '" selected>' +
+              title +
+              "</option>"
+          );
+        }
       });
+
+     seletorColunas.select2({
+        placeholder: "Selecione as colunas que deseja ver",
+        width: "resolve",
+      });
+
+  
+
+      seletorColunas.on("change", function () {
+        var selecionadas = ($(this).val() || []).map(Number);
+
+    
+        todasColunas.forEach(function (coluna) {
+          var visivel = selecionadas.includes(coluna.index);
+
+          table
+            .column(coluna.index)
+            .visible(visivel, false);
+        });
+
+    
+        table.draw(false);
+
+    
+        recalcularTabela();
+      });
+
+  
+      requestAnimationFrame(function () {
+        ocultarColunas();
+      });
+    });
 
       function preencherFormulario(pessoa) {
         const form = document.getElementById("formCadastro");
@@ -560,43 +643,64 @@
       function aplicarVisibilidadeColunas(visible) {
         const tabela = window.tabelaPessoasDataTable;
 
-        if (tabela) {
-          tabela.columns().every(function () {
-            const titulo = tituloColuna(this);
+        if (!tabela) return;
 
-            if (
-              this.header().classList.contains("col-extra") ||
-              colunasOcultasPadrao.includes(titulo)
-            ) {
-              this.visible(visible, false);
-            }
+        tabela.columns().every(function () {
+          const titulo = tituloColuna(this);
+
+          if (
+            this.header().classList.contains("col-extra") ||
+            colunasOcultasPadrao.includes(titulo)
+          ) {
+            this.visible(visible, false);
+          }
+        });
+
+  
+        tabela.draw(false);
+
+  
+        requestAnimationFrame(() => {
+          tabela.columns.adjust();
+
+    
+          if (tabela.responsive) {
+            tabela.responsive.recalc();
+          }
+
+          tabela.draw(false);
+
+    
+          requestAnimationFrame(() => {
+            atualizarScrollSuperior();
           });
-          tabela.columns.adjust().draw(false);
-        } else {
-          const acao = visible ? "remove" : "add";
-          document
-            .querySelectorAll(
-              "th.col-extra, td.col-extra, th.col-oculta-padrao, td.col-oculta-padrao",
-            )
-            .forEach((el) => el.classList[acao]("hidden"));
-        }
-
-        atualizarScrollSuperior();
+        });
       }
+
 
       function ocultarColunas() {
         window.colunasVisiveis = false;
+
         aplicarVisibilidadeColunas(false);
 
-        document.querySelector(".scroll-top-wrapper").style.display = "none";
+        const scrollWrapper = document.querySelector(".scroll-top-wrapper");
+
+        if (scrollWrapper) {
+          scrollWrapper.style.display = "none";
+        }
       }
+
 
       function mostrarColunas() {
         window.colunasVisiveis = true;
-        aplicarVisibilidadeColunas(true);
 
-        document.querySelector(".scroll-top-wrapper").style.display = "block";
-        atualizarScrollSuperior();
+        const scrollWrapper = document.querySelector(".scroll-top-wrapper");
+
+        if (scrollWrapper) {
+          scrollWrapper.style.display = "block";
+        }
+
+        aplicarVisibilidadeColunas(true);
       }
 
       function deletePerson(id) {

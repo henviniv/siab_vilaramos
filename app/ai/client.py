@@ -14,7 +14,7 @@ from groq import Groq
 from app.ai.prompt import SYSTEM_PROMPT
 
 
-MODEL = "openai/gpt-oss-20b"
+MODEL = "openai/gpt-oss-120b"
 
 client = Groq(
     api_key=os.environ["GROQ_API_KEY"]

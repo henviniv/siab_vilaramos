@@ -60,7 +60,7 @@
     return item;
   };
 
-  const addExportButton = (pergunta) => {
+  const addExportButton = (sql) => {
     const item = document.createElement("div");
     item.className = "siab-ai-message siab-ai-message--bot";
 
@@ -87,7 +87,7 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            pergunta: pergunta,
+            sql: sql,
           }),
         });
 
@@ -194,8 +194,8 @@
 
       addMessage(data.resposta, "bot");
 
-      if (data.exportar) {
-        addExportButton(pergunta);
+      if (data.exportar && data.sql) {
+        addExportButton(data.sql);
       }
     } catch (error) {
       typing.remove();

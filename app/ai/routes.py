@@ -9,6 +9,8 @@ from flask import (
 from flask_login import current_user, login_required
 
 from app.ai.chat import perguntar, consultar, pediu_exportacao
+from app.ai.guard import validar_sql
+from app.ai.database import executar_sql
 from app.ai.excel import exportar_excel
 
 
@@ -99,24 +101,24 @@ def exportar():
 
     dados_requisicao = request.get_json(silent=True) or {}
 
-    pergunta = str(
-        dados_requisicao.get("pergunta", "")
+    sql = str(
+        dados_requisicao.get("sql", "")
     ).strip()
 
-    if not pergunta:
+    if not sql:
         return jsonify({
             "success": False,
-            "message": "Digite o que deseja colocar na lista.",
+            "message": "Nenhuma consulta disponível para exportação.",
         }), 400
 
     try:
 
-        resultado = consultar(
-            pergunta,
-            usuario=current_user
-        )
+        # Valida novamente o SQL antes de executar.
+        validar_sql(sql)
 
-        dados = resultado["dados"]
+        # Executa exatamente o SQL que já foi
+        # gerado na consulta original.
+        dados = executar_sql(sql)
 
         if not dados:
             return jsonify({

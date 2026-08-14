@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
+  {% if current_user.is_authenticated %}
   <head>
     <meta charset="UTF-8" />
     <title>Assistente IA - SIAB</title>
@@ -31,4 +32,5 @@
 
     {% endif %}
   </body>
+  {% endif %}
 </html>

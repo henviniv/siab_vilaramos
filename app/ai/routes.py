@@ -9,8 +9,6 @@ from flask import (
 from flask_login import current_user, login_required
 
 from app.ai.chat import perguntar, consultar, pediu_exportacao
-from app.ai.guard import validar_sql
-from app.ai.database import executar_sql
 from app.ai.excel import exportar_excel
 
 
@@ -101,25 +99,18 @@ def exportar():
 
     dados_requisicao = request.get_json(silent=True) or {}
 
-    sql = str(
-        dados_requisicao.get("sql", "")
-    ).strip()
+    dados = dados_requisicao.get("dados") or []
 
-    if not sql:
+    if not dados:
         return jsonify({
             "success": False,
-            "message": "Nenhuma consulta disponível para exportação.",
+            "message": "Nenhum dado disponível para exportação.",
         }), 400
 
     try:
 
-        # Valida novamente o SQL antes de executar.
-        validar_sql(sql)
-
-        # Executa exatamente o SQL que já foi
-        # gerado na consulta original.
-        dados = executar_sql(sql)
-
+        # Usa os dados já retornados pela consulta original, evitando
+        # nova chamada ao banco ou à IA apenas para gerar o arquivo.
         if not dados:
             return jsonify({
                 "success": False,

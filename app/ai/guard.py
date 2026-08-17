@@ -41,8 +41,8 @@ def validar_sql(sql: str) -> bool:
     if sql == "NAO_PERMITIDO":
         raise ValueError("Pergunta não permitida.")
 
-    # Apenas SELECT
-    if not re.match(r"^\s*SELECT\b", sql, re.IGNORECASE):
+    # Apenas SELECT, aceitando CTEs iniciadas por WITH que terminem em SELECT.
+    if not re.match(r"^\s*(SELECT|WITH)\b", sql, re.IGNORECASE):
         raise ValueError("Somente consultas SELECT são permitidas.")
 
     # Apenas um comando SQL

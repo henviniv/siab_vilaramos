@@ -17,9 +17,7 @@ def create_app():
         template_folder="templates"
     )
 
-    # ========================================================
-    # SECRET KEY
-    # ========================================================
+    
 
     app.secret_key = os.getenv("FIRST_SECRET_KEY")
 
@@ -28,9 +26,7 @@ def create_app():
             "FIRST_SECRET_KEY não configurada."
         )
 
-    # ========================================================
-    # FILTRO JINJA PARA CPF
-    # ========================================================
+    
 
     @app.template_filter("limpar_cpf")
     def limpar_cpf_filter(cpf):
@@ -41,9 +37,7 @@ def create_app():
             cpf or ""
         )
 
-    # ========================================================
-    # FLASK-LOGIN
-    # ========================================================
+    
 
     login_manager.init_app(app)
 
@@ -51,27 +45,19 @@ def create_app():
 
     login_manager.user_loader(load_user)
 
-    # ========================================================
-    # FLASK-LIMITER
-    # ========================================================
+    
 
     limiter.init_app(app)
 
-    # ========================================================
-    # BLUEPRINT PRINCIPAL
-    # ========================================================
+    
 
     app.register_blueprint(bp)
 
-    # ========================================================
-    # BLUEPRINT DE AUTENTICAÇÃO
-    # ========================================================
+    
 
     app.register_blueprint(auth_bp)
 
-    # ========================================================
-    # BLUEPRINT DA IA
-    # ========================================================
+    
 
     app.register_blueprint(ai_bp)
 

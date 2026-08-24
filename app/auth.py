@@ -1,14 +1,43 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash
+)
+
+from flask_login import (
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
+    UserMixin
+)
+
 from werkzeug.security import check_password_hash
+
 from app.supabase_db import supabase
+from app.extensions import login_manager, limiter
 
-auth_bp = Blueprint('auth', __name__)
-login_manager = LoginManager()
 
-# Classe de usuário para o Flask-Login
+auth_bp = Blueprint("auth", __name__)
+
+
+# ============================================================
+# USUÁRIO
+# ============================================================
+
 class User(UserMixin):
-    def __init__(self, id, username, role, micro=None, equipe=None):
+
+    def __init__(
+        self,
+        id,
+        username,
+        role,
+        micro=None,
+        equipe=None
+    ):
         self.id = id
         self.username = username
         self.role = role
@@ -16,14 +45,21 @@ class User(UserMixin):
         self.equipe = equipe
 
 
+# ============================================================
+# USER LOADER
+# ============================================================
 
 @login_manager.user_loader
 def load_user(user_id):
+
     try:
+
         resposta = (
             supabase
             .table("usuarios")
-            .select("username, role, micro, equipe")
+            .select(
+                "username, role, micro, equipe"
+            )
             .eq("username", user_id)
             .execute()
         )
@@ -42,29 +78,110 @@ def load_user(user_id):
         )
 
     except Exception as e:
-        print(f"Erro ao carregar usuário: {e}")
+
+        print(
+            f"[ERRO USER LOADER] {e}"
+        )
+
         return None
 
-@auth_bp.route('/login', methods=['GET','POST'])
+
+# ============================================================
+# LOGIN
+# ============================================================
+
+@auth_bp.route(
+    "/login",
+    methods=["GET", "POST"]
+)
+@limiter.limit(
+    "5 per minute",
+    methods=["POST"]
+)
 def login():
 
     if request.method == "POST":
 
-        username = request.form["username"].strip()
-        senha = request.form["password"]
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
 
-        resposta = (
-            supabase
-            .table("usuarios")
-            .select("*")
-            .eq("username", username)
-            .execute()
+        senha = request.form.get(
+            "password",
+            ""
         )
 
+        # ----------------------------------------------------
+        # VALIDAÇÃO
+        # ----------------------------------------------------
+
+        if not username or not senha:
+
+            flash(
+                "Usuário ou senha inválidos",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.login")
+            )
+
+        # ----------------------------------------------------
+        # BUSCA USUÁRIO
+        # ----------------------------------------------------
+
+        try:
+
+            resposta = (
+                supabase
+                .table("usuarios")
+                .select(
+                    "username, password_hash, role, micro, equipe"
+                )
+                .eq("username", username)
+                .execute()
+            )
+
+        except Exception as e:
+
+            print(
+                f"[ERRO LOGIN SUPABASE] {e}"
+            )
+
+            flash(
+                "Não foi possível realizar o login. Tente novamente.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.login")
+            )
+
+        # ----------------------------------------------------
+        # VERIFICA SENHA
+        # ----------------------------------------------------
+
         if resposta.data:
+
             user_data = resposta.data[0]
 
-            if check_password_hash(user_data["password_hash"], senha):
+            try:
+
+                senha_correta = check_password_hash(
+                    user_data["password_hash"],
+                    senha
+                )
+
+            except Exception as e:
+
+                print(
+                    f"[ERRO PASSWORD HASH] {e}"
+                )
+
+                senha_correta = False
+
+            if senha_correta:
 
                 user = User(
                     id=user_data["username"],
@@ -76,20 +193,52 @@ def login():
 
                 login_user(user)
 
-                print("[LOGIN]", user.username, "MICRO:", user.micro, "EQUIPE:", user.equipe)
+                print(
+                    "[LOGIN]",
+                    user.username,
+                    "MICRO:",
+                    user.micro,
+                    "EQUIPE:",
+                    user.equipe
+                )
 
-                return redirect(url_for("main.index"))
+                return redirect(
+                    url_for("main.index")
+                )
+
+        # ----------------------------------------------------
+        # LOGIN INVÁLIDO
+        # ----------------------------------------------------
 
         flash(
-           "Usuário ou senha inválidos",
-           "danger"
+            "Usuário ou senha inválidos",
+            "danger"
         )
 
+        return redirect(
+            url_for("auth.login")
+        )
 
-    return render_template("login.html")
+    return render_template(
+        "login.html"
+    )
 
-@auth_bp.route('/logout')
+
+# ============================================================
+# LOGOUT
+# ============================================================
+
+@auth_bp.route("/logout")
 @login_required
 def logout():
+
+    print(
+        "[LOGOUT]",
+        current_user.username
+    )
+
     logout_user()
-    return redirect(url_for('main.login'))
+
+    return redirect(
+        url_for("auth.login")
+    )

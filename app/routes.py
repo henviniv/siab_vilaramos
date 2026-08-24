@@ -567,67 +567,6 @@ def get_person_data():
         return jsonify({"erro": "Erro interno"}), 500
 
 
-@bp.route('/login', methods=['GET', 'POST'])
-def login():
-
-    if request.method == 'POST':
-
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-
-        resposta = (
-            supabase
-            .table("usuarios")
-            .select("*")
-            .eq("username", username)
-            .execute()
-        )
-
-
-        if resposta.data:
-            user_data = resposta.data[0]
-        else:
-            user_data = None
-
-
-        if user_data and user_data['password'] == password:
-
-
-            user = User(
-                id=username,
-                username=username,
-                role=user_data['role'],
-                micro=user_data.get('micro'),
-                equipe=user_data.get('equipe')
-            )
-
-
-            login_user(user)
-
-
-            session["micro"] = user_data.get("micro")
-            session["equipe"] = user_data.get("equipe")
-
-
-            return redirect(
-                url_for('main.index')
-            )
-
-
-        else:
-
-            flash(
-                "Usuário ou senha incorretos",
-                "danger"
-            )
-
-            return redirect(
-                url_for('main.login')
-            )
-
-
-    return render_template("login.html")
 
 
 @bp.route('/logout')
@@ -635,7 +574,7 @@ def login():
 def logout():
     logout_user()
     flash("Você saiu com sucesso", "info")
-    return redirect(url_for('main.login'))
+    return redirect(url_for('auth.login'))
 
 
 @bp.route('/fechamento')

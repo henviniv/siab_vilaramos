@@ -2,20 +2,8 @@ from app.google_sheets import get_sheet
 from app.supabase_db import supabase
 
 PLANILHAS = {
-    "EQUIPE 4": [
-        "MICRO 20",
-        "MICRO 21",
-        "MICRO 22",
-        "MICRO 23",
-        "MICRO 24"
-    ],
-    "EQUIPE 5": [
-        "MICRO 25",
-        "MICRO 26",
-        "MICRO 27",
-        "MICRO 28",
-        "MICRO 29",
-        "MICRO 30"
+    "EQUIPE 1": [
+        "MI 06"
     ]
 }
 

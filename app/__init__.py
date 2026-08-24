@@ -1,71 +1,78 @@
 import os
 import re
-from flask import Flask
-from flask_login import LoginManager
-from app.routes import bp
-from app.auth import User
-from app.supabase_db import supabase
-from app.ai.routes import ai_bp
 
-login_manager = LoginManager()
+from flask import Flask
+
+from app.extensions import login_manager, limiter
+from app.auth import User, load_user, auth_bp
+from app.routes import bp
+from app.ai.routes import ai_bp
 
 
 def create_app():
 
     app = Flask(
         __name__,
-        static_folder='static',
-        template_folder='templates'
+        static_folder="static",
+        template_folder="templates"
     )
 
+    # ========================================================
+    # SECRET KEY
+    # ========================================================
+
     app.secret_key = os.getenv("FIRST_SECRET_KEY")
+
     if not app.secret_key:
-        raise RuntimeError("FIRST_SECRET_KEY não configurada.")
+        raise RuntimeError(
+            "FIRST_SECRET_KEY não configurada."
+        )
 
-    # Filtro Jinja para limpar CPF
-    @app.template_filter('limpar_cpf')
+    # ========================================================
+    # FILTRO JINJA PARA CPF
+    # ========================================================
+
+    @app.template_filter("limpar_cpf")
     def limpar_cpf_filter(cpf):
-        return re.sub(r'\D', '', cpf or "")
 
+        return re.sub(
+            r"\D",
+            "",
+            cpf or ""
+        )
 
-    # Blueprint principal
-    app.register_blueprint(bp)
-    app.register_blueprint(ai_bp)
+    # ========================================================
+    # FLASK-LOGIN
+    # ========================================================
 
-
-    # Flask Login
     login_manager.init_app(app)
 
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = "auth.login"
 
+    login_manager.user_loader(load_user)
 
-    # Recupera usuário salvo na sessão
-    @login_manager.user_loader
-    def load_user(user_id):
+    # ========================================================
+    # FLASK-LIMITER
+    # ========================================================
 
-        resposta = (
-            supabase
-            .table("usuarios")
-            .select("username, role, micro, equipe")
-            .eq("username", user_id)
-            .execute()
-        )
+    limiter.init_app(app)
 
+    # ========================================================
+    # BLUEPRINT PRINCIPAL
+    # ========================================================
 
-        if not resposta.data:
-            return None
+    app.register_blueprint(bp)
 
+    # ========================================================
+    # BLUEPRINT DE AUTENTICAÇÃO
+    # ========================================================
 
-        info = resposta.data[0]
+    app.register_blueprint(auth_bp)
 
+    # ========================================================
+    # BLUEPRINT DA IA
+    # ========================================================
 
-        return User(
-            id=info["username"],
-            username=info["username"],
-            role=info["role"],
-            micro=info.get("micro"),
-            equipe=info.get("equipe")
-        )
-
+    app.register_blueprint(ai_bp)
 
     return app

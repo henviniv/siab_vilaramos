@@ -8,6 +8,7 @@ Responsabilidades:
 """
 
 import os
+import re
 
 from groq import Groq
 
@@ -71,14 +72,16 @@ def preparar_dados_para_resposta(dados, limite=20):
             "registros": [],
         }
 
-    # Caso comum de COUNT(*)
+    # Caso comum de COUNT(*). O prompt de SQL pede o alias ``quantidade``,
+    # mas alguns drivers retornam ``count`` quando a consulta não tem alias.
     if (
         len(dados) == 1
         and isinstance(dados[0], dict)
-        and "count" in dados[0]
+        and len(dados[0]) == 1
+        and ("quantidade" in dados[0] or "count" in dados[0])
     ):
         return {
-            "quantidade": dados[0]["count"],
+            "quantidade": dados[0].get("quantidade", dados[0].get("count")),
             "tipo": "contagem",
             "registros": [],
         }
@@ -108,6 +111,40 @@ def preparar_dados_para_resposta(dados, limite=20):
     }
 
 
+def resposta_direta_para_contagem(pergunta: str, dados_resumidos) -> str | None:
+    """Retorna uma frase natural para a faixa etária mais comum no SIAB.
+
+    Evita uma segunda chamada à Groq para perguntas de contagem de crianças
+    por idade, sem tentar adivinhar respostas para os demais tipos de consulta.
+    """
+
+    if dados_resumidos.get("tipo") != "contagem":
+        return None
+
+    pergunta_normalizada = " ".join(pergunta.lower().split())
+    correspondencia = re.search(
+        r"quant[oa]s?\s+(?P<grupo>.+?)\s+de\s+(?P<min>\d+)\s*(?:anos?)?"
+        r"\s+(?:at[eé]\s+)?(?:at[eé]\s+)?menor(?:es)?\s+de\s+"
+        r"(?P<max>\d+)\s+anos?\s+exist",
+        pergunta_normalizada,
+    )
+
+    if not correspondencia:
+        return None
+
+    grupo = correspondencia.group("grupo")
+    idade_minima = correspondencia.group("min")
+    idade_maxima = correspondencia.group("max")
+    unidade_minima = "ano" if idade_minima == "1" else "anos"
+    unidade_maxima = "ano" if idade_maxima == "1" else "anos"
+
+    return (
+        f"Existem {dados_resumidos['quantidade']} {grupo} maiores de "
+        f"{idade_minima} {unidade_minima} e menores de {idade_maxima} "
+        f"{unidade_maxima}."
+    )
+
+
 def gerar_resposta(pergunta: str, sql: str, dados) -> str:
     """
     Recebe os dados do banco e gera uma resposta amigável.
@@ -120,27 +157,18 @@ def gerar_resposta(pergunta: str, sql: str, dados) -> str:
     """
 
     dados_resumidos = preparar_dados_para_resposta(dados)
+    resposta_direta = resposta_direta_para_contagem(pergunta, dados_resumidos)
+
+    if resposta_direta:
+        return resposta_direta
 
     prompt = f"""
-Pergunta do usuário:
-{pergunta}
+Responda à pergunta em português do Brasil, com uma frase curta e natural
+para pessoas leigas. Use somente o resultado; não mencione SQL, registros,
+campos ou detalhes técnicos.
 
-SQL executado:
-{sql}
-
-Resultado da consulta:
-{dados_resumidos}
-
-Explique o resultado em português do Brasil.
-
-Regras:
-- Não invente informações.
-- Use somente informações presentes no resultado da consulta.
-- Se a consulta for uma contagem, informe claramente a quantidade encontrada.
-- Se não existirem registros, informe isso claramente.
-- Se o resultado tiver muitos registros e estiver mostrando apenas uma amostra,
-  não diga que a amostra representa todos os registros.
-- Quando houver uma quantidade total disponível, use essa quantidade.
+Pergunta: {pergunta}
+Resultado: {dados_resumidos}
 """
 
     resposta = client.chat.completions.create(

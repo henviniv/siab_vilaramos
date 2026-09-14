@@ -48,7 +48,9 @@ def consultar(pergunta: str, usuario=None):
 
     # 4) IA transforma os dados em linguagem natural
     resposta = gerar_resposta(
-        pergunta=pergunta_sql,
+        # O contexto acima é necessário para gerar o SQL, mas não deve ser
+        # repetido para o usuário nem enviado à IA responsável pela resposta.
+        pergunta=pergunta,
         sql=sql,
         dados=dados
     )

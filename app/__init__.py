@@ -6,7 +6,7 @@ from flask import Flask
 from app.extensions import login_manager, limiter
 from app.auth import User, load_user, auth_bp
 from app.routes import bp
-from app.ai.routes import ai_bp
+
 
 
 def create_app():
@@ -57,7 +57,7 @@ def create_app():
 
     app.register_blueprint(auth_bp)
 
-    
+    from app.ai.routes import ai_bp
 
     app.register_blueprint(ai_bp)
 
